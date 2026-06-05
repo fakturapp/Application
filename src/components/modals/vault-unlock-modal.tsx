@@ -134,7 +134,7 @@ export function VaultUnlockModal({ forceOpen = false, onStartRecovery }: VaultUn
             variant="outline"
             className="w-full"
             onClick={() => {
-              const resolved = accountUrl('/account/security')
+              const resolved = accountUrl('/settings/security')
               const url = resolved.startsWith('http') ? resolved : `${window.location.origin}${resolved}`
               if (typeof window !== 'undefined' && (window as any).fakturDesktop?.openExternal) {
                 ;(window as any).fakturDesktop.openExternal(url)

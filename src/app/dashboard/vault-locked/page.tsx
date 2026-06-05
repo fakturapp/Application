@@ -182,7 +182,7 @@ export default function VaultLockedPage() {
                   variant="outline"
                   className="flex-1"
                   onClick={() => {
-                    const resolved = accountUrl('/account/security')
+                    const resolved = accountUrl('/settings/security')
                     const url = resolved.startsWith('http') ? resolved : `${window.location.origin}${resolved}`
                     if (typeof window !== 'undefined' && (window as unknown as { fakturDesktop?: { openExternal?: (u: string) => void } }).fakturDesktop?.openExternal) {
                       ;(window as unknown as { fakturDesktop: { openExternal: (u: string) => void } }).fakturDesktop.openExternal(url)
@@ -365,7 +365,7 @@ export default function VaultLockedPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => { window.location.href = accountUrl('/account/security') }}
+                onClick={() => { window.location.href = accountUrl('/settings/security') }}
               >
                 Page sécurité
               </Button>

@@ -275,7 +275,7 @@ export default function StoragePage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => { window.location.href = accountUrl('/account/export') }}
+            onClick={() => { window.location.href = accountUrl('/settings/export') }}
           >
             <Download className="h-4 w-4" />
             Exporter mes données

@@ -200,7 +200,7 @@ export default function TeamPage() {
         }
         sessionStorage.setItem('faktur_account_delete_flash', JSON.stringify(flash))
       } catch {}
-      window.location.href = accountUrl('/account/delete')
+      window.location.href = accountUrl('/settings/delete')
     }
   }
 

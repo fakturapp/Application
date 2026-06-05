@@ -216,19 +216,19 @@ const settingsNav: NavItem[] = [
 
 const accountNav: NavItem[] = [
   {
-    href: accountUrl('/account'),
+    href: accountUrl('/settings'),
     label: 'Profil',
     icon: User,
     children: [
-      { href: accountUrl('/account'), label: 'Informations', icon: User },
-      { href: accountUrl('/account/security'), label: 'S\u00e9curit\u00e9', icon: Shield },
+      { href: accountUrl('/settings'), label: 'Informations', icon: User },
+      { href: accountUrl('/settings/security'), label: 'S\u00e9curit\u00e9', icon: Shield },
     ],
   },
-  { href: accountUrl('/account/sessions'), label: 'Sessions', icon: Monitor },
-  { href: accountUrl('/account/oauth'), label: 'Applications connectées', icon: ShieldCheck },
-  { href: accountUrl('/account/export'), label: 'Exportation', icon: Download },
+  { href: accountUrl('/settings/sessions'), label: 'Sessions', icon: Monitor },
+  { href: accountUrl('/settings/oauth'), label: 'Applications connectées', icon: ShieldCheck },
+  { href: accountUrl('/settings/export'), label: 'Exportation', icon: Download },
   {
-    href: accountUrl('/account/delete'),
+    href: accountUrl('/settings/delete'),
     label: 'Supprimer le compte',
     icon: Trash2,
     confirmRedirect: {
@@ -1002,7 +1002,7 @@ Stockage
             </DropdownItem>
           )}
 
-          <a href={accountUrl('/account')}>
+          <a href={accountUrl('/settings')}>
             <DropdownItem>
               <User className="h-4 w-4 text-violet-500" /> Mon compte
             </DropdownItem>
