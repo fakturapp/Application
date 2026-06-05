@@ -1,10 +1,13 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { api } from '@/lib/api'
 import { getVaultCookie, setVaultCookie, clearVaultCookie } from '@/lib/cross-domain-cookie'
 import { accountLoginUrl, ACCOUNT_URL } from '@/lib/account-redirect'
+import { readSsoTries, returnUrlWithTries, clearSsoParam, MAX_SSO_TRIES } from '@/lib/loop-guard'
+import { diagnoseSessionLoop, type SessionDiagnostics } from '@/lib/session-diagnostics'
+import { SessionLoopScreen } from '@/components/auth/session-loop-screen'
 import { CryptoResetModal } from '@/components/modals/crypto-reset-modal'
 import { VaultUnlockModal } from '@/components/modals/vault-unlock-modal'
 import { RecoveryKeySetupModal } from '@/components/modals/recovery-key-setup-modal'
@@ -138,6 +141,8 @@ if (typeof window !== 'undefined') {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loopError, setLoopError] = useState<SessionDiagnostics | null>(null)
+  const loopHandledRef = useRef(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -188,6 +193,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser()
   }, [refreshUser])
 
+  const handleRedirectLoop = useCallback(async (tries: number) => {
+    loopHandledRef.current = true
+    clearSsoParam()
+    clearVaultCookie()
+    try {
+      for (const key of AUTH_LOCAL_KEYS) {
+        localStorage.removeItem(key)
+      }
+    } catch {}
+    setUser(null)
+    const diag = await diagnoseSessionLoop(tries)
+    setLoopError(diag)
+  }, [])
+
   const currentTeam = user?.teams?.find((t) => t.id === user.currentTeamId) ?? null
   const hasPendingRecoveryKey =
     typeof window !== 'undefined' &&
@@ -201,22 +220,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading) return
+    if (loopHandledRef.current) return
 
     if (user && typeof window !== 'undefined') {
-      sessionStorage.removeItem('faktur_sso_attempts')
+      clearSsoParam()
     }
 
     if (user && user.teams === undefined) return
 
     if (!user && !isPublicPath) {
       if (ACCOUNT_URL && typeof window !== 'undefined') {
-        const ssoAttempts = Number(sessionStorage.getItem('faktur_sso_attempts') || '0')
-        if (ssoAttempts >= 2) {
-          sessionStorage.removeItem('faktur_sso_attempts')
+        const tries = readSsoTries()
+        if (tries >= MAX_SSO_TRIES) {
+          void handleRedirectLoop(tries)
           return
         }
-        sessionStorage.setItem('faktur_sso_attempts', String(ssoAttempts + 1))
-        window.location.href = accountLoginUrl(window.location.href)
+        window.location.href = accountLoginUrl(returnUrlWithTries(tries + 1))
         return
       }
       let target = '/login'
@@ -273,7 +292,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
     }
-  }, [user, loading, pathname, isPublicPath, router, needsOnboarding])
+  }, [user, loading, pathname, isPublicPath, router, needsOnboarding, handleRedirectLoop])
 
   function login(token: string, userData: User, vaultKey?: string) {
     localStorage.setItem('faktur_token', token)
@@ -367,6 +386,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
       {children}
+      {loopError && (
+        <SessionLoopScreen
+          diagnostics={loopError}
+          onRetry={() => {
+            loopHandledRef.current = false
+            setLoopError(null)
+            if (typeof window !== 'undefined') {
+              window.location.href = accountLoginUrl(window.location.origin)
+            }
+          }}
+        />
+      )}
       <CryptoResetModal
         open={!!user?.cryptoResetNeeded || forceCryptoReset}
         canRecoverWithPassword={!!user?.canRecoverWithPassword}
