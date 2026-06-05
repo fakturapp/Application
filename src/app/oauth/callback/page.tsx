@@ -1,51 +1,22 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { accountUrl } from '@/lib/account-redirect'
+import { useEffect } from 'react'
+import { accountUrl, ACCOUNT_URL } from '@/lib/account-redirect'
 
-function OAuthCallbackContent() {
-  const searchParams = useSearchParams()
-
+export default function OAuthCallbackPage() {
   useEffect(() => {
-    const success = searchParams.get('success') === 'true'
-    const error = searchParams.get('error')
-
-    const wasFullPageFallback = (() => {
-      try { return sessionStorage.getItem('faktur_google_link_pending') === '1' } catch { return false }
-    })()
-
-    if (window.opener && !wasFullPageFallback) {
-      window.opener.postMessage(
-        { type: 'oauth_callback', success, error: error || null },
-        window.location.origin
-      )
-      window.close()
-      return
-    }
-
-    try { sessionStorage.removeItem('faktur_google_link_pending') } catch {}
-    if (success) {
-      window.location.href = accountUrl('/account/google-linked')
-    } else {
-      window.location.href = accountUrl(`/account?error=${error || 'unknown'}`)
-    }
-  }, [searchParams])
+    if (!ACCOUNT_URL) return
+    window.location.replace(
+      accountUrl('/oauth/callback') + window.location.search + window.location.hash
+    )
+  }, [])
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="text-center space-y-3">
         <div className="h-8 w-8 mx-auto border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground">Redirection en cours...</p>
+        <p className="text-sm text-muted-foreground">Redirection...</p>
       </div>
     </div>
-  )
-}
-
-export default function OAuthCallbackPage() {
-  return (
-    <Suspense>
-      <OAuthCallbackContent />
-    </Suspense>
   )
 }
