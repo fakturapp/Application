@@ -19,7 +19,6 @@ const routeTitles: Record<string, string> = {
   '/dashboard/company': 'Entreprise',
   '/dashboard/team': 'Equipe',
   '/dashboard/team/create': 'Créer une équipe',
-  '/dashboard/account': 'Mon compte',
   '/dashboard/settings': 'Paramètres',
   '/dashboard/settings/company': 'Informations',
   '/dashboard/settings/company/bank': 'Banque',

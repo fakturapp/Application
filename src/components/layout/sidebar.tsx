@@ -5,6 +5,7 @@ import { useState } from 'react'
 import Link, { useLinkStatus } from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { accountUrl } from '@/lib/account-redirect'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Avatar } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem, DropdownLabel, DropdownSeparator, DropdownSub } from '@/components/ui/dropdown'
@@ -215,19 +216,19 @@ const settingsNav: NavItem[] = [
 
 const accountNav: NavItem[] = [
   {
-    href: '/dashboard/account',
+    href: accountUrl('/account'),
     label: 'Profil',
     icon: User,
     children: [
-      { href: '/dashboard/account', label: 'Informations', icon: User },
-      { href: '/dashboard/account/security', label: 'S\u00e9curit\u00e9', icon: Shield },
+      { href: accountUrl('/account'), label: 'Informations', icon: User },
+      { href: accountUrl('/account/security'), label: 'S\u00e9curit\u00e9', icon: Shield },
     ],
   },
-  { href: '/dashboard/account/sessions', label: 'Sessions', icon: Monitor },
-  { href: '/dashboard/account/oauth', label: 'Applications connectées', icon: ShieldCheck },
-  { href: '/dashboard/account/export', label: 'Exportation', icon: Download },
+  { href: accountUrl('/account/sessions'), label: 'Sessions', icon: Monitor },
+  { href: accountUrl('/account/oauth'), label: 'Applications connectées', icon: ShieldCheck },
+  { href: accountUrl('/account/export'), label: 'Exportation', icon: Download },
   {
-    href: '/dashboard/account/delete',
+    href: accountUrl('/account/delete'),
     label: 'Supprimer le compte',
     icon: Trash2,
     confirmRedirect: {
@@ -1001,11 +1002,11 @@ Stockage
             </DropdownItem>
           )}
 
-          <Link href="/dashboard/account">
+          <a href={accountUrl('/account')}>
             <DropdownItem>
               <User className="h-4 w-4 text-violet-500" /> Mon compte
             </DropdownItem>
-          </Link>
+          </a>
 
           {isAdmin && (
             <Link href="/dashboard/admin">
