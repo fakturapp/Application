@@ -2,6 +2,7 @@
 
 import { useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { accountUrl } from '@/lib/account-redirect'
 
 function OAuthCallbackContent() {
   const searchParams = useSearchParams()
@@ -25,9 +26,9 @@ function OAuthCallbackContent() {
 
     try { sessionStorage.removeItem('faktur_google_link_pending') } catch {}
     if (success) {
-      window.location.href = '/dashboard/account/google-linked'
+      window.location.href = accountUrl('/account/google-linked')
     } else {
-      window.location.href = `/dashboard/account?error=${error || 'unknown'}`
+      window.location.href = accountUrl(`/account?error=${error || 'unknown'}`)
     }
   }, [searchParams])
 

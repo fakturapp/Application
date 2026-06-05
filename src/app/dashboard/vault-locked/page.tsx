@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Avatar } from '@/components/ui/avatar'
 import { api, onVaultLocked } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { accountUrl } from '@/lib/account-redirect'
 import { isFakturDesktop } from '@/lib/is-desktop'
 import { HiddenUsername } from '@/components/auth/hidden-username'
 import { DashboardBackground } from '@/components/layout/dashboard-background'
@@ -181,7 +182,8 @@ export default function VaultLockedPage() {
                   variant="outline"
                   className="flex-1"
                   onClick={() => {
-                    const url = `${window.location.origin}/dashboard/account/security`
+                    const resolved = accountUrl('/account/security')
+                    const url = resolved.startsWith('http') ? resolved : `${window.location.origin}${resolved}`
                     if (typeof window !== 'undefined' && (window as unknown as { fakturDesktop?: { openExternal?: (u: string) => void } }).fakturDesktop?.openExternal) {
                       ;(window as unknown as { fakturDesktop: { openExternal: (u: string) => void } }).fakturDesktop.openExternal(url)
                     } else {
@@ -363,7 +365,7 @@ export default function VaultLockedPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => router.push('/dashboard/account/security')}
+                onClick={() => { window.location.href = accountUrl('/account/security') }}
               >
                 Page sécurité
               </Button>

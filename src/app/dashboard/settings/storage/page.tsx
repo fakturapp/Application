@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
+import { accountUrl } from '@/lib/account-redirect'
 import { cn, formatBytes } from '@/lib/utils'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
@@ -274,7 +275,7 @@ export default function StoragePage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.push('/dashboard/account/export')}
+            onClick={() => { window.location.href = accountUrl('/account/export') }}
           >
             <Download className="h-4 w-4" />
             Exporter mes données

@@ -17,6 +17,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { useAuth } from '@/lib/auth'
 import { useToast, toast as t } from '@/components/ui/toast'
 import { api } from '@/lib/api'
+import { accountUrl } from '@/lib/account-redirect'
 import { Spinner } from '@/components/ui/spinner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { RecoveryKeyModal } from '@/components/modals/recovery-key-modal'
@@ -199,7 +200,7 @@ export default function TeamPage() {
         }
         sessionStorage.setItem('faktur_account_delete_flash', JSON.stringify(flash))
       } catch {}
-      router.push('/dashboard/account/delete')
+      window.location.href = accountUrl('/account/delete')
     }
   }
 

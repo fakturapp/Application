@@ -8,6 +8,7 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { Lock, Eye, EyeOff, KeyRound, ExternalLink, LogOut, ShieldAlert } from '@/components/ui/icons'
 import { api, onVaultLocked } from '@/lib/api'
+import { accountUrl } from '@/lib/account-redirect'
 import { isFakturDesktop } from '@/lib/is-desktop'
 import { useAuth } from '@/lib/auth'
 import { HiddenUsername } from '@/components/auth/hidden-username'
@@ -133,7 +134,8 @@ export function VaultUnlockModal({ forceOpen = false, onStartRecovery }: VaultUn
             variant="outline"
             className="w-full"
             onClick={() => {
-              const url = `${window.location.origin}/dashboard/account/security`
+              const resolved = accountUrl('/account/security')
+              const url = resolved.startsWith('http') ? resolved : `${window.location.origin}${resolved}`
               if (typeof window !== 'undefined' && (window as any).fakturDesktop?.openExternal) {
                 ;(window as any).fakturDesktop.openExternal(url)
               } else {
