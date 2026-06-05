@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { accountLoginUrl, ACCOUNT_URL } from '@/lib/account-redirect'
 import { useTheme } from '@/lib/theme'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
@@ -117,8 +118,12 @@ function AuthorizeContent() {
   useEffect(() => {
     if (authLoading) return
     if (!user) {
-      const returnTo = encodeURIComponent(`/oauth/authorize?${queryString}`)
-      router.replace(`/login?redirect=${returnTo}`)
+      const returnTo = `${window.location.origin}/oauth/authorize?${queryString}`
+      if (ACCOUNT_URL) {
+        window.location.href = accountLoginUrl(returnTo)
+      } else {
+        router.replace(`/login?redirect=${encodeURIComponent(`/oauth/authorize?${queryString}`)}`)
+      }
     }
   }, [user, authLoading, router, queryString])
 
@@ -194,8 +199,12 @@ function AuthorizeContent() {
       localStorage.removeItem('faktur_token')
       localStorage.removeItem('faktur_vault_key')
     } catch {}
-    const returnTo = encodeURIComponent(`/oauth/authorize?${queryString}`)
-    router.replace(`/login?redirect=${returnTo}`)
+    const returnTo = `${window.location.origin}/oauth/authorize?${queryString}`
+    if (ACCOUNT_URL) {
+      window.location.href = accountLoginUrl(returnTo)
+    } else {
+      router.replace(`/login?redirect=${encodeURIComponent(`/oauth/authorize?${queryString}`)}`)
+    }
   }
 
   const veilHueShift = resolvedTheme === 'light' ? 220 : 0

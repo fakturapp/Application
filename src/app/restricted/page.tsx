@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { IS_ADMIN_ONLY } from '@/lib/app-env'
+import { accountLoginUrl, ACCOUNT_URL } from '@/lib/account-redirect'
 
 export default function RestrictedPage() {
   const { user, loading, logout } = useAuth()
@@ -17,7 +18,11 @@ export default function RestrictedPage() {
     if (!IS_ADMIN_ONLY || (user && user.isAdmin)) {
       router.replace('/dashboard')
     } else if (!user) {
-      router.replace('/login')
+      if (ACCOUNT_URL) {
+        window.location.href = accountLoginUrl(window.location.origin)
+      } else {
+        router.replace('/login')
+      }
     }
   }, [user, loading, router])
 

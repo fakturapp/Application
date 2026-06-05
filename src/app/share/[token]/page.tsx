@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { api } from '@/lib/api'
+import { accountLoginUrl } from '@/lib/account-redirect'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import { ShieldAlert, LogIn } from '@/components/ui/icons'
@@ -89,7 +90,7 @@ export default function ShareLinkPage() {
           <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
             Vous devez \u00eatre connect\u00e9 pour acc\u00e9der \u00e0 ce document partag\u00e9.
           </p>
-          <Button onClick={() => router.push('/login')} className="gap-2">
+          <Button onClick={() => { window.location.href = accountLoginUrl(window.location.href) }} className="gap-2">
             <LogIn className="h-4 w-4" /> Se connecter
           </Button>
         </motion.div>

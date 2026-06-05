@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
+import { accountLoginUrl, ACCOUNT_URL } from '@/lib/account-redirect'
 import { Spinner } from '@/components/ui/spinner'
 
 export default function HomePage() {
@@ -13,6 +14,8 @@ export default function HomePage() {
     if (loading) return
     if (user) {
       router.replace('/dashboard')
+    } else if (ACCOUNT_URL) {
+      window.location.href = accountLoginUrl(window.location.origin)
     } else {
       router.replace('/login')
     }
