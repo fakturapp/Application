@@ -97,8 +97,7 @@ export function useAuth() {
 
 const publicPaths = [
   '/legal',
-  '/oauth/google',
-  '/oauth/error',
+  '/oauth',
   '/share',
   '/checkout',
 ]
