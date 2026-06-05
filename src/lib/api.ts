@@ -1,5 +1,6 @@
 import { tutorialIntercept } from './tutorial-sandbox'
 import { captureApiError } from './dev-mode'
+import { redirectToAccountLogin } from './account-redirect'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
 const API_PREFIX = process.env.NEXT_PUBLIC_API_PREFIX || '/v1'
@@ -75,7 +76,7 @@ function handleVaultOrSession(data: any, status: number): { error: string } | nu
   ) {
     localStorage.removeItem('faktur_token')
     localStorage.removeItem('faktur_vault_key')
-    window.location.href = '/login'
+    redirectToAccountLogin()
     return { error: message || 'Session expired' }
   }
 
@@ -105,7 +106,7 @@ async function request<T = unknown>(
   }
 
   try {
-    const res = await fetch(resolveApiUrl(endpoint), { ...options, headers })
+    const res = await fetch(resolveApiUrl(endpoint), { ...options, headers, credentials: 'include' })
 
     if (res.status === 423 || res.status === 401) {
       const data = await res.json().catch(() => ({}))
@@ -151,6 +152,7 @@ async function uploadRequest<T = unknown>(
       method: 'POST',
       headers,
       body: formData,
+      credentials: 'include',
     })
 
     if (res.status === 423 || res.status === 401) {
@@ -189,7 +191,7 @@ async function blobRequest(endpoint: string): Promise<{ blob?: Blob; filename?: 
   }
 
   try {
-    const res = await fetch(resolveApiUrl(endpoint), { method: 'GET', headers })
+    const res = await fetch(resolveApiUrl(endpoint), { method: 'GET', headers, credentials: 'include' })
 
     if (res.status === 423 || res.status === 401) {
       const data = await res.json().catch(() => ({}))
@@ -234,6 +236,7 @@ async function postBlobRequest(
       method: 'POST',
       headers,
       body: JSON.stringify(body),
+      credentials: 'include',
     })
 
     if (res.status === 423 || res.status === 401) {
