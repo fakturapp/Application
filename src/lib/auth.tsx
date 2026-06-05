@@ -71,7 +71,6 @@ const AUTH_LOCAL_KEYS = [
   'faktur_vault_key',
   'faktur_source',
   'faktur_vault_locked',
-  'faktur_last_login',
 ] as const
 
 const ALWAYS_PRESERVE_KEYS = new Set<string>([
