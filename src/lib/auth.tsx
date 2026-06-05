@@ -202,10 +202,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return
 
+    if (user && typeof window !== 'undefined') {
+      sessionStorage.removeItem('faktur_sso_attempts')
+    }
+
     if (user && user.teams === undefined) return
 
     if (!user && !isPublicPath) {
       if (ACCOUNT_URL && typeof window !== 'undefined') {
+        const ssoAttempts = Number(sessionStorage.getItem('faktur_sso_attempts') || '0')
+        if (ssoAttempts >= 2) {
+          sessionStorage.removeItem('faktur_sso_attempts')
+          return
+        }
+        sessionStorage.setItem('faktur_sso_attempts', String(ssoAttempts + 1))
         window.location.href = accountLoginUrl(window.location.href)
         return
       }
