@@ -98,6 +98,7 @@ export function useAuth() {
 const publicPaths = [
   '/legal',
   '/oauth',
+  '/sso',
   '/share',
   '/checkout',
 ]
@@ -255,6 +256,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         pathname.startsWith('/legal') ||
         pathname.startsWith('/share') ||
         pathname.startsWith('/checkout') ||
+        pathname.startsWith('/sso') ||
         SHORT_CHECKOUT_PATH.test(pathname)
       ) {
         return
