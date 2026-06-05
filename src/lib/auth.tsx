@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { api } from '@/lib/api'
+import { getVaultCookie, setVaultCookie, clearVaultCookie } from '@/lib/cross-domain-cookie'
+import { accountLoginUrl, ACCOUNT_URL } from '@/lib/account-redirect'
 import { CryptoResetModal } from '@/components/modals/crypto-reset-modal'
 import { VaultUnlockModal } from '@/components/modals/vault-unlock-modal'
 import { RecoveryKeySetupModal } from '@/components/modals/recovery-key-setup-modal'
@@ -91,13 +93,6 @@ export function useAuth() {
 }
 
 const publicPaths = [
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-  '/verify-email',
-  '/2fa',
-  '/invite',
   '/legal',
   '/oauth/google',
   '/oauth/error',
@@ -153,11 +148,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = useCallback(async () => {
     consumeDesktopSessionHash()
 
-    const token = localStorage.getItem('faktur_token')
-    if (!token) {
-      setUser(null)
-      setLoading(false)
-      return
+    if (typeof window !== 'undefined') {
+      const existingVaultKey = localStorage.getItem('faktur_vault_key')
+      if (!existingVaultKey) {
+        const cookieVaultKey = getVaultCookie()
+        if (cookieVaultKey) {
+          localStorage.setItem('faktur_vault_key', cookieVaultKey)
+        }
+      }
     }
 
     const { data, error } = await api.get<{ user: User }>('/auth/me')
@@ -207,6 +205,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user && user.teams === undefined) return
 
     if (!user && !isPublicPath) {
+      if (ACCOUNT_URL && typeof window !== 'undefined') {
+        window.location.href = accountLoginUrl(window.location.href)
+        return
+      }
       let target = '/login'
       if (typeof window !== 'undefined') {
         const current = window.location.pathname + window.location.search
@@ -220,10 +222,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (user && isPublicPath) {
       if (
-        pathname === '/login' ||
-        pathname === '/register' ||
-        pathname.startsWith('/verify-email') ||
-        pathname.startsWith('/invite') ||
         pathname.startsWith('/legal') ||
         pathname.startsWith('/share') ||
         pathname.startsWith('/checkout') ||
@@ -271,6 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('faktur_token', token)
     if (vaultKey) {
       localStorage.setItem('faktur_vault_key', vaultKey)
+      setVaultCookie(vaultKey)
     }
 
     try {
@@ -295,6 +294,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const wipeAll = options.wipeAll === true
 
     function clearLocalStorageState() {
+      clearVaultCookie()
       try {
         if (wipeAll) {
           const keys = Object.keys(localStorage)
@@ -329,6 +329,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await api.post('/auth/logout', {})
     clearLocalStorageState()
     setUser(null)
+    if (ACCOUNT_URL && typeof window !== 'undefined') {
+      window.location.href = accountLoginUrl(window.location.origin)
+      return
+    }
     router.replace('/login')
   }
 
