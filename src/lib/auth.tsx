@@ -198,9 +198,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearSsoParam()
     clearVaultCookie()
     try {
-      for (const key of AUTH_LOCAL_KEYS) {
+      for (const key of Object.keys(localStorage)) {
+        if (ALWAYS_PRESERVE_KEYS.has(key)) continue
         localStorage.removeItem(key)
       }
+      sessionStorage.clear()
     } catch {}
     setUser(null)
     const diag = await diagnoseSessionLoop(tries)

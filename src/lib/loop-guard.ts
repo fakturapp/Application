@@ -1,6 +1,6 @@
 const SSO_PARAM = '_sso'
 
-export const MAX_SSO_TRIES = 2
+export const MAX_SSO_TRIES = 3
 
 export function readSsoTries(): number {
   if (typeof window === 'undefined') return 0
