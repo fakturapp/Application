@@ -2,7 +2,7 @@ import { tutorialIntercept } from './tutorial-sandbox'
 import { captureApiError } from './dev-mode'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-const API_PREFIX = process.env.NEXT_PUBLIC_API_PREFIX || ''
+const API_PREFIX = process.env.NEXT_PUBLIC_API_PREFIX || '/v1'
 
 function resolveApiUrl(endpoint: string) {
   return `${API_URL}${API_PREFIX}${endpoint}`
