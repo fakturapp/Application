@@ -413,6 +413,7 @@ function EditInvoiceContent() {
 
     const payload = {
       clientId: selectedClient?.id || undefined,
+      invoiceNumber: invoiceNumber.trim() || undefined,
       subject: options.showSubject ? (options.subject || undefined) : undefined,
       issueDate: options.issueDate,
       dueDate: options.validityDate || undefined,
