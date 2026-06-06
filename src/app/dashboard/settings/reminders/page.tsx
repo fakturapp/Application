@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/components/ui/toast'
 import { useEmail } from '@/lib/email-context'
+import { useAuth } from '@/lib/auth'
+import { ProGate } from '@/components/billing/pro-gate'
 import { api } from '@/lib/api'
 import { Bell, Save, Info } from '@/components/ui/icons'
 
@@ -39,6 +41,8 @@ interface ReminderSettings {
 export default function ReminderSettingsPage() {
   const { toast } = useToast()
   const { accounts, loading: accountsLoading } = useEmail()
+  const { user } = useAuth()
+  const locked = !(user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -119,6 +123,7 @@ export default function ReminderSettingsPage() {
       </motion.div>
 
       {}
+      <ProGate locked={locked} description="Passez à Pro pour activer les relances automatiques.">
       <motion.div variants={fadeUp} custom={1}>
         <Card>
           <CardContent className="p-5">
@@ -139,6 +144,7 @@ export default function ReminderSettingsPage() {
           </CardContent>
         </Card>
       </motion.div>
+      </ProGate>
 
       {enabled && (
         <>
