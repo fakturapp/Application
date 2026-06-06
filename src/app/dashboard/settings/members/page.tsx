@@ -26,6 +26,8 @@ import {
   UserPlus,
   Crown,
   Shield,
+  Lock,
+  Cloud,
   KeyRound,
   Eye,
   UserCog,
@@ -483,7 +485,19 @@ export default function TeamPage() {
                   )}
                 </button>
                 <div className="mb-1">
-                  <h1 className="text-xl font-bold text-foreground">{team?.name}</h1>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-xl font-bold text-foreground">{team?.name}</h1>
+                    {team && (
+                      <button
+                        type="button"
+                        onClick={() => router.push('/dashboard/settings/plan')}
+                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors hover:opacity-80 ${planMeta.accentText} ${planMeta.accentSoft} ${planMeta.accentRing}`}
+                      >
+                        <PlanIcon className="h-3 w-3" />
+                        {planMeta.name}
+                      </button>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     {totalMembers} membre{totalMembers > 1 ? 's' : ''}
                     {pendingMembers.length > 0 && (
@@ -492,36 +506,36 @@ export default function TeamPage() {
                   </p>
                   {team && (
                     <p className="mt-1 inline-flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1.5">
-                        <PlanIcon className={`h-3.5 w-3.5 ${planMeta.accentText}`} />
-                        <span>
-                          Plan&nbsp;:{' '}
-                          <span className="font-medium text-foreground">{planMeta.name}</span>
+                      {team.encryptionMode === 'standard' ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Cloud className="h-3.5 w-3.5 text-sky-400" />
+                          <span>
+                            Chiffrement&nbsp;:{' '}
+                            <span className="font-medium text-foreground">Standard</span>
+                          </span>
                         </span>
-                      </span>
-                      {' '}
-                      &middot;{' '}
-                      <button
-                        type="button"
-                        onClick={() => router.push('/dashboard/settings/plan')}
-                        className="text-accent underline-offset-2 hover:underline"
-                      >
-                        Voir les plans
-                      </button>
-                      {isSuperAdmin && team.encryptionMode === 'private' && (
-                        <>
-                          {' '}
-                          &middot;{' '}
-                          <Tooltip content="Migrer vers le mode Standard pour ne plus avoir besoin du mot de passe pour déchiffrer les données." side="top">
-                            <button
-                              type="button"
-                              onClick={() => setEncryptionMigrationOpen(true)}
-                              className="text-muted-foreground underline-offset-2 hover:underline hover:text-foreground"
-                            >
-                              Chiffrement&nbsp;: Privé
-                            </button>
-                          </Tooltip>
-                        </>
+                      ) : isSuperAdmin ? (
+                        <Tooltip content="Migrer vers le mode Standard pour ne plus avoir besoin du mot de passe pour déchiffrer les données." side="top">
+                          <button
+                            type="button"
+                            onClick={() => setEncryptionMigrationOpen(true)}
+                            className="inline-flex items-center gap-1.5 text-muted-foreground underline-offset-2 hover:underline hover:text-foreground"
+                          >
+                            <Lock className="h-3.5 w-3.5 text-amber-400" />
+                            <span>
+                              Chiffrement&nbsp;:{' '}
+                              <span className="font-medium text-foreground">Privé</span>
+                            </span>
+                          </button>
+                        </Tooltip>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Lock className="h-3.5 w-3.5 text-amber-400" />
+                          <span>
+                            Chiffrement&nbsp;:{' '}
+                            <span className="font-medium text-foreground">Privé</span>
+                          </span>
+                        </span>
                       )}
                     </p>
                   )}
