@@ -32,6 +32,8 @@ import { TutorialOfferModal } from '@/components/tutorial/tutorial-offer-modal'
 import { TutorialLevelComplete } from '@/components/tutorial/tutorial-level-complete'
 import { TeamEncryptionBanner } from '@/components/team/team-encryption-banner'
 import { SubscriptionBanner } from '@/components/team/subscription-banner'
+import { CollaborationGraceBanner } from '@/components/team/collaboration-grace-banner'
+import { TeamAccessRevokedScreen } from '@/components/team/team-access-revoked-screen'
 import { StorageBanner } from '@/components/team/storage-banner'
 import { StorageFullModal } from '@/components/team/storage-full-modal'
 import { onStorageFull } from '@/lib/api'
@@ -308,6 +310,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (!user) return null
 
+  if (user.currentTeamAccessRevoked) {
+    return <TeamAccessRevokedScreen teamName={user.currentTeamName ?? null} />
+  }
+
   if (IS_ADMIN_ONLY && !user.isAdmin) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -430,6 +436,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <StorageBanner storage={storage} onOpen={() => setStorageModalOpen(true)} />
         <SubscriptionBanner />
+        <CollaborationGraceBanner />
         <TeamEncryptionBanner />
         <SiteHeader onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} />
         <RouteProgressBar />
