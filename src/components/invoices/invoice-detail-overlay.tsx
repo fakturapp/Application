@@ -19,6 +19,8 @@ import { SendEmailModal } from '@/components/shared/send-email-modal'
 import { EmailHistoryModal } from '@/components/shared/email-history-modal'
 import { useTrackFeature } from '@/hooks/use-analytics'
 import { useEmail } from '@/lib/email-context'
+import { useAuth } from '@/lib/auth'
+import { ProBadge } from '@/components/billing/pro-gate'
 import { PaymentLinkModal } from '@/components/invoices/payment-link-modal'
 import { PaymentLinkCard } from '@/components/invoices/payment-link-card'
 import { ConfirmPaymentModal } from '@/components/invoices/confirm-payment-modal'
@@ -131,6 +133,8 @@ export function InvoiceDetailOverlay({ invoiceId, onClose, onStatusChange, onDel
   const [paymentLinkUrl, setPaymentLinkUrl] = useState<string | null>(null)
   const [hasStripeConfigured, setHasStripeConfigured] = useState(false)
   const { hasEmailConfigured } = useEmail()
+  const { user } = useAuth()
+  const isProPlan = user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team'
   const commentTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   useEffect(() => {
@@ -515,13 +519,16 @@ export function InvoiceDetailOverlay({ invoiceId, onClose, onStatusChange, onDel
                         <p className="text-xs text-muted-foreground leading-relaxed">
                           Cette facture est en retard de paiement. Envoyez une relance au client.
                         </p>
-                        <button
-                          onClick={handleReminder}
-                          disabled={!hasEmailConfigured}
-                          className="mt-2 px-3 py-1 rounded-full bg-overlay shadow-surface text-xs font-semibold text-red-500 hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-default"
-                        >
-                          Envoyer une relance
-                        </button>
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            onClick={handleReminder}
+                            disabled={!hasEmailConfigured || !isProPlan}
+                            className="px-3 py-1 rounded-full bg-overlay shadow-surface text-xs font-semibold text-red-500 hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-default"
+                          >
+                            Envoyer une relance
+                          </button>
+                          {!isProPlan && <ProBadge tooltip="Passez à Pro pour relancer vos factures." />}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -565,17 +572,22 @@ export function InvoiceDetailOverlay({ invoiceId, onClose, onStatusChange, onDel
                     <div className="relative group/reminder">
                       <button
                         onClick={handleReminder}
-                        disabled={!hasEmailConfigured || invoice.status === 'draft' || invoice.status === 'paid' || invoice.status === 'cancelled'}
+                        disabled={!hasEmailConfigured || invoice.status === 'draft' || invoice.status === 'paid' || invoice.status === 'cancelled' || !isProPlan}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-default"
                       >
                         <Send className="h-4 w-4" /> Relancer la facture
                       </button>
-                      {!hasEmailConfigured && (
+                      {!isProPlan && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <ProBadge tooltip="Passez à Pro pour relancer vos factures." />
+                        </div>
+                      )}
+                      {isProPlan && !hasEmailConfigured && (
                         <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 translate-y-1 group-hover/reminder:opacity-100 group-hover/reminder:translate-y-0 transition-all duration-200 pointer-events-none z-20 whitespace-nowrap px-3 py-1.5 rounded-xl bg-foreground text-background text-xs shadow-lg">
                           Configurez un compte email dans les paramètres
                         </div>
                       )}
-                      {hasEmailConfigured && invoice.status === 'draft' && (
+                      {isProPlan && hasEmailConfigured && invoice.status === 'draft' && (
                         <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 translate-y-1 group-hover/reminder:opacity-100 group-hover/reminder:translate-y-0 transition-all duration-200 pointer-events-none z-20 whitespace-nowrap px-3 py-1.5 rounded-xl bg-foreground text-background text-xs shadow-lg">
                           Envoyez d&apos;abord la facture
                         </div>
