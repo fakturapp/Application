@@ -53,6 +53,7 @@ interface User {
   isAdmin: boolean
   currentTeamEncryptionMode?: 'private' | 'standard' | null
   currentTeamPlan?: 'free' | 'pro' | 'team' | null
+  currentTeamRole?: 'super_admin' | 'admin' | 'member' | 'viewer' | null
   currentTeamAccessRevoked?: boolean
   currentTeamName?: string | null
   teams?: TeamSummary[]
