@@ -50,7 +50,7 @@ import {
 } from '@/components/ui/icons'
 import { PLATFORM_URL } from '@/lib/external-urls'
 import { getPlan } from '@/lib/plans'
-import { ProBadge } from '@/components/billing/pro-gate'
+import { PlanRings } from '@/components/plans/plan-rings'
 import { TeamEncryptionMigrationModal } from '@/components/team/team-encryption-migration-modal'
 import { TeamTransferWizard } from '@/components/team/team-transfer-wizard'
 import { TeamLeaveWizard } from '@/components/team/team-leave-wizard'
@@ -170,7 +170,6 @@ export default function TeamPage() {
   const isSuperAdmin = currentMember?.role === 'super_admin'
 
   const planMeta = getPlan(team?.plan)
-  const PlanIcon = planMeta.icon
   const isTeamPlan = team?.plan === 'team'
   const teamMemberLimit = team?.memberLimit ?? (isTeamPlan ? 15 : 1)
 
@@ -499,9 +498,9 @@ export default function TeamPage() {
                       <button
                         type="button"
                         onClick={() => router.push('/dashboard/settings/plan')}
-                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors hover:opacity-80 ${planMeta.accentText} ${planMeta.accentSoft} ${planMeta.accentRing}`}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors hover:opacity-80 ${planMeta.accentText} ${planMeta.accentSoft} ${planMeta.accentRing}`}
                       >
-                        <PlanIcon className="h-3 w-3" />
+                        <PlanRings tier={team.plan} className="h-3.5 w-3.5" />
                         {planMeta.name}
                       </button>
                     )}
@@ -607,7 +606,6 @@ export default function TeamPage() {
                           className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground opacity-70 transition-colors hover:opacity-100"
                         >
                           <UserPlus className="h-4 w-4" /> Inviter
-                          <ProBadge label="Team" tooltip="Passez au plan Team pour inviter des membres." />
                         </button>
                       </Tooltip>
                     ) : (
@@ -852,7 +850,7 @@ export default function TeamPage() {
           <div className="flex items-center gap-2 mb-3 px-1">
             <Lock className="h-4 w-4 text-muted-foreground" />
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-              Membres désactivés
+              Membres suspendus
             </h2>
           </div>
 
@@ -871,7 +869,7 @@ export default function TeamPage() {
                   return (
                     <div
                       key={member.id}
-                      className="flex items-center justify-between px-5 py-4 opacity-60"
+                      className="flex items-center justify-between px-5 py-4"
                     >
                       <div className="flex items-center gap-3.5">
                         <Avatar
@@ -879,9 +877,10 @@ export default function TeamPage() {
                           alt={memberUser?.fullName || memberUser?.email || ''}
                           fallback={initials}
                           size="sm"
+                          className="grayscale opacity-70"
                         />
                         <div>
-                          <p className="text-sm font-medium text-foreground line-through">
+                          <p className="text-sm font-medium text-muted-foreground line-through">
                             {memberUser?.fullName || memberUser?.email}
                           </p>
                           <p className="text-xs text-muted-foreground">
@@ -889,9 +888,41 @@ export default function TeamPage() {
                           </p>
                         </div>
                       </div>
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                        <Lock className="h-3.5 w-3.5" /> Désactivé
-                      </span>
+
+                      <div className="flex items-center gap-2.5">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-xs font-medium text-amber-500">
+                          <Lock className="h-3.5 w-3.5" /> Suspendu
+                        </span>
+                        {isAdmin && (
+                          <Dropdown
+                            trigger={
+                              <Tooltip content="Actions sur ce membre">
+                                <div
+                                  role="button"
+                                  aria-label="Actions sur ce membre"
+                                  className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                                >
+                                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                              </Tooltip>
+                            }
+                          >
+                            <DropdownItem disabled className="opacity-40 cursor-not-allowed">
+                              <UserCog className="h-4 w-4" /> Changer le rôle
+                            </DropdownItem>
+                            <DropdownSeparator />
+                            <DropdownItem
+                              destructive
+                              onClick={() => {
+                                setRemoveTarget(member)
+                                setRemoveOpen(true)
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" /> Retirer
+                            </DropdownItem>
+                          </Dropdown>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
