@@ -38,6 +38,10 @@ export default function CompanyInfoPage() {
   const [editLogoUrl, setEditLogoUrl] = useState<string | null>(null)
   const [stepErrors, setStepErrors] = useState<string[]>([])
   const editLogoRef = useRef<HTMLInputElement>(null)
+  const [siretQuery, setSiretQuery] = useState('')
+  const [lookingUp, setLookingUp] = useState(false)
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   function openEditModal() {
     setEditForm({ ...form })
@@ -95,6 +99,59 @@ export default function CompanyInfoPage() {
     setForm({ ...editForm })
     setLogoUrl(editLogoUrl)
     setEditModalOpen(false)
+  }
+
+  async function handleLookup() {
+    const q = siretQuery.replace(/\s/g, '')
+    if (!q) return
+    setLookingUp(true)
+    const { data, error } = await api.get<{ company: Record<string, string | null> }>(
+      `/company/lookup?q=${encodeURIComponent(q)}`
+    )
+    setLookingUp(false)
+    if (error || !data?.company) return toast(error || 'Entreprise introuvable.', 'error')
+    const c = data.company
+    setEditForm((prev) => ({
+      ...prev,
+      legalName: c.legalName || prev.legalName,
+      tradeName: c.tradeName || prev.tradeName,
+      siren: c.siren || prev.siren,
+      siret: c.siret || prev.siret,
+      vatNumber: c.vatNumber || prev.vatNumber,
+      legalForm: c.legalForm || prev.legalForm,
+      addressLine1: c.addressLine1 || prev.addressLine1,
+      postalCode: c.postalCode || prev.postalCode,
+      city: c.city || prev.city,
+    }))
+    setStepErrors([])
+    toast('Informations récupérées', 'success')
+  }
+
+  async function handleDeleteCompany() {
+    setDeleting(true)
+    const { error } = await api.delete('/company')
+    setDeleting(false)
+    if (error) return toast(error, 'error')
+    setForm({
+      ...form,
+      legalName: '',
+      tradeName: '',
+      siren: '',
+      siret: '',
+      vatNumber: '',
+      legalForm: '',
+      addressLine1: '',
+      addressLine2: '',
+      postalCode: '',
+      city: '',
+      phone: '',
+      email: '',
+      website: '',
+    })
+    setLogoUrl(null)
+    setNoCompany(true)
+    setConfirmDeleteOpen(false)
+    toast('Informations supprimées', 'success')
   }
 
   function updateEditForm(field: string, value: string) {
@@ -242,6 +299,17 @@ export default function CompanyInfoPage() {
                 </div>
               </div>
             </div>
+            <Separator className="my-6" />
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setConfirmDeleteOpen(true)}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Supprimer les informations
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -282,6 +350,21 @@ export default function CompanyInfoPage() {
         <div className="space-y-4 min-h-[200px]">
           {editStep === 0 && (
             <FieldGroup>
+              <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
+                <p className="text-xs font-medium text-foreground">Remplir automatiquement via SIREN / SIRET</p>
+                <div className="flex gap-2">
+                  <Input
+                    value={siretQuery}
+                    onChange={(e) => setSiretQuery(e.target.value)}
+                    placeholder="SIREN (9 chiffres) ou SIRET (14)"
+                    maxLength={14}
+                  />
+                  <Button type="button" variant="outline" onClick={handleLookup} disabled={lookingUp}>
+                    {lookingUp ? <Spinner className="h-4 w-4" /> : 'Rechercher'}
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground">Ou saisissez les informations manuellement ci-dessous.</p>
+              </div>
               <Field>
                 <FieldLabel htmlFor="editLegalName">Raison sociale *</FieldLabel>
                 <Input id="editLegalName" value={editForm.legalName} onChange={(e) => updateEditForm('legalName', e.target.value)} className={stepErrors.includes('Raison sociale') ? 'border-red-500' : ''} />
@@ -413,6 +496,29 @@ export default function CompanyInfoPage() {
               )}
             </div>
           </div>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)} className="max-w-md">
+        <DialogHeader onClose={() => setConfirmDeleteOpen(false)}>
+          <DialogTitle>Supprimer les informations ?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Toutes les informations de votre entreprise (identité, adresse, contact, logo) seront supprimées.
+          Vous pourrez les recréer ou les remplir via SIREN/SIRET.
+        </p>
+        <DialogFooter className="mt-4">
+          <Button variant="outline" size="sm" onClick={() => setConfirmDeleteOpen(false)}>
+            Annuler
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleDeleteCompany}
+            disabled={deleting}
+            className="bg-destructive text-destructive-foreground hover:opacity-90"
+          >
+            {deleting ? <><Spinner className="h-3.5 w-3.5" /> Suppression...</> : 'Supprimer'}
+          </Button>
         </DialogFooter>
       </Dialog>
     </motion.div>
