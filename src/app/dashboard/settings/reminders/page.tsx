@@ -9,12 +9,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Field, FieldGroup, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { FormSelect } from '@/components/ui/dropdown'
 import { Switch } from '@/components/ui/switch'
+import { Tooltip } from '@/components/ui/tooltip'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/components/ui/toast'
 import { useEmail } from '@/lib/email-context'
 import { useAuth } from '@/lib/auth'
-import { ProGate } from '@/components/billing/pro-gate'
+import { ProBadge } from '@/components/billing/pro-gate'
 import { api } from '@/lib/api'
 import { Bell, Save, Info } from '@/components/ui/icons'
 
@@ -123,7 +124,6 @@ export default function ReminderSettingsPage() {
       </motion.div>
 
       {}
-      <ProGate locked={locked} description="Passez à Pro pour activer les relances automatiques.">
       <motion.div variants={fadeUp} custom={1}>
         <Card>
           <CardContent className="p-5">
@@ -133,18 +133,28 @@ export default function ReminderSettingsPage() {
                   <Bell className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Activer les relances</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-foreground">Activer les relances</p>
+                    {locked && <ProBadge tooltip="Passez à Pro pour activer les relances automatiques." />}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Les relances seront disponibles pour les factures envoyees et en retard
                   </p>
                 </div>
               </div>
-              <Switch checked={enabled} onChange={setEnabled} />
+              {locked ? (
+                <Tooltip content="Passez à Pro pour activer les relances automatiques." side="left">
+                  <span className="inline-flex">
+                    <Switch checked={false} disabled onChange={() => {}} />
+                  </span>
+                </Tooltip>
+              ) : (
+                <Switch checked={enabled} onChange={setEnabled} />
+              )}
             </div>
           </CardContent>
         </Card>
       </motion.div>
-      </ProGate>
 
       {enabled && (
         <>
