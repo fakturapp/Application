@@ -50,6 +50,7 @@ import {
 } from '@/components/ui/icons'
 import { PLATFORM_URL } from '@/lib/external-urls'
 import { getPlan } from '@/lib/plans'
+import { ProBadge } from '@/components/billing/pro-gate'
 import { TeamEncryptionMigrationModal } from '@/components/team/team-encryption-migration-modal'
 import { TeamTransferWizard } from '@/components/team/team-transfer-wizard'
 import { TeamLeaveWizard } from '@/components/team/team-leave-wizard'
@@ -83,6 +84,8 @@ interface Team {
   recoveryKeyUnavailableReason: 'legacy_team' | null
   encryptionMode?: 'private' | 'standard'
   encryptionModeConfirmedAt?: string | null
+  memberLimit?: number
+  collaborationGraceEndsAt?: string | null
 }
 
 const roleLabels: Record<string, string> = {
@@ -168,6 +171,8 @@ export default function TeamPage() {
 
   const planMeta = getPlan(team?.plan)
   const PlanIcon = planMeta.icon
+  const isTeamPlan = team?.plan === 'team'
+  const teamMemberLimit = team?.memberLimit ?? (isTeamPlan ? 15 : 1)
 
   useEffect(() => {
     if (!team || !wizardAction) return
@@ -439,7 +444,10 @@ export default function TeamPage() {
 
   const activeMembers = team?.members.filter((m) => m.status === 'active') || []
   const pendingMembers = team?.members.filter((m) => m.status === 'pending') || []
+  const inactiveMembers = team?.members.filter((m) => m.status === 'inactive') || []
   const totalMembers = activeMembers.length + pendingMembers.length
+  const atMemberCap = activeMembers.length + pendingMembers.length >= teamMemberLimit
+  const canInvite = isTeamPlan && !atMemberCap
 
   const teamInitials = team?.name
     ? team.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
@@ -591,9 +599,29 @@ export default function TeamPage() {
                         </Button>
                       </a>
                     </Tooltip>
-                    <Button size="sm" onClick={() => setInviteOpen(true)}>
-                      <UserPlus className="h-4 w-4 mr-2" /> Inviter
-                    </Button>
+                    {!isTeamPlan ? (
+                      <Tooltip content="La collaboration en équipe est réservée au plan Team." side="bottom">
+                        <button
+                          type="button"
+                          onClick={() => router.push('/dashboard/settings/plan')}
+                          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground opacity-70 transition-colors hover:opacity-100"
+                        >
+                          <UserPlus className="h-4 w-4" /> Inviter
+                          <ProBadge label="Team" tooltip="Passez au plan Team pour inviter des membres." />
+                        </button>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip
+                        content={atMemberCap ? `Votre plan Team est limité à ${teamMemberLimit} membres.` : 'Inviter un membre'}
+                        side="bottom"
+                      >
+                        <span className="inline-flex">
+                          <Button size="sm" onClick={() => setInviteOpen(true)} disabled={!canInvite}>
+                            <UserPlus className="h-4 w-4 mr-2" /> Inviter
+                          </Button>
+                        </span>
+                      </Tooltip>
+                    )}
                   </>
                 )}
               </div>
@@ -812,6 +840,61 @@ export default function TeamPage() {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Deactivated members */}
+      {inactiveMembers.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              Membres désactivés
+            </h2>
+          </div>
+
+          <Card className="border-border/50">
+            <CardContent className="p-0">
+              <p className="px-5 pt-4 text-xs text-muted-foreground">
+                Le plan Team a pris fin. Ces membres ne font plus partie de l&apos;équipe. Repassez
+                au plan Team pour les réactiver.
+              </p>
+              <div className="divide-y divide-border/50">
+                {inactiveMembers.map((member) => {
+                  const memberUser = member.user
+                  const initials = memberUser?.fullName
+                    ? memberUser.fullName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+                    : memberUser?.email.slice(0, 2).toUpperCase() || '??'
+                  return (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between px-5 py-4 opacity-60"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <Avatar
+                          src={memberUser?.avatarUrl}
+                          alt={memberUser?.fullName || memberUser?.email || ''}
+                          fallback={initials}
+                          size="sm"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-foreground line-through">
+                            {memberUser?.fullName || memberUser?.email}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {memberUser?.fullName ? memberUser.email : null}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                        <Lock className="h-3.5 w-3.5" /> Désactivé
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             </CardContent>
           </Card>
