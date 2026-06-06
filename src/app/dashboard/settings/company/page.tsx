@@ -26,6 +26,18 @@ const editSteps = [
   { id: 'logo', label: 'Logo', icon: ImagePlus, tooltip: 'Logo affiché sur vos documents' },
 ]
 
+interface LookupResult {
+  siren: string
+  siret: string | null
+  legalName: string
+  tradeName: string | null
+  legalForm: string | null
+  vatNumber: string | null
+  addressLine1: string | null
+  city: string | null
+  postalCode: string | null
+}
+
 export default function CompanyInfoPage() {
   const { toast } = useToast()
   const { loading, noCompany, logoUrl, form, setCompany, setNoCompany, setForm, setLogoUrl } = useCompanySettings()
@@ -40,6 +52,7 @@ export default function CompanyInfoPage() {
   const editLogoRef = useRef<HTMLInputElement>(null)
   const [siretQuery, setSiretQuery] = useState('')
   const [lookingUp, setLookingUp] = useState(false)
+  const [lookupResults, setLookupResults] = useState<LookupResult[]>([])
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -102,15 +115,21 @@ export default function CompanyInfoPage() {
   }
 
   async function handleLookup() {
-    const q = siretQuery.replace(/\s/g, '')
-    if (!q) return
+    const q = siretQuery.trim()
+    if (q.length < 2) return
     setLookingUp(true)
-    const { data, error } = await api.get<{ company: Record<string, string | null> }>(
+    const { data, error } = await api.get<{ results: LookupResult[] }>(
       `/company/lookup?q=${encodeURIComponent(q)}`
     )
     setLookingUp(false)
-    if (error || !data?.company) return toast(error || 'Entreprise introuvable.', 'error')
-    const c = data.company
+    if (error) return toast(error, 'error')
+    const results = data?.results ?? []
+    if (results.length === 0) return toast('Aucune entreprise trouvée.', 'info')
+    if (results.length === 1) return fillFromResult(results[0])
+    setLookupResults(results)
+  }
+
+  function fillFromResult(c: LookupResult) {
     setEditForm((prev) => ({
       ...prev,
       legalName: c.legalName || prev.legalName,
@@ -123,6 +142,7 @@ export default function CompanyInfoPage() {
       postalCode: c.postalCode || prev.postalCode,
       city: c.city || prev.city,
     }))
+    setLookupResults([])
     setStepErrors([])
     toast('Informations récupérées', 'success')
   }
@@ -351,19 +371,45 @@ export default function CompanyInfoPage() {
           {editStep === 0 && (
             <FieldGroup>
               <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
-                <p className="text-xs font-medium text-foreground">Remplir automatiquement via SIREN / SIRET</p>
+                <p className="text-xs font-medium text-foreground">Remplir automatiquement</p>
                 <div className="flex gap-2">
                   <Input
                     value={siretQuery}
                     onChange={(e) => setSiretQuery(e.target.value)}
-                    placeholder="SIREN (9 chiffres) ou SIRET (14)"
-                    maxLength={14}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleLookup()
+                      }
+                    }}
+                    placeholder="Nom d'entreprise, SIREN ou SIRET"
                   />
                   <Button type="button" variant="outline" onClick={handleLookup} disabled={lookingUp}>
                     {lookingUp ? <Spinner className="h-4 w-4" /> : 'Rechercher'}
                   </Button>
                 </div>
-                <p className="text-[11px] text-muted-foreground">Ou saisissez les informations manuellement ci-dessous.</p>
+                {lookupResults.length > 0 && (
+                  <div className="max-h-48 overflow-y-auto rounded-lg border border-border bg-card divide-y divide-border">
+                    {lookupResults.map((r) => (
+                      <button
+                        key={`${r.siren}-${r.siret ?? ''}`}
+                        type="button"
+                        onClick={() => fillFromResult(r)}
+                        className="w-full px-3 py-2 text-left transition-colors hover:bg-surface-hover"
+                      >
+                        <p className="truncate text-xs font-medium text-foreground">{r.legalName}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">
+                          {r.siren}
+                          {r.city ? ` · ${r.city}` : ''}
+                          {r.postalCode ? ` (${r.postalCode})` : ''}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  Recherche par nom, SIREN ou SIRET. Ou saisissez manuellement ci-dessous.
+                </p>
               </div>
               <Field>
                 <FieldLabel htmlFor="editLegalName">Raison sociale *</FieldLabel>
