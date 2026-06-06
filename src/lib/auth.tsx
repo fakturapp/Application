@@ -29,6 +29,8 @@ export interface TeamSummary {
   encryptionMode: 'private' | 'standard'
   encryptionModeConfirmedAt: string | null
   onboardingCompletedAt: string | null
+  memberLimit?: number
+  collaborationGraceEndsAt?: string | null
 }
 
 interface User {
@@ -51,6 +53,8 @@ interface User {
   isAdmin: boolean
   currentTeamEncryptionMode?: 'private' | 'standard' | null
   currentTeamPlan?: 'free' | 'pro' | 'team' | null
+  currentTeamAccessRevoked?: boolean
+  currentTeamName?: string | null
   teams?: TeamSummary[]
 }
 
