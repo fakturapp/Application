@@ -48,12 +48,14 @@ interface ProBadgeProps {
   className?: string
   href?: string
   tooltip?: string
+  label?: string
 }
 
 export function ProBadge({
   className = '',
   href = '/dashboard/settings/plan',
   tooltip = 'Réservé à Faktur Pro. Cliquez pour passer à Pro.',
+  label = 'Pro',
 }: ProBadgeProps) {
   return (
     <Tooltip content={tooltip} side="top">
@@ -62,7 +64,7 @@ export function ProBadge({
         className={`inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary transition-colors hover:bg-primary/20 ${className}`}
       >
         <Zap className="h-3 w-3" />
-        Pro
+        {label}
       </Link>
     </Tooltip>
   )
