@@ -11,6 +11,8 @@ import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } fr
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/components/ui/toast'
 import { useEmail, type EmailAccountItem } from '@/lib/email-context'
+import { useAuth } from '@/lib/auth'
+import { ProBadge } from '@/components/billing/pro-gate'
 import { api } from '@/lib/api'
 import {
   Mail, Plus, Server, Zap, Send, Eye, EyeOff, Key, Star, Trash2,
@@ -41,6 +43,8 @@ function EmailSettingsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { accounts, loading, refreshAccounts } = useEmail()
+  const { user } = useAuth()
+  const locked = !(user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team')
 
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null)
@@ -100,6 +104,10 @@ function EmailSettingsContent() {
   }, [openMenuId])
 
   function openDialog() {
+    if (locked) {
+      router.push('/dashboard/settings/plan')
+      return
+    }
     setDialogStep('choose')
     setSelectedProvider(null)
     setConfigError('')
@@ -245,7 +253,10 @@ function EmailSettingsContent() {
         {/* Header */}
         <motion.div variants={fadeUp} custom={0} className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Email</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-foreground">Email</h1>
+              {locked && <ProBadge tooltip="Passez à Pro pour connecter un compte email." />}
+            </div>
             <p className="text-sm text-muted-foreground mt-1">
               Gérez vos comptes email pour envoyer factures et devis.
             </p>
