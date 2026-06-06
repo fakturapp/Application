@@ -328,7 +328,14 @@ export function FormSelect({
   useLayoutEffect(() => {
     if (!open || !triggerBtnRef.current) return
     const rect = triggerBtnRef.current.getBoundingClientRect()
-    setPos({ top: rect.bottom + 4, left: rect.left, width: Math.max(220, rect.width) })
+    const estimated = Math.min(280, options.length * 38 + 12)
+    const spaceBelow = window.innerHeight - rect.bottom
+    const openUp = spaceBelow < estimated + 8 && rect.top > spaceBelow
+    setPos({
+      top: openUp ? Math.max(8, rect.top - estimated - 4) : rect.bottom + 4,
+      left: rect.left,
+      width: Math.max(220, rect.width),
+    })
   }, [open])
 
   const popup = (
