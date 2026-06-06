@@ -630,17 +630,22 @@ export function InvoiceDetailOverlay({ invoiceId, onClose, onStatusChange, onDel
                     <div className="relative group/send">
                       <button
                         onClick={handleSendEmail}
-                        disabled={!hasEmailConfigured || invoice.status !== 'draft'}
+                        disabled={!hasEmailConfigured || invoice.status !== 'draft' || !isProPlan}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-default"
                       >
                         <Send className="h-4 w-4" /> Envoyer la facture
                       </button>
-                      {!hasEmailConfigured && (
+                      {!isProPlan && (
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 translate-y-1 group-hover/send:opacity-100 group-hover/send:translate-y-0 transition-all duration-200 pointer-events-none z-20 whitespace-nowrap px-3 py-1.5 rounded-xl bg-foreground text-background text-xs shadow-lg">
+                          Passez à Pro pour envoyer vos factures par email
+                        </div>
+                      )}
+                      {isProPlan && !hasEmailConfigured && (
                         <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 translate-y-1 group-hover/send:opacity-100 group-hover/send:translate-y-0 transition-all duration-200 pointer-events-none z-20 whitespace-nowrap px-3 py-1.5 rounded-xl bg-foreground text-background text-xs shadow-lg">
                           Configurez un compte email dans les paramètres
                         </div>
                       )}
-                      {hasEmailConfigured && invoice.status !== 'draft' && (
+                      {isProPlan && hasEmailConfigured && invoice.status !== 'draft' && (
                         <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 translate-y-1 group-hover/send:opacity-100 group-hover/send:translate-y-0 transition-all duration-200 pointer-events-none z-20 whitespace-nowrap px-3 py-1.5 rounded-xl bg-foreground text-background text-xs shadow-lg">
                           {invoice.status === 'sent' || invoice.status === 'overdue' ? 'Facture déjà envoyée — utilisez Relancer' : 'Non disponible pour ce statut'}
                         </div>
