@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, Users, Shield, Building2, Palette, Mail, Receipt, LogOut } from '@/components/ui/icons'
+import { CheckCircle2, Users, Shield, Building2, Mail, Receipt, LogOut } from '@/components/ui/icons'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -27,7 +27,6 @@ const ALL_STEPS: Step[] = [
   { id: 'team', label: 'Équipe', path: '/onboarding/team', icon: Users, requiresNoTeam: true },
   { id: 'recovery-key', label: 'Sécurité', path: '/onboarding/recovery-key', icon: Shield, privateOnly: true },
   { id: 'company', label: 'Entreprise', path: '/onboarding/company', icon: Building2 },
-  { id: 'personalization', label: 'Apparence', path: '/onboarding/personalization', icon: Palette },
   { id: 'email', label: 'Email', path: '/onboarding/email', icon: Mail },
   { id: 'billing', label: 'Facturation', path: '/onboarding/billing', icon: Receipt },
 ]

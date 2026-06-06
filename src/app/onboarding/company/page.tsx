@@ -163,7 +163,7 @@ export default function OnboardingCompanyPage() {
     setLoading(false)
     if (err) return setError(err)
     await refreshUser()
-    nav('/onboarding/personalization')
+    nav('/onboarding/email')
   }
 
   async function handleSkip() {
@@ -172,7 +172,7 @@ export default function OnboardingCompanyPage() {
     setLoading(false)
     if (err) return setError(err)
     await refreshUser()
-    nav('/onboarding/personalization')
+    nav('/onboarding/email')
   }
 
   return (

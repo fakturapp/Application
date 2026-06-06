@@ -343,7 +343,7 @@ function OnboardingEmailContent() {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => nav('/onboarding/personalization')}
+              onClick={() => nav('/onboarding/company')}
               className="gap-1.5"
             >
               <ChevronLeft className="h-4 w-4" /> Précédent
