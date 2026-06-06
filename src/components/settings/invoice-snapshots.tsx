@@ -6,7 +6,7 @@ import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { useToast } from '@/components/ui/toast'
-import { History, RotateCcw, Trash2, Lock } from '@/components/ui/icons'
+import { Crown, RotateCcw, Trash2, Lock } from '@/components/ui/icons'
 
 interface SnapshotAppearance {
   template: string
@@ -22,92 +22,102 @@ interface Snapshot {
   createdAt: string | null
 }
 
-function formatDate(iso: string | null): string {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
-  } catch {
-    return ''
-  }
-}
-
 export function InvoiceSnapshots() {
   const router = useRouter()
   const { user } = useAuth()
   const { refreshSettings } = useInvoiceSettings()
   const { toast } = useToast()
-  const [snapshots, setSnapshots] = useState<Snapshot[]>([])
-  const [busy, setBusy] = useState<string | null>(null)
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const isPro = user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team'
 
   const load = useCallback(async () => {
     const { data } = await api.get<{ snapshots: Snapshot[] }>('/settings/invoices/snapshots')
-    setSnapshots(data?.snapshots ?? [])
+    setSnapshot(data?.snapshots?.[0] ?? null)
   }, [])
 
   useEffect(() => {
     load()
   }, [load])
 
-  if (snapshots.length === 0) return null
+  if (!snapshot) return null
 
-  async function restore(id: string) {
+  async function restore() {
+    if (!snapshot) return
     if (!isPro) {
       router.push('/dashboard/settings/plan')
       return
     }
-    setBusy(id)
-    const { error } = await api.post(`/settings/invoices/snapshots/${id}/restore`, {})
-    setBusy(null)
+    setBusy(true)
+    const { error } = await api.post(`/settings/invoices/snapshots/${snapshot.id}/restore`, {})
+    setBusy(false)
     if (error) {
       toast(error, 'error')
       return
     }
     await refreshSettings()
-    setSnapshots((current) => current.filter((snapshot) => snapshot.id !== id))
+    setSnapshot(null)
     toast('Personnalisation restaurée', 'success')
   }
 
-  async function remove(id: string) {
-    setBusy(id)
-    await api.delete(`/settings/invoices/snapshots/${id}`)
-    setBusy(null)
-    setSnapshots((current) => current.filter((snapshot) => snapshot.id !== id))
+  async function remove() {
+    if (!snapshot) return
+    setBusy(true)
+    await api.delete(`/settings/invoices/snapshots/${snapshot.id}`)
+    setBusy(false)
+    setSnapshot(null)
   }
+
+  const appearance = snapshot.appearance
 
   return (
     <div className="mt-4 rounded-xl border border-border/50 bg-card p-4">
-      <div className="mb-1 flex items-center gap-2">
-        <History className="h-4 w-4 text-muted-foreground" />
-        <p className="text-sm font-medium text-foreground">Personnalisation sauvegardée</p>
+      <div className="mb-3 flex items-center gap-2">
+        <Crown className="h-4 w-4 text-amber-500" />
+        <p className="text-sm font-medium text-foreground">Sauvegarde Premium</p>
       </div>
       <p className="mb-3 text-xs text-muted-foreground">
         {isPro
-          ? 'Restaurez une personnalisation enregistrée à tout moment.'
-          : 'Vos personnalisations sont conservées. Restaurez-les avec Faktur Pro.'}
+          ? 'Votre personnalisation Pro a été conservée. Restaurez-la quand vous voulez.'
+          : 'Votre personnalisation Pro est conservée. Restaurez-la avec Faktur Pro.'}
       </p>
-      <div className="space-y-2">
-        {snapshots.map((snapshot) => (
-          <div
-            key={snapshot.id}
-            className="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-2.5"
-          >
-            <div
-              className="h-6 w-6 shrink-0 rounded-md border border-border"
-              style={{ backgroundColor: snapshot.appearance?.accentColor || '#6366f1' }}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-foreground">
-                {snapshot.appearance
-                  ? `${snapshot.appearance.template}${snapshot.appearance.darkMode ? ' · sombre' : ''} · ${snapshot.appearance.documentFont}`
-                  : 'Sauvegarde'}
-              </p>
-              <p className="text-[10px] text-muted-foreground">{formatDate(snapshot.createdAt)}</p>
-            </div>
+      <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-2.5">
+        <div
+          className="h-6 w-6 shrink-0 rounded-md border border-border"
+          style={{ backgroundColor: appearance?.accentColor || '#6366f1' }}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-medium text-foreground">
+            {appearance
+              ? `${appearance.template}${appearance.darkMode ? ' · sombre' : ''} · ${appearance.documentFont}`
+              : 'Personnalisation'}
+          </p>
+        </div>
+        {confirmDelete ? (
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => restore(snapshot.id)}
-              disabled={busy === snapshot.id}
+              onClick={remove}
+              disabled={busy}
+              className="rounded-lg bg-destructive px-2.5 py-1.5 text-xs font-medium text-destructive-foreground transition hover:opacity-90 disabled:opacity-60"
+            >
+              Confirmer
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-hover"
+            >
+              Annuler
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={restore}
+              disabled={busy}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-hover disabled:opacity-60"
             >
               {isPro ? <RotateCcw className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
@@ -115,15 +125,14 @@ export function InvoiceSnapshots() {
             </button>
             <button
               type="button"
-              onClick={() => remove(snapshot.id)}
-              disabled={busy === snapshot.id}
+              onClick={() => setConfirmDelete(true)}
               aria-label="Supprimer la sauvegarde"
-              className="text-muted-foreground transition-colors hover:text-destructive disabled:opacity-60"
+              className="text-muted-foreground transition-colors hover:text-destructive"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
-          </div>
-        ))}
+          </>
+        )}
       </div>
     </div>
   )
