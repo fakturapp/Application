@@ -14,6 +14,9 @@ import { TemplateModal } from '@/components/settings/template-modal'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/components/ui/toast'
 import { FormSelect } from '@/components/ui/dropdown'
+import { useAuth } from '@/lib/auth'
+import { ProGate } from '@/components/billing/pro-gate'
+import { InvoiceSnapshots } from '@/components/settings/invoice-snapshots'
 import {
   ImagePlus,
   Palette,
@@ -53,6 +56,8 @@ const accentColors = [
 export default function InvoiceAppearancePage() {
   const { toast } = useToast()
   const { settings, companyLogoUrl, loading, updateSettings, uploadLogo, refreshCompanyLogo } = useInvoiceSettings()
+  const { user } = useAuth()
+  const locked = !(user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team')
   const [uploading, setUploading] = useState(false)
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -169,6 +174,7 @@ export default function InvoiceAppearancePage() {
         {}
         <div className="space-y-6">
           {}
+          <ProGate locked={locked}>
           <motion.div variants={fadeUp} custom={1}>
             <Card className="overflow-hidden border-border/50">
               <CardContent className="p-6">
@@ -213,6 +219,7 @@ export default function InvoiceAppearancePage() {
               </CardContent>
             </Card>
           </motion.div>
+          </ProGate>
 
           {/* Logo */}
           <motion.div variants={fadeUp} custom={2}>
@@ -336,6 +343,7 @@ export default function InvoiceAppearancePage() {
           </motion.div>
 
           {/* Accent Color */}
+          <ProGate locked={locked}>
           <motion.div variants={fadeUp} custom={3}>
             <Card className="overflow-hidden border-border/50">
               <CardContent className="p-6">
@@ -372,8 +380,10 @@ export default function InvoiceAppearancePage() {
               </CardContent>
             </Card>
           </motion.div>
+          </ProGate>
 
           {/* Document Font */}
+          <ProGate locked={locked}>
           <motion.div variants={fadeUp} custom={4}>
             <Card className="overflow-hidden border-border/50">
               <CardContent className="p-6">
@@ -425,11 +435,13 @@ export default function InvoiceAppearancePage() {
               </CardContent>
             </Card>
           </motion.div>
+          </ProGate>
         </div>
 
         {/* Preview Column */}
         <motion.div variants={fadeUp} custom={2}>
           <InvoicePreview />
+          <InvoiceSnapshots />
         </motion.div>
       </div>
 
