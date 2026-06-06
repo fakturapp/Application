@@ -2,8 +2,9 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Lock } from '@/components/ui/icons'
+import { Lock, Zap } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 
 interface ProGateProps {
   locked: boolean
@@ -40,5 +41,29 @@ export function ProGate({
         </div>
       </div>
     </div>
+  )
+}
+
+interface ProBadgeProps {
+  className?: string
+  href?: string
+  tooltip?: string
+}
+
+export function ProBadge({
+  className = '',
+  href = '/dashboard/settings/plan',
+  tooltip = 'Réservé à Faktur Pro. Cliquez pour passer à Pro.',
+}: ProBadgeProps) {
+  return (
+    <Tooltip content={tooltip} side="top">
+      <Link
+        href={href}
+        className={`inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary transition-colors hover:bg-primary/20 ${className}`}
+      >
+        <Zap className="h-3 w-3" />
+        Pro
+      </Link>
+    </Tooltip>
   )
 }
