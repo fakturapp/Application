@@ -12,7 +12,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/components/ui/toast'
 import { useEmail, type EmailAccountItem } from '@/lib/email-context'
 import { useAuth } from '@/lib/auth'
-import { Tooltip } from '@/components/ui/tooltip'
+import { ProGate } from '@/components/billing/pro-gate'
 import { api } from '@/lib/api'
 import {
   Mail, Plus, Server, Zap, Send, Eye, EyeOff, Key, Star, Trash2,
@@ -258,14 +258,7 @@ function EmailSettingsContent() {
               Gérez vos comptes email pour envoyer factures et devis.
             </p>
           </div>
-          {locked ? (
-            <Tooltip content="Passez à Pro pour connecter un compte email." side="bottom">
-              <Button onClick={openDialog} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Ajouter
-              </Button>
-            </Tooltip>
-          ) : (
+          {!locked && (
             <Button onClick={openDialog} className="gap-2">
               <Plus className="h-4 w-4" />
               Ajouter
@@ -273,6 +266,10 @@ function EmailSettingsContent() {
           )}
         </motion.div>
 
+        <ProGate
+          locked={locked}
+          description="Passez à Pro pour connecter un compte email et envoyer vos documents."
+        >
         {/* Accounts list */}
         <motion.div variants={fadeUp} custom={1}>
           <Card className="overflow-hidden border-border/50">
@@ -423,6 +420,7 @@ function EmailSettingsContent() {
             </CardContent>
           </Card>
         </motion.div>
+        </ProGate>
       </motion.div>
 
       {/* ======= Add Provider Dialog ======= */}
