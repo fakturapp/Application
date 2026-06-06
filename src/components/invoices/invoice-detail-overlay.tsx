@@ -39,7 +39,24 @@ import {
   History,
   FileMinus2,
   Link2,
+  Paperclip,
+  Upload,
+  FileText,
 } from '@/components/ui/icons'
+
+interface InvoiceAttachment {
+  id: string
+  fileName: string | null
+  contentType: string | null
+  sizeBytes: number
+  createdAt: string | null
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} o`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
+}
 
 interface InvoiceDetail {
   id: string
@@ -136,11 +153,71 @@ export function InvoiceDetailOverlay({ invoiceId, onClose, onStatusChange, onDel
   const { user } = useAuth()
   const isProPlan = user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team'
   const commentTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const [attachments, setAttachments] = useState<InvoiceAttachment[]>([])
+  const [uploadingAttachment, setUploadingAttachment] = useState(false)
+  const attachmentInputRef = useRef<HTMLInputElement>(null)
+
+  const loadAttachments = useCallback(async (id: string) => {
+    const { data } = await api.get<{ attachments: InvoiceAttachment[] }>(`/invoices/${id}/attachments`)
+    if (data?.attachments) setAttachments(data.attachments)
+  }, [])
+
+  async function handleUploadAttachment(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !invoice) return
+    if (file.size > 10 * 1024 * 1024) {
+      toast('Le fichier dépasse la taille maximale de 10 Mo.', 'error')
+      return
+    }
+    setUploadingAttachment(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    const { error } = await api.upload(`/invoices/${invoice.id}/attachments`, formData)
+    setUploadingAttachment(false)
+    if (attachmentInputRef.current) attachmentInputRef.current.value = ''
+    if (error) {
+      toast(error, 'error')
+      return
+    }
+    toast('Fichier joint', 'success')
+    void loadAttachments(invoice.id)
+  }
+
+  async function handleDownloadAttachment(att: InvoiceAttachment) {
+    if (!invoice) return
+    const { blob, filename, error } = await api.downloadBlob(
+      `/invoices/${invoice.id}/attachments/${att.id}/download`
+    )
+    if (error || !blob) {
+      toast(error || 'Téléchargement impossible', 'error')
+      return
+    }
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = att.fileName || filename || 'fichier'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  async function handleDeleteAttachment(att: InvoiceAttachment) {
+    if (!invoice) return
+    const { error } = await api.delete(`/invoices/${invoice.id}/attachments/${att.id}`)
+    if (error) {
+      toast(error, 'error')
+      return
+    }
+    setAttachments((prev) => prev.filter((a) => a.id !== att.id))
+  }
 
   useEffect(() => {
     if (!invoiceId) return
     setLoading(true)
     setInvoice(null)
+    setAttachments([])
+    void loadAttachments(invoiceId)
 
     Promise.all([
       api.get<{ invoice: InvoiceDetail & { paymentLink?: any } }>(`/invoices/${invoiceId}`),
@@ -641,6 +718,74 @@ export function InvoiceDetailOverlay({ invoiceId, onClose, onStatusChange, onDel
                       </button>
                     </div>
                   )}
+
+                  <div className="px-5 py-4 border-b border-separator">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          Documents joints
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => attachmentInputRef.current?.click()}
+                        disabled={uploadingAttachment}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-accent hover:bg-accent-soft transition-colors disabled:opacity-50"
+                      >
+                        {uploadingAttachment ? (
+                          <Spinner className="h-3.5 w-3.5" />
+                        ) : (
+                          <Upload className="h-3.5 w-3.5" />
+                        )}
+                        Joindre
+                      </button>
+                      <input
+                        ref={attachmentInputRef}
+                        type="file"
+                        className="hidden"
+                        onChange={handleUploadAttachment}
+                      />
+                    </div>
+
+                    {attachments.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        Aucun fichier joint à cette facture.
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {attachments.map((att) => (
+                          <div
+                            key={att.id}
+                            className="flex items-center gap-2.5 rounded-lg bg-field px-3 py-2"
+                          >
+                            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm text-foreground">
+                                {att.fileName || 'Fichier'}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {formatFileSize(att.sizeBytes)}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleDownloadAttachment(att)}
+                              title="Télécharger"
+                              className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:text-accent hover:bg-accent-soft transition-colors"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAttachment(att)}
+                              title="Supprimer"
+                              className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   <div className="px-5 py-4">
                     <div className="flex items-center gap-2 mb-2">
