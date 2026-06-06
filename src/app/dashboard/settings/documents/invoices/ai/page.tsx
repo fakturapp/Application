@@ -8,6 +8,8 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
+import { useAuth } from '@/lib/auth'
+import { ProGate } from '@/components/billing/pro-gate'
 import { useToast } from '@/components/ui/toast'
 import { api } from '@/lib/api'
 import {
@@ -162,6 +164,8 @@ function formatLastUpdated(date: Date | null): string {
 export default function FakturAIPage() {
   const { toast } = useToast()
   const { settings, loading, updateSettings } = useInvoiceSettings()
+  const { user } = useAuth()
+  const isPro = user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team'
 
   const [showAiBetaModal, setShowAiBetaModal] = useState(false)
   const [defaultMode, setDefaultMode] = useState(getDefaultMode)
@@ -187,8 +191,8 @@ export default function FakturAIPage() {
   }, [])
 
   useEffect(() => {
-    if (settings.aiEnabled) fetchQuota()
-  }, [settings.aiEnabled, fetchQuota])
+    if (settings.aiEnabled && isPro) fetchQuota()
+  }, [settings.aiEnabled, fetchQuota, isPro])
 
   // Tick every 30s to update relative timestamps
   useEffect(() => {
@@ -232,6 +236,7 @@ export default function FakturAIPage() {
       </div>
 
       {/* ═══ Activation Card ═══ */}
+      <ProGate locked={!isPro} description="Passez à Pro pour activer Faktur AI.">
       <Card>
         <CardContent className="p-6">
           {/* Card header */}
@@ -292,6 +297,7 @@ export default function FakturAIPage() {
           </div>
         </CardContent>
       </Card>
+      </ProGate>
 
       {/* ═══ Quota Card (visible when enabled) ═══ */}
       <AnimatePresence>
