@@ -461,6 +461,9 @@ export function Sidebar({ teams, currentTeam, teamsLoaded, onSwitchTeam, user, o
     : user.email.slice(0, 2).toUpperCase()
 
   const currentPlan = getPlan(currentTeam?.plan)
+  const teamRole = currentTeam?.role
+  const canManageSettings = teamRole === 'super_admin' || teamRole === 'admin'
+  const isViewer = teamRole === 'viewer'
 
   return (
     <aside
@@ -752,7 +755,7 @@ export function Sidebar({ teams, currentTeam, teamsLoaded, onSwitchTeam, user, o
           >
             { }
             <div className="px-3 pt-2 pb-1">
-              {storage?.isOver ? (
+              {!isViewer && (storage?.isOver ? (
                 <Tooltip
                   content="Stockage plein — supprimez des fichiers ou augmentez votre forfait"
                   side="right"
@@ -814,7 +817,7 @@ export function Sidebar({ teams, currentTeam, teamsLoaded, onSwitchTeam, user, o
                     <span>Devis</span>
                   </DropdownItem>
                 </Dropdown>
-              )}
+              ))}
             </div>
 
             { }
@@ -822,12 +825,16 @@ export function Sidebar({ teams, currentTeam, teamsLoaded, onSwitchTeam, user, o
               {mainNav.map((item) => (
                 <NavLink key={item.href} item={item} pathname={pathname} badges={badges} collapsed={collapsed} />
               ))}
-              <div className="mx-2 my-2 h-px bg-border" />
-              <NavLink
-                item={{ href: '/dashboard/settings', label: 'Paramètres', icon: Settings }}
-                pathname={pathname}
-                collapsed={collapsed}
-              />
+              {canManageSettings && (
+                <>
+                  <div className="mx-2 my-2 h-px bg-border" />
+                  <NavLink
+                    item={{ href: '/dashboard/settings', label: 'Paramètres', icon: Settings }}
+                    pathname={pathname}
+                    collapsed={collapsed}
+                  />
+                </>
+              )}
             </nav>
           </motion.div>
         )}
