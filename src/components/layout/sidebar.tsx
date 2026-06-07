@@ -76,6 +76,7 @@ import {
   Key,
   Webhook,
   HardDrive,
+  Lock,
 } from '@/components/ui/icons'
 import { ProgressBar } from '@/components/ui/progress'
 import { formatBytes } from '@/lib/utils'
@@ -106,6 +107,8 @@ export interface SidebarProps {
   onSwitchTeam: (teamId: string) => void
   user: { fullName: string | null; email: string; avatarUrl: string | null }
   onLogout: () => void
+  onLockVault?: () => void
+  canLockVault?: boolean
   collapsed?: boolean
   badges?: Record<string, number>
   isAdmin?: boolean
@@ -421,7 +424,7 @@ function NavLink({ item, pathname, badges, persistKey, collapsed, onConfirmRedir
   )
 }
 
-export function Sidebar({ teams, currentTeam, teamsLoaded, onSwitchTeam, user, onLogout, collapsed: collapsedProp, badges, isAdmin, onOpenFeedback, onOpenBugReport, storage }: SidebarProps) {
+export function Sidebar({ teams, currentTeam, teamsLoaded, onSwitchTeam, user, onLogout, onLockVault, canLockVault, collapsed: collapsedProp, badges, isAdmin, onOpenFeedback, onOpenBugReport, storage }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { theme, setTheme } = useTheme()
@@ -1021,6 +1024,12 @@ Stockage
                 <ShieldCheck className="h-4 w-4 text-amber-500" /> Panel administrateur
               </DropdownItem>
             </Link>
+          )}
+
+          {canLockVault && (
+            <DropdownItem onClick={() => onLockVault?.()}>
+              <Lock className="h-4 w-4 text-emerald-500" /> Verrouiller le coffre-fort
+            </DropdownItem>
           )}
 
           <DropdownSeparator />

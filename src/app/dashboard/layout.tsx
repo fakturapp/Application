@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter, usePathname } from 'next/navigation'
 import { api } from '@/lib/api'
+import { clearVaultCookie } from '@/lib/cross-domain-cookie'
 import { cn } from '@/lib/utils'
 import { IS_ADMIN_ONLY } from '@/lib/app-env'
 import { InvoiceSettingsProvider } from '@/lib/invoice-settings-context'
@@ -235,6 +236,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setLogoutConfirm(true)
   }
 
+  async function handleLockVault() {
+    await api.post('/auth/vault/lock', {})
+    try {
+      localStorage.removeItem('faktur_vault_key')
+    } catch {}
+    clearVaultCookie()
+    await refreshUser()
+  }
+
   async function confirmSwitchTeam() {
     if (!switchConfirm) return
     setSwitchConfirm(null)
@@ -419,6 +429,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           avatarUrl: user.avatarUrl,
         }}
         onLogout={openLogoutConfirm}
+        onLockVault={handleLockVault}
+        canLockVault={user.currentTeamEncryptionMode === 'private'}
         collapsed={sidebarCollapsed}
         badges={sidebarBadges}
         isAdmin={user.isAdmin}
