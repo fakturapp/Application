@@ -366,7 +366,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearLocalStorageState()
     setUser(null)
     if (ACCOUNT_URL && typeof window !== 'undefined') {
-      window.location.href = accountLoginUrl(window.location.origin)
+      window.location.href = accountLoginUrl('')
       return
     }
     router.replace('/login')
