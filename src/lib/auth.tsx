@@ -425,7 +425,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           user.onboardingCompleted &&
           !user.cryptoResetNeeded &&
           !user.vaultLocked &&
-          (user.currentTeamEncryptionMode ?? 'private') === 'private'
+          user.currentTeamEncryptionMode === 'private'
         }
       />
     </AuthContext.Provider>
