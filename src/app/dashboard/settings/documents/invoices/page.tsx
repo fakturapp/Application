@@ -16,7 +16,6 @@ import { useToast } from '@/components/ui/toast'
 import { FormSelect } from '@/components/ui/dropdown'
 import { useAuth } from '@/lib/auth'
 import { ProGate } from '@/components/billing/pro-gate'
-import { InvoiceSnapshots } from '@/components/settings/invoice-snapshots'
 import {
   ImagePlus,
   Palette,
@@ -441,7 +440,6 @@ export default function InvoiceAppearancePage() {
         {/* Preview Column */}
         <motion.div variants={fadeUp} custom={2}>
           <InvoicePreview />
-          <InvoiceSnapshots />
         </motion.div>
       </div>
 
