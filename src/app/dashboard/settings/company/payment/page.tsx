@@ -14,9 +14,11 @@ import {
   Trash2,
 } from '@/components/ui/icons'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { useToast } from '@/components/ui/toast'
 import { useCompanySettings } from '@/lib/company-settings-context'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
+import { ProGate } from '@/components/billing/pro-gate'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -32,6 +34,10 @@ import { StripeActivationModal } from '@/components/settings/stripe-activation-m
 
 export default function PaymentPage() {
   const { toast } = useToast()
+  const { user } = useAuth()
+  const onlinePaymentLocked = !(
+    user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team'
+  )
   const {
     loading: companyLoading,
     noCompany,
@@ -297,6 +303,10 @@ export default function PaymentPage() {
 
                 <h3 className="font-semibold text-foreground">Paiement en ligne</h3>
 
+                <ProGate
+                  locked={onlinePaymentLocked}
+                  description="Passez à Pro pour accepter les paiements en ligne."
+                >
                 <div className="space-y-3">
                   {stripeLoading ? (
                     <Skeleton className="h-20 w-full rounded-xl" />
@@ -373,6 +383,7 @@ export default function PaymentPage() {
                     <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
                 </div>
+                </ProGate>
               </FieldGroup>
             </form>
           )}
