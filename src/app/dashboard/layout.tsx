@@ -545,7 +545,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <Spinner size="lg" className="text-accent" />
             <p className="mt-4 text-sm font-medium text-foreground">
-              {loggingOut ? 'Deconnexion en cours...' : "Changement d\u0027equipe en cours..."}
+              {loggingOut ? 'Déconnexion en cours...' : "Changement d'équipe en cours..."}
             </p>
           </motion.div>
         )}

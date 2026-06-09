@@ -573,10 +573,10 @@ function EditQuoteContent() {
         }
       }}
       onDocumentSaved={() => {
-        toast('Le document a \u00e9t\u00e9 mis \u00e0 jour par un collaborateur', 'info')
+        toast('Le document a été mis à jour par un collaborateur', 'info')
       }}
       onAccessRevoked={() => {
-        toast('Votre acc\u00e8s \u00e0 ce document a \u00e9t\u00e9 r\u00e9voqu\u00e9', 'error')
+        toast('Votre accès à ce document a été révoqué', 'error')
         router.push('/dashboard')
       }}
     >
@@ -627,7 +627,7 @@ function EditQuoteContent() {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Pencil className="h-3 w-3" /> Edition
+              <Pencil className="h-3 w-3" /> Édition
             </button>
             <button
               onClick={() => setMode('preview')}
@@ -637,7 +637,7 @@ function EditQuoteContent() {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Eye className="h-3 w-3" /> Apercu
+              <Eye className="h-3 w-3" /> Aperçu
             </button>
           </div>
         </div>

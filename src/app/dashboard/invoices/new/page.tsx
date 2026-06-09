@@ -666,10 +666,10 @@ export default function NewInvoicePage() {
           <DocumentZoom value={docZoom} onChange={setDocZoom} />
           <div className="flex rounded-lg border border-border overflow-hidden">
             <button onClick={() => setMode('edit')} className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium transition-all ${mode === 'edit' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-              <Pencil className="h-3 w-3" /> Edition
+              <Pencil className="h-3 w-3" /> Édition
             </button>
             <button onClick={() => setMode('preview')} className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium transition-all ${mode === 'preview' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-              <Eye className="h-3 w-3" /> Apercu
+              <Eye className="h-3 w-3" /> Aperçu
             </button>
           </div>
         </div>

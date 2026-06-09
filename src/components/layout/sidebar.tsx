@@ -224,7 +224,7 @@ const accountNav: NavItem[] = [
     icon: User,
     children: [
       { href: accountUrl('/settings'), label: 'Informations', icon: User },
-      { href: accountUrl('/settings/security'), label: 'S\u00e9curit\u00e9', icon: Shield },
+      { href: accountUrl('/settings/security'), label: 'Sécurité', icon: Shield },
     ],
   },
   { href: accountUrl('/settings/sessions'), label: 'Sessions', icon: Monitor },
@@ -1145,7 +1145,7 @@ Stockage
           <DropdownSeparator />
 
           <DropdownItem destructive onClick={onLogout}>
-            <LogOut className="h-4 w-4" /> Deconnexion
+            <LogOut className="h-4 w-4" /> Déconnexion
           </DropdownItem>
         </Dropdown>
       </div>

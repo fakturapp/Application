@@ -630,7 +630,7 @@ export default function NewQuotePage() {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Pencil className="h-3 w-3" /> Edition
+              <Pencil className="h-3 w-3" /> Édition
             </button>
             <button
               onClick={() => setMode('preview')}
@@ -640,7 +640,7 @@ export default function NewQuotePage() {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Eye className="h-3 w-3" /> Apercu
+              <Eye className="h-3 w-3" /> Aperçu
             </button>
           </div>
         </div>
