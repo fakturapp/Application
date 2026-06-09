@@ -658,6 +658,15 @@ function EditInvoiceContent() {
         toast('Votre accès à ce document a été révoqué', 'error')
         router.push('/dashboard')
       }}
+      onKicked={(banned) => {
+        toast(
+          banned
+            ? 'Vous avez été banni de ce document par le propriétaire'
+            : 'Vous avez été expulsé du document par le propriétaire',
+          'error'
+        )
+        router.push('/dashboard')
+      }}
     >
     <motion.div initial="hidden" animate="visible" className="space-y-5 px-4 lg:px-6 py-4 md:py-5">
       {collabActive && <CollaborationReadOnlyBanner />}
