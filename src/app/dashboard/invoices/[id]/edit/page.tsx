@@ -77,6 +77,8 @@ function EditInvoiceContent() {
   const [sourceQuote, setSourceQuote] = useState<{ id: string; quoteNumber: string } | null>(null)
   const [unlinking, setUnlinking] = useState(false)
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false)
+  const [sharedAccess, setSharedAccess] = useState<{ permission: 'viewer' | 'editor' } | null>(null)
+  const collabActive = collabEnabled || !!sharedAccess
   const [paymentMethod, setPaymentMethod] = useState<string>('')
   const [bankAccountId, setBankAccountId] = useState<string>('')
   const [bankAccounts, setBankAccounts] = useState<{ id: string; label: string; bankName: string | null; isDefault: boolean }[]>([])
@@ -123,7 +125,7 @@ function EditInvoiceContent() {
   const [notes, setNotes] = useState('')
   const [isDirty, setIsDirty] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  const { showModal, confirmNavigation, cancelNavigation, requestNavigation } = useUnsavedChanges(isDirty)
+  const { showModal, confirmNavigation, cancelNavigation, requestNavigation } = useUnsavedChanges(isDirty && !sharedAccess)
 
   useEffect(() => {
     async function init() {
@@ -144,8 +146,25 @@ function EditInvoiceContent() {
         setCompany(companyRes.data.company)
       }
 
-      if (invoiceRes.data?.invoice) {
-        const inv = invoiceRes.data.invoice
+      let inv = invoiceRes.data?.invoice ?? null
+      let isShared = false
+      if (!inv && invoiceRes.error) {
+        const sharedRes = await api.get<{
+          document: any
+          shared: { permission: 'viewer' | 'editor' }
+        }>(`/collaboration/documents/invoice/${invoiceId}`)
+        if (sharedRes.data?.document) {
+          inv = sharedRes.data.document
+          isShared = true
+          setSharedAccess(sharedRes.data.shared)
+        } else {
+          toast(sharedRes.error || invoiceRes.error || 'Document introuvable', 'error')
+          router.push('/dashboard')
+          return
+        }
+      }
+
+      if (inv) {
         setInvoiceNumber(inv.invoiceNumber)
         setAccentColor(inv.accentColor || '#6366f1')
         setLogoUrl(inv.logoUrl)
@@ -187,7 +206,7 @@ function EditInvoiceContent() {
         if (inv.paymentMethod) setPaymentMethod(inv.paymentMethod)
         if (inv.bankAccountId) {
           setBankAccountId(inv.bankAccountId)
-          api.get<{ bankAccount: any }>(`/company/bank-accounts/${inv.bankAccountId}`).then(({ data }) => {
+          if (!isShared) api.get<{ bankAccount: any }>(`/company/bank-accounts/${inv.bankAccountId}`).then(({ data }) => {
             if (data?.bankAccount) {
               setBankAccountInfo({
                 bankName: data.bankAccount.bankName,
@@ -612,7 +631,7 @@ function EditInvoiceContent() {
     <CollaborationProvider
       documentType="invoice"
       documentId={invoiceId}
-      enabled={!!invoiceId && collabEnabled}
+      enabled={!!invoiceId && collabActive}
       onDocumentChange={(change) => {
         setApplyingRemote(true)
         try {
@@ -641,8 +660,8 @@ function EditInvoiceContent() {
       }}
     >
     <motion.div initial="hidden" animate="visible" className="space-y-5 px-4 lg:px-6 py-4 md:py-5">
-      {collabEnabled && <CollaborationReadOnlyBanner />}
-      {collabEnabled && <SyncBroadcaster
+      {collabActive && <CollaborationReadOnlyBanner />}
+      {collabActive && <SyncBroadcaster
         notes={notes}
         accentColor={accentColor}
         lines={lines}
@@ -666,17 +685,19 @@ function EditInvoiceContent() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {collabEnabled && <CollaborationToolbar
+          {collabActive && <CollaborationToolbar
             documentType="invoice"
             documentId={invoiceId}
-
+            canShare={!sharedAccess}
             className="flex items-center gap-2"
           />}
           <DocumentZoom value={docZoom} onChange={setDocZoom} />
-          <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
-            {downloading ? <Spinner className="h-3.5 w-3.5 mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
-            {downloading ? 'Téléchargement...' : 'Télécharger'}
-          </Button>
+          {!sharedAccess && (
+            <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
+              {downloading ? <Spinner className="h-3.5 w-3.5 mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
+              {downloading ? 'Téléchargement...' : 'Télécharger'}
+            </Button>
+          )}
           <div className="flex rounded-lg border border-border overflow-hidden">
             <button onClick={() => setMode('edit')} className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium transition-all ${mode === 'edit' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
               <Pencil className="h-3 w-3" /> Edition
@@ -725,7 +746,7 @@ function EditInvoiceContent() {
                 <SlidersHorizontal className="h-4 w-4" />
               </button>
             </div>
-            <CollaborationEditor editorRef={editorAreaRef}>
+            <CollaborationEditor editorRef={editorAreaRef} sheetRef={a4SheetRef}>
             <div ref={a4SheetRef} className="relative" style={{ transform: `scale(${docZoom / 100})`, transformOrigin: 'top center', ...zoomSpacing }}>
             <AiSheetOverlay open={aiProcessing} />
             <A4Sheet
@@ -923,9 +944,19 @@ function EditInvoiceContent() {
           <div className="text-sm text-muted-foreground">
             Total : <span className="font-bold text-foreground">{total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
           </div>
-          <Button onClick={handleSave} disabled={saving || loadingBankAccount} size="sm" className="min-w-[140px] rounded-xl">
-            {saving ? (<><Spinner /> Enregistrement...</>) : (<><Save className="h-4 w-4 mr-1.5" /> Sauvegarder</>)}
-          </Button>
+          {sharedAccess ? (
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground" title="Vos modifications sont visibles en direct par le propriétaire, qui peut les enregistrer.">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              Synchronisé en direct
+            </div>
+          ) : (
+            <Button onClick={handleSave} disabled={saving || loadingBankAccount} size="sm" className="min-w-[140px] rounded-xl">
+              {saving ? (<><Spinner /> Enregistrement...</>) : (<><Save className="h-4 w-4 mr-1.5" /> Sauvegarder</>)}
+            </Button>
+          )}
         </motion.div>
       </div>
 
