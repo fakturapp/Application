@@ -38,7 +38,7 @@ export function TypingIndicator({ fieldId, className }: TypingIndicatorProps) {
             className="text-[10px] font-medium px-1.5 py-0.5 rounded-md text-white whitespace-nowrap"
             style={{ backgroundColor: collab_.color }}
           >
-            {collab_.fullName?.split(' ')[0] ?? collab_.email.split('@')[0]} \u00e9crit...
+            {collab_.fullName?.split(' ')[0] ?? collab_.email.split('@')[0]} écrit...
           </span>
         </div>
       </motion.div>

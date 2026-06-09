@@ -130,7 +130,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     }
     if (data) {
       setLinks((prev) => [data.data, ...prev])
-      toast('Lien de partage cr\u00e9\u00e9', 'success')
+      toast('Lien de partage créé', 'success')
     }
   }
 
@@ -138,14 +138,14 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     const url = `${FRONTEND_URL}/share/${token}`
     await navigator.clipboard.writeText(url)
     setCopied(true)
-    toast('Lien copi\u00e9 dans le presse-papiers', 'success')
+    toast('Lien copié dans le presse-papiers', 'success')
     setTimeout(() => setCopied(false), 2000)
   }
 
   const deleteShareLink = async (linkId: string) => {
     await api.delete(`/collaboration/share-links/${linkId}`)
     setLinks((prev) => prev.filter((l) => l.id !== linkId))
-    toast('Lien d\u00e9sactiv\u00e9', 'success')
+    toast('Lien désactivé', 'success')
   }
 
   // ── Invite by email ─────────────────────────────────────────────────
@@ -166,7 +166,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     } else if (data) {
       setShares((prev) => [data.data, ...prev])
       setInviteEmail('')
-      toast('Invitation envoy\u00e9e', 'success')
+      toast('Invitation envoyée', 'success')
     }
     setInviting(false)
   }
@@ -193,7 +193,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
       return
     }
     setShares((prev) => prev.filter((s) => s.id !== shareId))
-    toast('Acc\u00e8s r\u00e9voqu\u00e9', 'success')
+    toast('Accès révoqué', 'success')
   }
 
   // ── Render ──────────────────────────────────────────────────────────
@@ -291,7 +291,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                   size="icon"
                   className="h-8 w-8 text-destructive"
                   onClick={() => deleteShareLink(activeLink.id)}
-                  title="D\u00e9sactiver le lien"
+                  title="Désactiver le lien"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -305,13 +305,13 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                     setLinks((prev) =>
                       prev.map((l) => (l.id === activeLink.id ? { ...l, visibility: vis } : l))
                     )
-                    toast(vis === 'anyone' ? 'Lien accessible \u00e0 tous' : 'Lien restreint \u00e0 l\'\u00e9quipe', 'success')
+                    toast(vis === 'anyone' ? 'Lien accessible à tous' : 'Lien restreint à l\'équipe', 'success')
                   }}
                   className="h-7 text-xs w-[160px]"
                   showCheck={false}
                   options={[
                     { value: 'anyone', label: 'Tout le monde' },
-                    { value: 'team', label: '\u00c9quipe uniquement' },
+                    { value: 'team', label: 'Équipe uniquement' },
                   ]}
                 />
                 {activeLink.autoExpire && (
@@ -339,12 +339,12 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                   showCheck={false}
                   options={[
                     { value: 'anyone', label: 'Tout le monde' },
-                    { value: 'team', label: '\u00c9quipe uniquement' },
+                    { value: 'team', label: 'Équipe uniquement' },
                   ]}
                 />
                 <Button variant="outline" onClick={createShareLink} className="gap-1.5 shrink-0">
                   <Link2 className="h-4 w-4" />
-                  G\u00e9n\u00e9rer
+                  Générer
                 </Button>
               </div>
               <CheckboxRoot 
@@ -367,7 +367,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
         {shares.length > 0 && (
           <div>
             <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Personnes ayant acces
+              Personnes ayant accès
             </label>
             <div className="space-y-1 max-h-48 overflow-y-auto">
               <AnimatePresence>
@@ -421,7 +421,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                         size="icon"
                         className="h-7 w-7 text-destructive hover:bg-destructive/10"
                         onClick={() => revokeAccess(share.id)}
-                        title="R\u00e9voquer l'acc\u00e8s"
+                        title="Révoquer l'accès"
                       >
                         <X className="h-3.5 w-3.5" />
                       </Button>
@@ -443,7 +443,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
               Aucun collaborateur pour le moment
             </p>
             <p className="text-xs text-muted-foreground/60 mt-0.5">
-              Invitez quelqu&apos;un par email ou g\u00e9n\u00e9rez un lien
+              Invitez quelqu&apos;un par email ou générez un lien
             </p>
           </div>
         )}

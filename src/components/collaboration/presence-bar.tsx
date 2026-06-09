@@ -69,7 +69,7 @@ export function PresenceBar({ collaborators, className }: PresenceBarProps) {
                   <p className="font-semibold">{collab.fullName ?? collab.email}</p>
                   <p className="text-zinc-400 mt-0.5">
                     {collab.isOwner
-                      ? 'Propri\u00e9taire'
+                      ? 'Propriétaire'
                       : collab.permission === 'editor'
                         ? 'Peut modifier'
                         : 'Lecture seule'}
