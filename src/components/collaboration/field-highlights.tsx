@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { CollaboratorInfo } from '@/hooks/use-collaboration'
+import type { CollaboratorInfo, FieldSelection } from '@/hooks/use-collaboration'
 import { resolveFieldPath } from '@/components/collaboration/field-path'
 
 interface FieldHighlightsProps {
   focusedFields: Map<string, string>
+  selections?: Map<string, FieldSelection>
   collaborators: CollaboratorInfo[]
   containerRef: React.RefObject<HTMLElement | null>
   sheetRef: React.RefObject<HTMLElement | null>
@@ -15,6 +16,7 @@ interface HighlightBox {
   fieldId: string
   color: string
   name: string
+  selection: string | null
   top: number
   left: number
   width: number
@@ -34,6 +36,7 @@ function boxesEqual(a: HighlightBox[], b: HighlightBox[]): boolean {
     if (
       x.fieldId !== y.fieldId ||
       x.color !== y.color ||
+      x.selection !== y.selection ||
       Math.abs(x.top - y.top) > 0.5 ||
       Math.abs(x.left - y.left) > 0.5 ||
       Math.abs(x.width - y.width) > 0.5 ||
@@ -45,8 +48,11 @@ function boxesEqual(a: HighlightBox[], b: HighlightBox[]): boolean {
   return true
 }
 
+const EMPTY_SELECTIONS = new Map<string, FieldSelection>()
+
 export function FieldHighlights({
   focusedFields,
+  selections = EMPTY_SELECTIONS,
   collaborators,
   containerRef,
   sheetRef,
@@ -57,25 +63,32 @@ export function FieldHighlights({
     const compute = () => {
       const container = containerRef.current
       const sheet = sheetRef.current
-      if (!container || !sheet || focusedFields.size === 0) {
+      if (!container || !sheet || (focusedFields.size === 0 && selections.size === 0)) {
         setBoxes((prev) => (prev.length === 0 ? prev : []))
         return
       }
 
       const containerRect = container.getBoundingClientRect()
       const next: HighlightBox[] = []
+      const fieldIds = new Set([...focusedFields.keys(), ...selections.keys()])
 
-      for (const [fieldId, userId] of focusedFields) {
+      for (const fieldId of fieldIds) {
+        const userId = focusedFields.get(fieldId) ?? selections.get(fieldId)?.userId
+        if (!userId) continue
         const collab = collaborators.find((c) => c.userId === userId)
         if (!collab) continue
         const el = resolveFieldPath(fieldId, sheet)
         if (!el) continue
         const rect = el.getBoundingClientRect()
         if (rect.width === 0 || rect.height === 0) continue
+
+        const selection = selections.get(fieldId)
         next.push({
           fieldId,
           color: collab.color,
           name: getDisplayName(collab),
+          selection:
+            selection && selection.userId === userId && selection.text ? selection.text : null,
           top: rect.top - containerRect.top,
           left: rect.left - containerRect.left,
           width: rect.width,
@@ -93,7 +106,7 @@ export function FieldHighlights({
       clearInterval(interval)
       window.removeEventListener('resize', compute)
     }
-  }, [focusedFields, collaborators, containerRef, sheetRef])
+  }, [focusedFields, selections, collaborators, containerRef, sheetRef])
 
   if (boxes.length === 0) return null
 
@@ -118,6 +131,14 @@ export function FieldHighlights({
           >
             {box.name}
           </span>
+          {box.selection && (
+            <span
+              className="absolute top-full left-0 mt-1 block max-w-[280px] truncate rounded-md rounded-tl-none px-1.5 py-0.5 text-[10px] font-medium italic text-white shadow-sm select-none"
+              style={{ backgroundColor: box.color }}
+            >
+              « {box.selection} »
+            </span>
+          )}
         </div>
       ))}
     </div>
