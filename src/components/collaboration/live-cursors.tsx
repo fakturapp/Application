@@ -6,7 +6,7 @@ import type { CollaboratorInfo, CursorPosition } from '@/hooks/use-collaboration
 const STIFFNESS = 380
 const DAMPING = 36
 const EPSILON = 0.05
-const BOUNDS_MARGIN = 0.03
+const HIDE_SENTINEL = -5
 
 interface SpringState {
   x: number
@@ -29,12 +29,11 @@ function getDisplayName(collab: CollaboratorInfo): string {
 }
 
 function isVisiblePosition(pos: CursorPosition): boolean {
-  return (
-    pos.x >= -BOUNDS_MARGIN &&
-    pos.x <= 1 + BOUNDS_MARGIN &&
-    pos.y >= -BOUNDS_MARGIN &&
-    pos.y <= 1 + BOUNDS_MARGIN
-  )
+  return pos.x > HIDE_SENTINEL && pos.y > HIDE_SENTINEL
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value))
 }
 
 export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: LiveCursorsProps) {
@@ -67,7 +66,7 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
       const dt = Math.min((currentTime - lastTimeRef.current) / 1000, 0.05)
       lastTimeRef.current = currentTime
 
-      let anyActive = false
+      let anyVisible = false
 
       for (const [userId, target] of targetsRef.current) {
         const el = elementsRef.current.get(userId)
@@ -78,8 +77,14 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
           continue
         }
 
-        const tx = sheetRect.left - containerRect.left + target.x * sheetRect.width
-        const ty = sheetRect.top - containerRect.top + target.y * sheetRect.height
+        anyVisible = true
+
+        const offSheet = target.x < 0 || target.x > 1 || target.y < 0 || target.y > 1
+        const cx = clamp01(target.x)
+        const cy = clamp01(target.y)
+
+        const tx = sheetRect.left - containerRect.left + cx * sheetRect.width
+        const ty = sheetRect.top - containerRect.top + cy * sheetRect.height
 
         let spring = springsRef.current.get(userId)
         if (!spring || !spring.initialized) {
@@ -103,15 +108,13 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
           spring.y = ty
           spring.vx = 0
           spring.vy = 0
-        } else {
-          anyActive = true
         }
 
         el.style.transform = `translate3d(${spring.x}px, ${spring.y}px, 0)`
-        el.style.opacity = '1'
+        el.style.opacity = offSheet ? '0.5' : '1'
       }
 
-      if (anyActive) {
+      if (anyVisible) {
         rafRef.current = requestAnimationFrame(tick)
       }
     },
