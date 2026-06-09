@@ -35,6 +35,11 @@ export interface FieldFocus {
   fieldId: string
 }
 
+export interface FieldSelection {
+  userId: string
+  text: string
+}
+
 export interface UseCollaborationOptions {
   documentType: 'invoice' | 'quote' | 'credit_note'
   documentId: string | null
@@ -42,12 +47,16 @@ export interface UseCollaborationOptions {
   onDocumentChange?: (change: DocumentChange) => void
   onDocumentSaved?: (savedByUserId: string) => void
   onAccessRevoked?: () => void
+  onKicked?: (banned: boolean) => void
 }
 
 export interface UseCollaborationReturn {
   collaborators: CollaboratorInfo[]
   cursors: Map<string, CursorPosition>
   focusedFields: Map<string, string>
+  selections: Map<string, FieldSelection>
+  latencies: Map<string, number>
+  myUserId: string | null
   myPermission: 'viewer' | 'editor' | null
   isOwner: boolean
   isConnected: boolean
@@ -56,6 +65,9 @@ export interface UseCollaborationReturn {
   sendDocumentChange: (path: string, value: any) => void
   sendFieldFocus: (fieldId: string) => void
   sendFieldBlur: (fieldId: string) => void
+  sendFieldSelection: (fieldId: string, text: string) => void
+  kickUser: (userId: string) => void
+  banUser: (userId: string) => void
 }
 
 export function useCollaboration({
@@ -65,11 +77,15 @@ export function useCollaboration({
   onDocumentChange,
   onDocumentSaved,
   onAccessRevoked,
+  onKicked,
 }: UseCollaborationOptions): UseCollaborationReturn {
   const socketRef = useRef<Socket | null>(null)
   const [collaborators, setCollaborators] = useState<CollaboratorInfo[]>([])
   const [cursors, setCursors] = useState<Map<string, CursorPosition>>(new Map())
   const [focusedFields, setFocusedFields] = useState<Map<string, string>>(new Map())
+  const [selections, setSelections] = useState<Map<string, FieldSelection>>(new Map())
+  const [latencies, setLatencies] = useState<Map<string, number>>(new Map())
+  const [myUserId, setMyUserId] = useState<string | null>(null)
   const [myPermission, setMyPermission] = useState<'viewer' | 'editor' | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
@@ -81,6 +97,8 @@ export function useCollaboration({
   onDocumentSavedRef.current = onDocumentSaved
   const onAccessRevokedRef = useRef(onAccessRevoked)
   onAccessRevokedRef.current = onAccessRevoked
+  const onKickedRef = useRef(onKicked)
+  onKickedRef.current = onKicked
 
   useEffect(() => {
     if (!enabled || !documentId) return
@@ -113,11 +131,13 @@ export function useCollaboration({
     })
 
     socket.on('room-joined', (data: {
+      userId?: string
       permission: 'viewer' | 'editor'
       isOwner: boolean
       color: string
       collaborators: CollaboratorInfo[]
     }) => {
+      setMyUserId(data.userId ?? null)
       setMyPermission(data.permission)
       setIsOwner(data.isOwner)
       setMyColor(data.color)
@@ -140,10 +160,21 @@ export function useCollaboration({
       })
       setFocusedFields((prev) => {
         const next = new Map(prev)
-        // Remove all entries for this user
         for (const [fieldId, userId] of next) {
           if (userId === data.userId) next.delete(fieldId)
         }
+        return next
+      })
+      setSelections((prev) => {
+        const next = new Map(prev)
+        for (const [fieldId, sel] of next) {
+          if (sel.userId === data.userId) next.delete(fieldId)
+        }
+        return next
+      })
+      setLatencies((prev) => {
+        const next = new Map(prev)
+        next.delete(data.userId)
         return next
       })
     })
@@ -176,6 +207,41 @@ export function useCollaboration({
         }
         return next
       })
+      setSelections((prev) => {
+        if (prev.get(data.fieldId)?.userId !== data.userId) return prev
+        const next = new Map(prev)
+        next.delete(data.fieldId)
+        return next
+      })
+    })
+
+    socket.on('field-selection-changed', (data: { userId: string; fieldId: string; text: string }) => {
+      setSelections((prev) => {
+        const next = new Map(prev)
+        if (!data.text) {
+          if (next.get(data.fieldId)?.userId !== data.userId) return prev
+          next.delete(data.fieldId)
+        } else {
+          next.set(data.fieldId, { userId: data.userId, text: data.text })
+        }
+        return next
+      })
+    })
+
+    socket.on('collaborator-latency', (data: { userId: string; latencyMs: number }) => {
+      setLatencies((prev) => {
+        const next = new Map(prev)
+        next.set(data.userId, data.latencyMs)
+        return next
+      })
+    })
+
+    socket.on('kicked', (data: { banned?: boolean }) => {
+      if (onKickedRef.current) {
+        onKickedRef.current(!!data?.banned)
+      } else {
+        onAccessRevokedRef.current?.()
+      }
     })
 
     socket.on('permission-changed', (data: { permission: 'viewer' | 'editor' }) => {
@@ -202,6 +268,15 @@ export function useCollaboration({
       console.error('[collaboration]', data.message)
     })
 
+    const pingLoop = setInterval(() => {
+      if (!socket.connected) return
+      const t0 = Date.now()
+      socket.emit('ping-check', () => {
+        const ms = Date.now() - t0
+        socket.emit('latency-report', { ms })
+      })
+    }, 5000)
+
     // Clean up stale cursors every 5s (remove if no update for 5s)
     const cursorCleanup = setInterval(() => {
       setCursors((prev) => {
@@ -220,12 +295,16 @@ export function useCollaboration({
 
     return () => {
       clearInterval(cursorCleanup)
+      clearInterval(pingLoop)
       socket.emit('leave-document')
       socket.disconnect()
       socketRef.current = null
       setCollaborators([])
       setCursors(new Map())
       setFocusedFields(new Map())
+      setSelections(new Map())
+      setLatencies(new Map())
+      setMyUserId(null)
       setMyPermission(null)
       setIsOwner(false)
       setIsConnected(false)
@@ -255,10 +334,25 @@ export function useCollaboration({
     socketRef.current?.emit('field-blur', { fieldId })
   }, [])
 
+  const sendFieldSelection = useCallback((fieldId: string, text: string) => {
+    socketRef.current?.emit('field-selection', { fieldId, text: text.slice(0, 200) })
+  }, [])
+
+  const kickUser = useCallback((userId: string) => {
+    socketRef.current?.emit('kick-user', { userId })
+  }, [])
+
+  const banUser = useCallback((userId: string) => {
+    socketRef.current?.emit('ban-user', { userId })
+  }, [])
+
   return {
     collaborators,
     cursors,
     focusedFields,
+    selections,
+    latencies,
+    myUserId,
     myPermission,
     isOwner,
     isConnected,
@@ -267,5 +361,8 @@ export function useCollaboration({
     sendDocumentChange,
     sendFieldFocus,
     sendFieldBlur,
+    sendFieldSelection,
+    kickUser,
+    banUser,
   }
 }
