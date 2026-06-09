@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { useAuth } from '@/lib/auth'
 import { accountLoginUrl } from '@/lib/account-redirect'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,7 @@ const VALID_ROUTES = new Set(['invoices', 'quotes', 'credit-notes'])
 export default function SharedDocumentRedirectPage() {
   const router = useRouter()
   const params = useParams()
+  const { user, loading } = useAuth()
   const type = params.type as string
   const id = params.id as string
 
@@ -24,15 +26,15 @@ export default function SharedDocumentRedirectPage() {
       return
     }
 
-    const authToken = localStorage.getItem('faktur_token')
-    if (!authToken) {
-      sessionStorage.setItem('faktur_share_redirect', `/share/doc/${type}/${id}`)
+    if (loading) return
+
+    if (!user) {
       setStatus('unauthenticated')
       return
     }
 
     router.replace(`/dashboard/${type}/${id}/edit`)
-  }, [type, id, router])
+  }, [type, id, router, user, loading])
 
   if (status === 'unauthenticated') {
     return (

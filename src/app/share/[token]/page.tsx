@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { accountLoginUrl } from '@/lib/account-redirect'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
@@ -20,20 +21,21 @@ const documentRoutes: Record<DocumentType, string> = {
 export default function ShareLinkPage() {
   const router = useRouter()
   const params = useParams()
+  const { user, loading } = useAuth()
   const token = params.token as string
 
   const [status, setStatus] = useState<'loading' | 'error' | 'unauthenticated'>('loading')
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    async function validate() {
-      const authToken = localStorage.getItem('faktur_token')
-      if (!authToken) {
-        sessionStorage.setItem('faktur_share_redirect', `/share/${token}`)
-        setStatus('unauthenticated')
-        return
-      }
+    if (loading) return
 
+    if (!user) {
+      setStatus('unauthenticated')
+      return
+    }
+
+    async function validate() {
       const { data, error } = await api.get<{
         message: string
         data: {
@@ -58,7 +60,7 @@ export default function ShareLinkPage() {
     }
 
     validate()
-  }, [token, router])
+  }, [token, router, user, loading])
 
   if (status === 'loading') {
     return (
@@ -69,7 +71,7 @@ export default function ShareLinkPage() {
           className="text-center"
         >
           <Spinner className="h-8 w-8 mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">V\u00e9rification de l&apos;acc\u00e8s...</p>
+          <p className="text-sm text-muted-foreground">Vérification de l&apos;accès...</p>
         </motion.div>
       </div>
     )
@@ -88,7 +90,7 @@ export default function ShareLinkPage() {
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">Connexion requise</h2>
           <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Vous devez \u00eatre connect\u00e9 pour acc\u00e9der \u00e0 ce document partag\u00e9.
+            Vous devez être connecté pour accéder à ce document partagé.
           </p>
           <Button onClick={() => { window.location.href = accountLoginUrl(window.location.href) }} className="gap-2">
             <LogIn className="h-4 w-4" /> Se connecter
@@ -108,9 +110,9 @@ export default function ShareLinkPage() {
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 mx-auto mb-5">
           <ShieldAlert className="h-7 w-7 text-destructive" />
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-2">Acc\u00e8s refus\u00e9</h2>
+        <h2 className="text-xl font-bold text-foreground mb-2">Accès refusé</h2>
         <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-          {errorMessage || "Ce lien de partage est invalide ou a \u00e9t\u00e9 d\u00e9sactiv\u00e9."}
+          {errorMessage || 'Ce lien de partage est invalide ou a été désactivé.'}
         </p>
         <Button variant="outline" onClick={() => router.push('/dashboard')}>
           Retour au tableau de bord
