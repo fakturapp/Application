@@ -237,8 +237,9 @@ export function useCollaboration({
   // Throttle cursor moves to ~30fps to avoid flooding
   const lastCursorSend = useRef(0)
   const sendCursorMove = useCallback((x: number, y: number, fieldId?: string) => {
+    const isHideSignal = x < 0 || y < 0
     const now = Date.now()
-    if (now - lastCursorSend.current < 33) return // ~30fps
+    if (!isHideSignal && now - lastCursorSend.current < 33) return
     lastCursorSend.current = now
     socketRef.current?.emit('cursor-move', { x, y, fieldId })
   }, [])
