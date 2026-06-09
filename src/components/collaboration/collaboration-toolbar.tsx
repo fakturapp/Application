@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ShareModal } from '@/components/collaboration/share-modal'
 import { PresenceBar } from '@/components/collaboration/presence-bar'
@@ -57,7 +57,14 @@ export function CollaborationToolbar({
         )}
 
         {}
-        <PresenceBar collaborators={collaborators} />
+        <PresenceBar
+          collaborators={collaborators}
+          latencies={collab?.latencies}
+          myUserId={collab?.myUserId}
+          canModerate={collab?.isOwner ?? false}
+          onKick={(id) => collab?.kickUser(id)}
+          onBan={(id) => collab?.banUser(id)}
+        />
 
         {}
         {documentId && canShare && (
@@ -104,6 +111,9 @@ interface CollaborationEditorProps {
   children: React.ReactNode
 }
 
+const CLICKABLE_SELECTOR = 'button, a, [role="button"], [data-collab-target], .cursor-pointer'
+const CLICK_HIGHLIGHT_MS = 2500
+
 export function CollaborationEditor({
   editorRef,
   sheetRef,
@@ -114,11 +124,13 @@ export function CollaborationEditor({
   const collaborators = collab?.collaborators ?? []
   const cursors = collab?.cursors ?? new Map()
   const focusedFields = collab?.focusedFields ?? new Map()
+  const selections = collab?.selections ?? new Map()
   const isConnected = collab?.isConnected ?? false
   const myPermission = collab?.myPermission
   const sendCursorMove = collab?.sendCursorMove
   const sendFieldFocus = collab?.sendFieldFocus
   const sendFieldBlur = collab?.sendFieldBlur
+  const sendFieldSelection = collab?.sendFieldSelection
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
@@ -133,7 +145,7 @@ export function CollaborationEditor({
   )
 
   const handlePointerLeave = useCallback(() => {
-    sendCursorMove?.(-1, -1)
+    sendCursorMove?.(-10, -10)
   }, [sendCursorMove])
 
   useEffect(() => {
@@ -164,6 +176,95 @@ export function CollaborationEditor({
     }
   }, [editorRef, sheetRef, isConnected, sendFieldFocus, sendFieldBlur])
 
+  const selectedFieldRef = useRef<string | null>(null)
+  const lastSelectionKeyRef = useRef('')
+
+  useEffect(() => {
+    if (!isConnected || !sendFieldSelection) return
+
+    let raf = 0
+    const broadcastSelection = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const sheet = sheetRef.current
+        if (!sheet) return
+
+        const el = document.activeElement
+        let fieldId: string | null = null
+        let text = ''
+
+        if (
+          el &&
+          (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) &&
+          sheet.contains(el)
+        ) {
+          const start = el.selectionStart ?? 0
+          const end = el.selectionEnd ?? 0
+          if (end > start) {
+            fieldId = getFieldPath(el, sheet)
+            text = el.value.slice(start, end).slice(0, 120)
+          }
+        }
+
+        const key = fieldId ? `${fieldId}::${text}` : ''
+        if (key === lastSelectionKeyRef.current) return
+        lastSelectionKeyRef.current = key
+
+        if (selectedFieldRef.current && selectedFieldRef.current !== fieldId) {
+          sendFieldSelection(selectedFieldRef.current, '')
+        }
+        if (fieldId) {
+          sendFieldSelection(fieldId, text)
+        }
+        selectedFieldRef.current = fieldId
+      })
+    }
+
+    document.addEventListener('selectionchange', broadcastSelection)
+    return () => {
+      document.removeEventListener('selectionchange', broadcastSelection)
+      cancelAnimationFrame(raf)
+    }
+  }, [isConnected, sendFieldSelection, sheetRef])
+
+  const clickedPathRef = useRef<string | null>(null)
+  const clickBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const container = editorRef.current
+    if (!container || !isConnected || !sendFieldFocus || !sendFieldBlur) return
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const sheet = sheetRef.current
+      if (!sheet) return
+      const origin = e.target instanceof Element ? e.target : null
+      const target = origin?.closest(CLICKABLE_SELECTOR)
+      if (!(target instanceof HTMLElement) || !sheet.contains(target)) return
+      if (isEditableElement(target)) return
+
+      const path = getFieldPath(target, sheet)
+      if (!path) return
+
+      if (clickBlurTimerRef.current) clearTimeout(clickBlurTimerRef.current)
+      if (clickedPathRef.current && clickedPathRef.current !== path) {
+        sendFieldBlur(clickedPathRef.current)
+      }
+
+      sendFieldFocus(path)
+      clickedPathRef.current = path
+      clickBlurTimerRef.current = setTimeout(() => {
+        sendFieldBlur(path)
+        clickedPathRef.current = null
+      }, CLICK_HIGHLIGHT_MS)
+    }
+
+    container.addEventListener('pointerdown', handlePointerDown)
+    return () => {
+      container.removeEventListener('pointerdown', handlePointerDown)
+      if (clickBlurTimerRef.current) clearTimeout(clickBlurTimerRef.current)
+    }
+  }, [editorRef, sheetRef, isConnected, sendFieldFocus, sendFieldBlur])
+
   const isReadOnly = myPermission === 'viewer'
 
   return (
@@ -183,6 +284,7 @@ export function CollaborationEditor({
           />
           <FieldHighlights
             focusedFields={focusedFields}
+            selections={selections}
             collaborators={collaborators}
             containerRef={editorRef}
             sheetRef={sheetRef}
