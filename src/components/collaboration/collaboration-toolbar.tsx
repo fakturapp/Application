@@ -37,12 +37,21 @@ export function CollaborationToolbar({
     <>
       <div className={className}>
         {}
-        {documentId && collaborators.length > 0 && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1" title={isConnected ? 'Connecté en temps réel' : 'Reconnexion...'}>
+        {documentId && (
+          <div
+            className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground mr-1"
+            title={isConnected ? 'Connecté en temps réel' : 'Connexion au serveur de collaboration...'}
+          >
             {isConnected ? (
-              <Wifi className="h-3 w-3 text-green-500" />
+              <>
+                <Wifi className="h-3 w-3 text-green-500" />
+                <span className="hidden sm:inline">En direct</span>
+              </>
             ) : (
-              <WifiOff className="h-3 w-3 text-amber-500 animate-pulse" />
+              <>
+                <WifiOff className="h-3 w-3 text-amber-500 animate-pulse" />
+                <span className="hidden sm:inline">Connexion...</span>
+              </>
             )}
           </div>
         )}

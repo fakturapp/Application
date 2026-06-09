@@ -86,12 +86,11 @@ export function useCollaboration({
     if (!enabled || !documentId) return
 
     const token = localStorage.getItem('faktur_token')
-    if (!token) return
 
     const socket = io(`${WS_URL}/collaboration`, {
       path: '/ws',
-      transports: ['websocket', 'polling'],
-      auth: { token },
+      withCredentials: true,
+      auth: token ? { token } : {},
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
