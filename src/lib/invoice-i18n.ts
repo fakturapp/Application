@@ -50,7 +50,7 @@ export interface InvoiceTranslations {
 const fr: InvoiceTranslations = {
   quote: 'Devis',
   invoice: 'Facture',
-  quoteNumber: 'N\u00b0',
+  quoteNumber: 'N°',
   date: 'Date',
   validity: 'Validité',
   dueDate: 'Échéance',

@@ -28,7 +28,7 @@ export function InvoicePreview() {
           <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
             <div className="flex items-center gap-2">
               <Eye className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">Apercu du document</p>
+              <p className="text-sm font-medium text-foreground">Aperçu du document</p>
             </div>
             <p className="text-xs text-muted-foreground">
               {currentTemplate.name} | {settings.billingType === 'quick' ? 'Rapide' : 'Complet'}

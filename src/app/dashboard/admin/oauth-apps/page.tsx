@@ -857,7 +857,7 @@ function OauthAppFormModal({
     <Dialog open={open} onClose={onClose} className="max-w-xl">
       <DialogHeader onClose={onClose}>
         <DialogTitle>
-          {mode === 'create' ? 'Nouvelle application OAuth' : "Éditer l\u0027application OAuth"}
+          {mode === 'create' ? 'Nouvelle application OAuth' : "Éditer l'application OAuth"}
         </DialogTitle>
         <DialogDescription>
           {mode === 'create'

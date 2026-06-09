@@ -285,7 +285,7 @@ export default function EInvoicingPage() {
               Fonctionnalite en beta
               <span className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-500 text-[10px] font-semibold uppercase tracking-wide">Beta</span>
             </DialogTitle>
-            <DialogDescription>Apercu anticipe de la facturation electronique</DialogDescription>
+            <DialogDescription>Aperçu anticipé de la facturation électronique</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 mb-6">
             <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 space-y-2">

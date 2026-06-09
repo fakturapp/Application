@@ -1219,7 +1219,7 @@ export function A4Sheet({
                           SIREN : {ie(company.siren || '', (v) => onCompanyFieldChange('siren', v), 'text-[10px]', '000000000')}
                         </div>
                         <div className="text-[10px]">
-                          {lang === 'en' ? 'VAT No.' : 'N\u00b0 TVA'} : {ie(company.vatNumber || '', (v) => onCompanyFieldChange('vatNumber', v), 'text-[10px]', 'FR00000000000')}
+                          {lang === 'en' ? 'VAT No.' : 'N° TVA'} : {ie(company.vatNumber || '', (v) => onCompanyFieldChange('vatNumber', v), 'text-[10px]', 'FR00000000000')}
                         </div>
                       </div>
                     )}
@@ -1283,7 +1283,7 @@ export function A4Sheet({
                       SIREN : {ie(company.siren || '', (v) => onCompanyFieldChange('siren', v), 'text-[10px]', '000000000')}
                     </div>
                     <div className="text-[10px]">
-                      {lang === 'en' ? 'VAT No.' : 'N\u00b0 TVA'} : {ie(company.vatNumber || '', (v) => onCompanyFieldChange('vatNumber', v), 'text-[10px]', 'FR00000000000')}
+                      {lang === 'en' ? 'VAT No.' : 'N° TVA'} : {ie(company.vatNumber || '', (v) => onCompanyFieldChange('vatNumber', v), 'text-[10px]', 'FR00000000000')}
                     </div>
                   </div>
                 </div>
@@ -1350,7 +1350,7 @@ export function A4Sheet({
 
                     {showClientVatNumber && (
                       <div className="text-[10px]" style={{ color: T.textMuted }}>
-                        {lang === 'en' ? 'VAT No.' : 'N\u00b0 TVA'} : {ie(clientVatNumber || '', () => {}, 'text-[10px]', 'FR00000000000')}
+                        {lang === 'en' ? 'VAT No.' : 'N° TVA'} : {ie(clientVatNumber || '', () => {}, 'text-[10px]', 'FR00000000000')}
                       </div>
                     )}
 
@@ -1901,7 +1901,7 @@ export function A4Sheet({
                         {company && (<>
                           {ie(company.legalName, (v) => onCompanyFieldChange('legalName', v), 'font-semibold text-[11px]', t.society)}
                           {company.siren && <> — SIREN : {ie(company.siren, (v) => onCompanyFieldChange('siren', v), 'text-[11px]')}</>}
-                          {company.vatNumber && <> — {lang === 'en' ? 'VAT No.' : 'N\u00b0 TVA'} : {ie(company.vatNumber, (v) => onCompanyFieldChange('vatNumber', v), 'text-[11px]')}</>}
+                          {company.vatNumber && <> — {lang === 'en' ? 'VAT No.' : 'N° TVA'} : {ie(company.vatNumber, (v) => onCompanyFieldChange('vatNumber', v), 'text-[11px]')}</>}
                         </>)}
                       </div>
                     )}
@@ -1931,7 +1931,7 @@ export function A4Sheet({
                       {company && (<>
                         {ie(company.legalName, (v) => onCompanyFieldChange('legalName', v), 'font-semibold text-[9px]', t.society)}
                         {company.siren && <> — SIREN : {ie(company.siren, (v) => onCompanyFieldChange('siren', v), 'text-[9px]')}</>}
-                        {company.vatNumber && <> — {lang === 'en' ? 'VAT No.' : 'N\u00b0 TVA'} : {ie(company.vatNumber, (v) => onCompanyFieldChange('vatNumber', v), 'text-[9px]')}</>}
+                        {company.vatNumber && <> — {lang === 'en' ? 'VAT No.' : 'N° TVA'} : {ie(company.vatNumber, (v) => onCompanyFieldChange('vatNumber', v), 'text-[9px]')}</>}
                         <br />
                         {ie(company.addressLine1 || '', (v) => onCompanyFieldChange('addressLine1', v), 'text-[9px]', t.address)}
                         {', '}

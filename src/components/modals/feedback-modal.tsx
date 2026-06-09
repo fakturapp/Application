@@ -100,7 +100,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
                 <DialogDescription className="mt-0">
                   {isEdit
                     ? 'Vous pouvez mettre à jour votre avis'
-                    : 'Votre retour nous aide à améliorer l\u0027application'}
+                    : 'Votre retour nous aide à améliorer l\'application'}
                 </DialogDescription>
               </div>
             </div>

@@ -247,10 +247,10 @@ export default function AboutPage() {
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Informations légales</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {[
-            { label: 'Mentions l\u00e9gales', href: '/legal/mentions', icon: Scale },
+            { label: 'Mentions légales', href: '/legal/mentions', icon: Scale },
             { label: 'CGU', href: '/legal/terms', icon: ScrollText },
-            { label: 'Confidentialit\u00e9', href: '/legal/privacy', icon: Lock },
-            { label: 'S\u00e9curit\u00e9', href: '/legal/security', icon: Shield },
+            { label: 'Confidentialité', href: '/legal/privacy', icon: Lock },
+            { label: 'Sécurité', href: '/legal/security', icon: Shield },
             { label: 'Cookies', href: '/legal/cookies', icon: Cookie },
           ].map((link) => (
             <Link

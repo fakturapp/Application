@@ -145,7 +145,7 @@ export function AccountPreview() {
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-foreground capitalize">{p.provider}</p>
                     <p className="text-[10px] text-muted-foreground truncate">
-                      {p.email || 'Compte li\u00e9'}
+                      {p.email || 'Compte lié'}
                     </p>
                   </div>
                   <Badge variant="success" className="text-[8px] px-1.5 shrink-0">Lié</Badge>
@@ -174,8 +174,8 @@ export function AccountPreview() {
                     <p className="text-xs font-medium text-foreground truncate">{pk.friendlyName}</p>
                     <p className="text-[10px] text-muted-foreground">
                       {pk.lastUsedAt
-                        ? `Utilis\u00e9e ${new Date(pk.lastUsedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
-                        : `Cr\u00e9\u00e9e ${new Date(pk.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`}
+                        ? `Utilisée ${new Date(pk.lastUsedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
+                        : `Créée ${new Date(pk.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`}
                     </p>
                   </div>
                 </div>
