@@ -664,7 +664,7 @@ function EditQuoteContent() {
               <SlidersHorizontal className="h-4 w-4" />
             </button>
           </div>
-          <CollaborationEditor editorRef={editorAreaRef}>
+          <CollaborationEditor editorRef={editorAreaRef} sheetRef={a4SheetRef}>
           <div ref={a4SheetRef} className="relative" style={{ transform: `scale(${docZoom / 100})`, transformOrigin: 'top center', ...zoomSpacing }}>
           <AiSheetOverlay open={aiProcessing} />
           <A4Sheet

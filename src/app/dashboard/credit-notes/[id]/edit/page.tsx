@@ -49,6 +49,7 @@ function EditCreditNoteContent() {
   const [saving, setSaving] = useState(false)
   const [mode, setMode] = useState<'edit' | 'preview'>('edit')
   const editorAreaRef = useRef<HTMLDivElement>(null)
+  const a4SheetRef = useRef<HTMLDivElement>(null)
   const [creditNoteNumber, setCreditNoteNumber] = useState('')
   const [company, setCompany] = useState<CompanyInfo | null>(null)
   const [selectedClient, setSelectedClient] = useState<ClientInfo | null>(null)
@@ -528,8 +529,8 @@ function EditCreditNoteContent() {
       {/* Main content */}
       <div className="flex flex-col xl:flex-row gap-5">
         <motion.div variants={fadeUp} custom={1} className="flex-1 min-w-0 order-1">
-          <CollaborationEditor editorRef={editorAreaRef}>
-          <div className="rounded-xl relative">
+          <CollaborationEditor editorRef={editorAreaRef} sheetRef={a4SheetRef}>
+          <div ref={a4SheetRef} className="rounded-xl relative">
             <button onClick={() => setShowOptions(!showOptions)} className="absolute top-3 right-3 z-10 p-1.5 rounded-lg border border-border bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground transition-colors" title={showOptions ? 'Masquer les options' : 'Afficher les options'}>
               <SlidersHorizontal className="h-4 w-4" />
             </button>

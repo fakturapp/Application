@@ -1,84 +1,26 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import type { CollaboratorInfo, CursorPosition } from '@/hooks/use-collaboration'
 
-
-const STIFFNESS = 320
-const DAMPING = 32
-const EPSILON = 0.01
+const STIFFNESS = 380
+const DAMPING = 36
+const EPSILON = 0.05
+const BOUNDS_MARGIN = 0.03
 
 interface SpringState {
   x: number
   y: number
   vx: number
   vy: number
-  tx: number
-  ty: number
-  active: boolean
+  initialized: boolean
 }
-
-
-const springs = new Map<string, { state: SpringState; el: HTMLElement }>()
-let rafId: number | null = null
-let lastTime = 0
-
-function tick(currentTime: number) {
-  const dt = Math.min((currentTime - lastTime) / 1000, 0.05)
-  lastTime = currentTime
-
-  for (const [id, { state, el }] of springs) {
-    if (!state.active) continue
-
-    const dx = state.x - state.tx
-    const dy = state.y - state.ty
-
-    state.vx += (-STIFFNESS * dx - DAMPING * state.vx) * dt
-    state.vy += (-STIFFNESS * dy - DAMPING * state.vy) * dt
-
-    state.x += state.vx * dt
-    state.y += state.vy * dt
-
-    el.style.transform = `translate3d(${state.x}px, ${state.y}px, 0)`
-    el.style.display = ''
-
-    // Settle check
-    if (
-      Math.abs(state.vx) < EPSILON &&
-      Math.abs(state.vy) < EPSILON &&
-      Math.abs(state.tx - state.x) < EPSILON &&
-      Math.abs(state.ty - state.y) < EPSILON
-    ) {
-      state.x = state.tx
-      state.y = state.ty
-      state.vx = 0
-      state.vy = 0
-      state.active = false
-      el.style.transform = `translate3d(${state.x}px, ${state.y}px, 0)`
-    }
-  }
-
-  // Continue loop if any spring is active
-  if (Array.from(springs.values()).some((s) => s.state.active)) {
-    rafId = requestAnimationFrame(tick)
-  } else {
-    rafId = null
-  }
-}
-
-function ensureLoop() {
-  if (rafId === null) {
-    lastTime = performance.now()
-    rafId = requestAnimationFrame(tick)
-  }
-}
-
-// ── Component ─────────────────────────────────────────────────────────────
 
 interface LiveCursorsProps {
   cursors: Map<string, CursorPosition>
   collaborators: CollaboratorInfo[]
   containerRef: React.RefObject<HTMLElement | null>
+  sheetRef: React.RefObject<HTMLElement | null>
 }
 
 function getDisplayName(collab: CollaboratorInfo): string {
@@ -86,120 +28,160 @@ function getDisplayName(collab: CollaboratorInfo): string {
   return collab.email.split('@')[0]
 }
 
-export function LiveCursors({ cursors, collaborators, containerRef }: LiveCursorsProps) {
+function isVisiblePosition(pos: CursorPosition): boolean {
+  return (
+    pos.x >= -BOUNDS_MARGIN &&
+    pos.x <= 1 + BOUNDS_MARGIN &&
+    pos.y >= -BOUNDS_MARGIN &&
+    pos.y <= 1 + BOUNDS_MARGIN
+  )
+}
+
+export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: LiveCursorsProps) {
   const collabMap = new Map(collaborators.map((c) => [c.userId, c]))
-  const containerSizeRef = useRef({ w: 0, h: 0 })
-  const cursorRefs = useRef(new Map<string, HTMLDivElement>())
-  const [, forceUpdate] = useState(0)
+  const targetsRef = useRef(new Map<string, { x: number; y: number; visible: boolean }>())
+  const springsRef = useRef(new Map<string, SpringState>())
+  const elementsRef = useRef(new Map<string, HTMLDivElement>())
+  const rafRef = useRef<number | null>(null)
+  const lastTimeRef = useRef(0)
+  const windowFocusedRef = useRef(true)
 
-  // Track container size via ResizeObserver (like Liveblocks)
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
+  const stopLoop = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+  }, [])
 
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        containerSizeRef.current = {
-          w: entry.contentRect.width,
-          h: entry.contentRect.height,
+  const tick = useCallback(
+    (currentTime: number) => {
+      rafRef.current = null
+      const container = containerRef.current
+      const sheet = sheetRef.current
+      if (!container || !sheet) return
+
+      const containerRect = container.getBoundingClientRect()
+      const sheetRect = sheet.getBoundingClientRect()
+      if (sheetRect.width === 0 || sheetRect.height === 0) return
+
+      const dt = Math.min((currentTime - lastTimeRef.current) / 1000, 0.05)
+      lastTimeRef.current = currentTime
+
+      let anyActive = false
+
+      for (const [userId, target] of targetsRef.current) {
+        const el = elementsRef.current.get(userId)
+        if (!el) continue
+
+        if (!target.visible || !windowFocusedRef.current) {
+          el.style.opacity = '0'
+          continue
         }
-        // Re-position all active cursors when container resizes
-        for (const [id, { state, el: cursorEl }] of springs) {
-          if (cursorEl && state.active) {
-            cursorEl.style.transform = `translate3d(${state.x}px, ${state.y}px, 0)`
-          }
+
+        const tx = sheetRect.left - containerRect.left + target.x * sheetRect.width
+        const ty = sheetRect.top - containerRect.top + target.y * sheetRect.height
+
+        let spring = springsRef.current.get(userId)
+        if (!spring || !spring.initialized) {
+          spring = { x: tx, y: ty, vx: 0, vy: 0, initialized: true }
+          springsRef.current.set(userId, spring)
         }
+
+        spring.vx += (-STIFFNESS * (spring.x - tx) - DAMPING * spring.vx) * dt
+        spring.vy += (-STIFFNESS * (spring.y - ty) - DAMPING * spring.vy) * dt
+        spring.x += spring.vx * dt
+        spring.y += spring.vy * dt
+
+        const settled =
+          Math.abs(spring.vx) < EPSILON &&
+          Math.abs(spring.vy) < EPSILON &&
+          Math.abs(spring.x - tx) < EPSILON &&
+          Math.abs(spring.y - ty) < EPSILON
+
+        if (settled) {
+          spring.x = tx
+          spring.y = ty
+          spring.vx = 0
+          spring.vy = 0
+        } else {
+          anyActive = true
+        }
+
+        el.style.transform = `translate3d(${spring.x}px, ${spring.y}px, 0)`
+        el.style.opacity = '1'
       }
-    })
 
-    containerSizeRef.current = { w: el.offsetWidth, h: el.offsetHeight }
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [containerRef])
+      if (anyActive) {
+        rafRef.current = requestAnimationFrame(tick)
+      }
+    },
+    [containerRef, sheetRef]
+  )
 
-  // Hide cursors when window loses focus (like Liveblocks)
+  const ensureLoop = useCallback(() => {
+    if (rafRef.current === null) {
+      lastTimeRef.current = performance.now()
+      rafRef.current = requestAnimationFrame(tick)
+    }
+  }, [tick])
+
   useEffect(() => {
-    const handleBlur = () => {
-      for (const [, { el }] of springs) {
-        el.style.display = 'none'
+    for (const [userId, pos] of cursors) {
+      targetsRef.current.set(userId, {
+        x: pos.x,
+        y: pos.y,
+        visible: isVisiblePosition(pos),
+      })
+    }
+    for (const userId of targetsRef.current.keys()) {
+      if (!cursors.has(userId)) {
+        targetsRef.current.delete(userId)
+        springsRef.current.delete(userId)
+        const el = elementsRef.current.get(userId)
+        if (el) el.style.opacity = '0'
       }
     }
-    const handleFocus = () => forceUpdate((n) => n + 1)
+    ensureLoop()
+  }, [cursors, ensureLoop])
+
+  useEffect(() => {
+    const handleBlur = () => {
+      windowFocusedRef.current = false
+      for (const el of elementsRef.current.values()) {
+        el.style.opacity = '0'
+      }
+    }
+    const handleFocus = () => {
+      windowFocusedRef.current = true
+      ensureLoop()
+    }
+    const handleResize = () => ensureLoop()
 
     window.addEventListener('blur', handleBlur)
     window.addEventListener('focus', handleFocus)
+    window.addEventListener('resize', handleResize)
     return () => {
       window.removeEventListener('blur', handleBlur)
       window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('resize', handleResize)
     }
-  }, [])
+  }, [ensureLoop])
 
-  // Update spring targets when cursor positions change
   useEffect(() => {
-    const { w, h } = containerSizeRef.current
-    if (w === 0 || h === 0) return
+    const container = containerRef.current
+    if (!container) return
+    const ro = new ResizeObserver(() => ensureLoop())
+    ro.observe(container)
+    return () => ro.disconnect()
+  }, [containerRef, ensureLoop])
 
-    for (const [userId, pos] of cursors) {
-      // Skip out-of-bounds
-      if (pos.x < 0 || pos.x > 1 || pos.y < 0 || pos.y > 1) continue
+  useEffect(() => stopLoop, [stopLoop])
 
-      const localX = pos.x * w
-      const localY = pos.y * h
-      const el = cursorRefs.current.get(userId)
-      if (!el) continue
-
-      const existing = springs.get(userId)
-      if (existing) {
-        // Update target — spring will animate to it
-        existing.state.tx = localX
-        existing.state.ty = localY
-        if (!existing.state.active) {
-          existing.state.active = true
-          ensureLoop()
-        }
-      } else {
-        // New cursor — snap to position immediately
-        const state: SpringState = {
-          x: localX, y: localY,
-          vx: 0, vy: 0,
-          tx: localX, ty: localY,
-          active: false,
-        }
-        springs.set(userId, { state, el })
-        el.style.transform = `translate3d(${localX}px, ${localY}px, 0)`
-        el.style.display = ''
-      }
-    }
-
-    // Hide cursors that are no longer present
-    for (const [id, { el }] of springs) {
-      if (!cursors.has(id)) {
-        el.style.display = 'none'
-        springs.delete(id)
-      }
-    }
-  }, [cursors])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      springs.clear()
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId)
-        rafId = null
-      }
-    }
-  }, [])
-
-  // Register ref for a cursor element
   const setRef = useCallback((userId: string, el: HTMLDivElement | null) => {
     if (el) {
-      cursorRefs.current.set(userId, el)
-      // Also register in springs if not already
-      const existing = springs.get(userId)
-      if (existing) existing.el = el
+      elementsRef.current.set(userId, el)
     } else {
-      cursorRefs.current.delete(userId)
+      elementsRef.current.delete(userId)
     }
   }, [])
 
@@ -213,25 +195,30 @@ export function LiveCursors({ cursors, collaborators, containerRef }: LiveCursor
           <div
             key={userId}
             ref={(el) => setRef(userId, el)}
-            style={{ position: 'absolute', top: 0, left: 0, display: 'none', willChange: 'transform' }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              opacity: 0,
+              willChange: 'transform',
+              transition: 'opacity 0.15s ease',
+            }}
           >
-            {/* Liveblocks-style cursor SVG */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 32 32"
               width="20"
               height="20"
               fill="none"
-              style={{ color: collab.color }}
+              style={{ color: collab.color, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' }}
             >
               <path
                 fill="currentColor"
                 d="m.088 1.75 11.25 29.422c.409 1.07 1.908 1.113 2.377.067l5.223-11.653c.13-.288.36-.518.648-.648l11.653-5.223c1.046-.47 1.004-1.968-.067-2.377L1.75.088C.71-.31-.31.71.088 1.75Z"
               />
             </svg>
-            {/* Name label */}
             <div
-              className="ml-4 -mt-1 rounded px-1.5 py-0.5 text-[10px] font-semibold text-white whitespace-nowrap shadow-sm select-none"
+              className="ml-4 -mt-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white whitespace-nowrap shadow-md select-none"
               style={{ backgroundColor: collab.color }}
             >
               {getDisplayName(collab)}

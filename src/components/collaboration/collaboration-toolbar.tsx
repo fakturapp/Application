@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { ShareModal } from '@/components/collaboration/share-modal'
 import { PresenceBar } from '@/components/collaboration/presence-bar'
 import { LiveCursors } from '@/components/collaboration/live-cursors'
+import { FieldHighlights } from '@/components/collaboration/field-highlights'
+import { getFieldPath, isEditableElement } from '@/components/collaboration/field-path'
 import { ReadOnlyBanner } from '@/components/collaboration/read-only-banner'
 import { useCollaborationContext } from '@/components/collaboration/collaboration-provider'
 import { Share2, Wifi, WifiOff, FlaskConical } from '@/components/ui/icons'
@@ -15,12 +17,14 @@ type DocumentType = 'invoice' | 'quote' | 'credit_note'
 interface CollaborationToolbarProps {
   documentType: DocumentType
   documentId: string | null
+  canShare?: boolean
   className?: string
 }
 
 export function CollaborationToolbar({
   documentType,
   documentId,
+  canShare = true,
   className,
 }: CollaborationToolbarProps) {
   const [shareOpen, setShareOpen] = useState(false)
@@ -47,7 +51,7 @@ export function CollaborationToolbar({
         <PresenceBar collaborators={collaborators} />
 
         {}
-        {documentId && (
+        {documentId && canShare && (
           <Button
             variant="outline"
             size="sm"
@@ -87,36 +91,69 @@ export function CollaborationReadOnlyBanner() {
 
 interface CollaborationEditorProps {
   editorRef: React.RefObject<HTMLDivElement | null>
+  sheetRef: React.RefObject<HTMLElement | null>
   children: React.ReactNode
 }
 
 export function CollaborationEditor({
   editorRef,
+  sheetRef,
   children,
 }: CollaborationEditorProps) {
   const collab = useCollaborationContext()
 
   const collaborators = collab?.collaborators ?? []
   const cursors = collab?.cursors ?? new Map()
+  const focusedFields = collab?.focusedFields ?? new Map()
   const isConnected = collab?.isConnected ?? false
   const myPermission = collab?.myPermission
   const sendCursorMove = collab?.sendCursorMove
+  const sendFieldFocus = collab?.sendFieldFocus
+  const sendFieldBlur = collab?.sendFieldBlur
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!editorRef.current || !isConnected || !sendCursorMove) return
-      const rect = editorRef.current.getBoundingClientRect()
+      if (!sheetRef.current || !isConnected || !sendCursorMove) return
+      const rect = sheetRef.current.getBoundingClientRect()
       if (rect.width === 0 || rect.height === 0) return
       const xPct = (e.clientX - rect.left) / rect.width
       const yPct = (e.clientY - rect.top) / rect.height
       sendCursorMove(xPct, yPct)
     },
-    [editorRef, isConnected, sendCursorMove]
+    [sheetRef, isConnected, sendCursorMove]
   )
 
   const handlePointerLeave = useCallback(() => {
     sendCursorMove?.(-1, -1)
   }, [sendCursorMove])
+
+  useEffect(() => {
+    const container = editorRef.current
+    if (!container || !isConnected || !sendFieldFocus || !sendFieldBlur) return
+
+    const pathFor = (target: EventTarget | null): string | null => {
+      const sheet = sheetRef.current
+      if (!sheet || !isEditableElement(target)) return null
+      if (!sheet.contains(target)) return null
+      return getFieldPath(target, sheet)
+    }
+
+    const handleFocusIn = (e: FocusEvent) => {
+      const path = pathFor(e.target)
+      if (path) sendFieldFocus(path)
+    }
+    const handleFocusOut = (e: FocusEvent) => {
+      const path = pathFor(e.target)
+      if (path) sendFieldBlur(path)
+    }
+
+    container.addEventListener('focusin', handleFocusIn)
+    container.addEventListener('focusout', handleFocusOut)
+    return () => {
+      container.removeEventListener('focusin', handleFocusIn)
+      container.removeEventListener('focusout', handleFocusOut)
+    }
+  }, [editorRef, sheetRef, isConnected, sendFieldFocus, sendFieldBlur])
 
   const isReadOnly = myPermission === 'viewer'
 
@@ -127,21 +164,30 @@ export function CollaborationEditor({
       onPointerLeave={handlePointerLeave}
       ref={editorRef as React.RefObject<HTMLDivElement>}
     >
-      {isConnected && collaborators.length > 0 && (
-        <LiveCursors
-          cursors={cursors}
-          collaborators={collaborators}
-          containerRef={editorRef}
-        />
+      {isConnected && (
+        <>
+          <LiveCursors
+            cursors={cursors}
+            collaborators={collaborators}
+            containerRef={editorRef}
+            sheetRef={sheetRef}
+          />
+          <FieldHighlights
+            focusedFields={focusedFields}
+            collaborators={collaborators}
+            containerRef={editorRef}
+            sheetRef={sheetRef}
+          />
+        </>
       )}
 
-      {isReadOnly && (
-        <div className="absolute inset-0 z-30 cursor-not-allowed" title="Lecture seule \u2014 vous ne pouvez pas modifier ce document">
-          <div className="pointer-events-none">{children}</div>
+      {isReadOnly ? (
+        <div className="cursor-not-allowed" title="Lecture seule : vous ne pouvez pas modifier ce document">
+          <div className="pointer-events-none select-none">{children}</div>
         </div>
+      ) : (
+        children
       )}
-
-      {!isReadOnly && children}
     </div>
   )
 }
