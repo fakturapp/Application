@@ -14,7 +14,7 @@ import {
 } from '@/components/collaboration/field-path'
 import { ReadOnlyBanner } from '@/components/collaboration/read-only-banner'
 import { useCollaborationContext } from '@/components/collaboration/collaboration-provider'
-import { Share2, Wifi, WifiOff, FlaskConical } from '@/components/ui/icons'
+import { Share2, Wifi, WifiOff } from '@/components/ui/icons'
 
 
 type DocumentType = 'invoice' | 'quote' | 'credit_note'
@@ -74,14 +74,10 @@ export function CollaborationToolbar({
             variant="outline"
             size="sm"
             onClick={() => setShareOpen(true)}
-            className="gap-1.5 relative"
+            className="gap-1.5"
           >
             <Share2 className="h-3.5 w-3.5" />
             Partager
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 px-1.5 py-px text-[9px] font-bold text-purple-500 uppercase tracking-wider">
-              <FlaskConical className="h-2.5 w-2.5" />
-              Beta
-            </span>
           </Button>
         )}
       </div>
