@@ -1,6 +1,7 @@
 const EDITABLE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
 
 export interface CollabRoots {
+  editor: HTMLElement | null
   content: HTMLElement | null
   panel: HTMLElement | null
   pages: HTMLElement[]
@@ -17,6 +18,7 @@ export function getCollabRoots(
   panelEl: HTMLElement | null
 ): CollabRoots {
   return {
+    editor: editorEl,
     content: editorEl?.querySelector<HTMLElement>('[data-collab-root]') ?? null,
     panel: panelEl,
     pages: editorEl
@@ -112,6 +114,10 @@ export function resolveFieldPath(fieldId: string, roots: CollabRoots): Element |
     return roots.pages[index] ?? null
   }
 
+  if (fieldId === 'ed:') {
+    return roots.editor
+  }
+
   return null
 }
 
@@ -197,6 +203,17 @@ export function getCursorAnchor(roots: CollabRoots, x: number, y: number): Curso
     if (rect.width > 0 && rectContains(rect, x, y)) {
       const offsets = offsetsIn(roots.pages[i], x, y)
       if (offsets) return { anchor: `pg:${i}`, ...offsets }
+    }
+  }
+
+  if (roots.editor) {
+    const rect = roots.editor.getBoundingClientRect()
+    if (rect.width > 0 && rect.height > 0) {
+      const ox = (x - rect.left) / rect.width
+      const oy = (y - rect.top) / rect.height
+      if (ox >= -1 && ox <= 2 && oy >= -1 && oy <= 2) {
+        return { anchor: 'ed:', x: ox, y: oy }
+      }
     }
   }
 
