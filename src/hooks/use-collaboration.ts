@@ -6,6 +6,8 @@ import { io, type Socket } from 'socket.io-client'
 const WS_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
 
 
+export type CollabRole = 'owner' | 'admin' | 'member' | 'viewer' | 'guest'
+
 export interface CollaboratorInfo {
   userId: string
   fullName: string | null
@@ -13,14 +15,15 @@ export interface CollaboratorInfo {
   avatarUrl: string | null
   permission: 'viewer' | 'editor'
   isOwner: boolean
+  role: CollabRole
   color: string
 }
 
 export interface CursorPosition {
   userId: string
+  anchor: string
   x: number
   y: number
-  fieldId?: string
 }
 
 export interface DocumentChange {
@@ -59,15 +62,17 @@ export interface UseCollaborationReturn {
   myUserId: string | null
   myPermission: 'viewer' | 'editor' | null
   isOwner: boolean
+  myRole: CollabRole | null
   isConnected: boolean
   myColor: string | null
-  sendCursorMove: (x: number, y: number, fieldId?: string) => void
+  sendCursorMove: (anchor: string, x: number, y: number) => void
   sendDocumentChange: (path: string, value: any) => void
   sendFieldFocus: (fieldId: string) => void
   sendFieldBlur: (fieldId: string) => void
   sendFieldSelection: (fieldId: string, text: string) => void
   kickUser: (userId: string) => void
   banUser: (userId: string) => void
+  changePermission: (userId: string, permission: 'viewer' | 'editor') => void
 }
 
 export function useCollaboration({
@@ -88,6 +93,7 @@ export function useCollaboration({
   const [myUserId, setMyUserId] = useState<string | null>(null)
   const [myPermission, setMyPermission] = useState<'viewer' | 'editor' | null>(null)
   const [isOwner, setIsOwner] = useState(false)
+  const [myRole, setMyRole] = useState<CollabRole | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [myColor, setMyColor] = useState<string | null>(null)
 
@@ -134,12 +140,14 @@ export function useCollaboration({
       userId?: string
       permission: 'viewer' | 'editor'
       isOwner: boolean
+      role?: CollabRole
       color: string
       collaborators: CollaboratorInfo[]
     }) => {
       setMyUserId(data.userId ?? null)
       setMyPermission(data.permission)
       setIsOwner(data.isOwner)
+      setMyRole(data.role ?? (data.isOwner ? 'owner' : 'guest'))
       setMyColor(data.color)
       setCollaborators(data.collaborators)
     })
@@ -248,6 +256,12 @@ export function useCollaboration({
       setMyPermission(data.permission)
     })
 
+    socket.on('collaborator-updated', (data: { userId: string; permission: 'viewer' | 'editor' }) => {
+      setCollaborators((prev) =>
+        prev.map((c) => (c.userId === data.userId ? { ...c, permission: data.permission } : c))
+      )
+    })
+
     socket.on('document-saved', (data: { savedByUserId: string }) => {
       onDocumentSavedRef.current?.(data.savedByUserId)
     })
@@ -307,6 +321,7 @@ export function useCollaboration({
       setMyUserId(null)
       setMyPermission(null)
       setIsOwner(false)
+      setMyRole(null)
       setIsConnected(false)
       setMyColor(null)
     }
@@ -314,12 +329,12 @@ export function useCollaboration({
 
   // Throttle cursor moves to ~30fps to avoid flooding
   const lastCursorSend = useRef(0)
-  const sendCursorMove = useCallback((x: number, y: number, fieldId?: string) => {
-    const isHideSignal = x < 0 || y < 0
+  const sendCursorMove = useCallback((anchor: string, x: number, y: number) => {
+    const isHideSignal = anchor === ''
     const now = Date.now()
     if (!isHideSignal && now - lastCursorSend.current < 33) return
     lastCursorSend.current = now
-    socketRef.current?.emit('cursor-move', { x, y, fieldId })
+    socketRef.current?.emit('cursor-move', { anchor, x, y })
   }, [])
 
   const sendDocumentChange = useCallback((path: string, value: any) => {
@@ -346,6 +361,10 @@ export function useCollaboration({
     socketRef.current?.emit('ban-user', { userId })
   }, [])
 
+  const changePermission = useCallback((userId: string, permission: 'viewer' | 'editor') => {
+    socketRef.current?.emit('change-permission', { userId, permission })
+  }, [])
+
   return {
     collaborators,
     cursors,
@@ -355,6 +374,7 @@ export function useCollaboration({
     myUserId,
     myPermission,
     isOwner,
+    myRole,
     isConnected,
     myColor,
     sendCursorMove,
@@ -364,5 +384,6 @@ export function useCollaboration({
     sendFieldSelection,
     kickUser,
     banUser,
+    changePermission,
   }
 }
