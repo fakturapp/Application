@@ -168,10 +168,17 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
   const save = useCallback(async () => {
     setSaving(true)
     setSaveError(null)
-    const { error } = await api.put('/settings/invoices', settingsRef.current)
+    const { data, error } = await api.put<{ settings: InvoiceSettings }>(
+      '/settings/invoices',
+      settingsRef.current
+    )
     setSaving(false)
     if (error) {
       setSaveError(error)
+    } else if (data?.settings) {
+      const resolved = { ...data.settings, logoUrl: resolveLogoUrl(data.settings.logoUrl) }
+      setSettings(resolved)
+      setSavedSettings(resolved)
     } else {
       setSavedSettings({ ...settingsRef.current })
     }
@@ -192,10 +199,17 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
     const next = { ...settingsRef.current, ...partial }
     setSettings(next)
     setSaving(true)
-    const { error } = await api.put('/settings/invoices', next)
+    const { data, error } = await api.put<{ settings: InvoiceSettings }>(
+      '/settings/invoices',
+      next
+    )
     setSaving(false)
     if (error) {
       setSaveError(error)
+    } else if (data?.settings) {
+      const resolved = { ...data.settings, logoUrl: resolveLogoUrl(data.settings.logoUrl) }
+      setSettings(resolved)
+      setSavedSettings(resolved)
     } else {
       setSavedSettings(next)
     }
