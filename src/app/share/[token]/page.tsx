@@ -90,11 +90,17 @@ export default function ShareLinkPage() {
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">Connexion requise</h2>
           <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Vous devez être connecté pour accéder à ce document partagé.
+            Connectez-vous pour accéder à ce document partagé, ou continuez en tant
+            qu&apos;invité si le lien le permet.
           </p>
-          <Button onClick={() => { window.location.href = accountLoginUrl(window.location.href) }} className="gap-2">
-            <LogIn className="h-4 w-4" /> Se connecter
-          </Button>
+          <div className="flex flex-col items-center gap-2.5">
+            <Button onClick={() => { window.location.href = accountLoginUrl(window.location.href) }} className="gap-2">
+              <LogIn className="h-4 w-4" /> Se connecter
+            </Button>
+            <Button variant="ghost" onClick={() => router.push(`/share/live/${token}`)}>
+              Continuer sans compte
+            </Button>
+          </div>
         </motion.div>
       </div>
     )
