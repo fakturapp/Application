@@ -51,6 +51,7 @@ function EditCreditNoteContent() {
   const editorAreaRef = useRef<HTMLDivElement>(null)
   const a4SheetRef = useRef<HTMLDivElement>(null)
   const optionsPanelRef = useRef<HTMLDivElement>(null)
+  const [sharedAccess, setSharedAccess] = useState<{ permission: 'viewer' | 'editor' } | null>(null)
   const [creditNoteNumber, setCreditNoteNumber] = useState('')
   const [company, setCompany] = useState<CompanyInfo | null>(null)
   const [selectedClient, setSelectedClient] = useState<ClientInfo | null>(null)
@@ -95,7 +96,8 @@ function EditCreditNoteContent() {
   const [notes, setNotes] = useState('')
   const [isDirty, setIsDirty] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  const { showModal, confirmNavigation, cancelNavigation, requestNavigation } = useUnsavedChanges(isDirty)
+  const collabActive = collabEnabled || !!sharedAccess
+  const { showModal, confirmNavigation, cancelNavigation, requestNavigation } = useUnsavedChanges(isDirty && !sharedAccess)
 
   useEffect(() => {
     async function init() {
@@ -109,8 +111,24 @@ function EditCreditNoteContent() {
         setCompany(companyRes.data.company)
       }
 
-      if (cnRes.data?.creditNote) {
-        const cn = cnRes.data.creditNote
+      let loadedCreditNote = cnRes.data?.creditNote ?? null
+      if (!loadedCreditNote && cnRes.error) {
+        const sharedRes = await api.get<{
+          document: any
+          shared: { permission: 'viewer' | 'editor' }
+        }>(`/collaboration/documents/credit_note/${creditNoteId}`)
+        if (sharedRes.data?.document) {
+          loadedCreditNote = sharedRes.data.document
+          setSharedAccess(sharedRes.data.shared)
+        } else {
+          toast(sharedRes.error || cnRes.error || 'Document introuvable', 'error')
+          router.push('/dashboard')
+          return
+        }
+      }
+
+      if (loadedCreditNote) {
+        const cn = loadedCreditNote
         setCreditNoteNumber(cn.creditNoteNumber)
         setAccentColor(cn.accentColor || '#6366f1')
         setLogoUrl(cn.logoUrl)
@@ -444,7 +462,7 @@ function EditCreditNoteContent() {
     <CollaborationProvider
       documentType="credit_note"
       documentId={creditNoteId}
-      enabled={!!creditNoteId && collabEnabled}
+      enabled={!!creditNoteId && collabActive}
       onDocumentChange={(change) => {
         setApplyingRemote(true)
         try {
@@ -459,7 +477,7 @@ function EditCreditNoteContent() {
             setOptions((prev) => ({ ...prev, [key]: change.value }))
           }
         } finally {
-          requestAnimationFrame(() => setApplyingRemote(false))
+          requestAnimationFrame(() => requestAnimationFrame(() => setApplyingRemote(false)))
         }
       }}
       onDocumentSaved={() => {
@@ -478,8 +496,8 @@ function EditCreditNoteContent() {
       }}
     >
     <motion.div initial="hidden" animate="visible" className="space-y-5 px-4 lg:px-6 py-4 md:py-5">
-      {collabEnabled && <CollaborationReadOnlyBanner />}
-      {collabEnabled && <SyncBroadcaster
+      {collabActive && <CollaborationReadOnlyBanner />}
+      {collabActive && <SyncBroadcaster
         notes={notes}
         accentColor={accentColor}
         lines={lines}
@@ -503,10 +521,10 @@ function EditCreditNoteContent() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {collabEnabled && <CollaborationToolbar
+          {collabActive && <CollaborationToolbar
             documentType="credit_note"
             documentId={creditNoteId}
-
+            canShare={!sharedAccess}
             className="flex items-center gap-2"
           />}
           <div className="flex rounded-lg border border-border overflow-hidden">
@@ -669,9 +687,19 @@ function EditCreditNoteContent() {
           <div className="text-sm text-muted-foreground">
             Total : <span className="font-bold text-foreground">{total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
           </div>
-          <Button onClick={handleSave} disabled={saving} size="sm" className="min-w-[140px] rounded-xl">
-            {saving ? (<><Spinner /> Enregistrement...</>) : (<><Save className="h-4 w-4 mr-1.5" /> Sauvegarder</>)}
-          </Button>
+          {sharedAccess ? (
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground" title="Vos modifications sont visibles en direct par le propriétaire, qui peut les enregistrer.">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              Synchronisé en direct
+            </div>
+          ) : (
+            <Button onClick={handleSave} disabled={saving} size="sm" className="min-w-[140px] rounded-xl">
+              {saving ? (<><Spinner /> Enregistrement...</>) : (<><Save className="h-4 w-4 mr-1.5" /> Sauvegarder</>)}
+            </Button>
+          )}
         </motion.div>
       </div>
 
