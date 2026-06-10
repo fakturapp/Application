@@ -41,6 +41,8 @@ export interface FieldFocus {
 export interface FieldSelection {
   userId: string
   text: string
+  start?: number
+  end?: number
 }
 
 export interface UseCollaborationOptions {
@@ -70,7 +72,7 @@ export interface UseCollaborationReturn {
   sendDocumentChange: (path: string, value: any) => void
   sendFieldFocus: (fieldId: string) => void
   sendFieldBlur: (fieldId: string) => void
-  sendFieldSelection: (fieldId: string, text: string) => void
+  sendFieldSelection: (fieldId: string, text: string, start?: number, end?: number) => void
   kickUser: (userId: string) => void
   banUser: (userId: string) => void
   changePermission: (userId: string, permission: 'viewer' | 'editor') => void
@@ -227,14 +229,14 @@ export function useCollaboration({
       })
     })
 
-    socket.on('field-selection-changed', (data: { userId: string; fieldId: string; text: string }) => {
+    socket.on('field-selection-changed', (data: { userId: string; fieldId: string; text: string; start?: number; end?: number }) => {
       setSelections((prev) => {
         const next = new Map(prev)
         if (!data.text) {
           if (next.get(data.fieldId)?.userId !== data.userId) return prev
           next.delete(data.fieldId)
         } else {
-          next.set(data.fieldId, { userId: data.userId, text: data.text })
+          next.set(data.fieldId, { userId: data.userId, text: data.text, start: data.start, end: data.end })
         }
         return next
       })
@@ -353,9 +355,12 @@ export function useCollaboration({
     socketRef.current?.emit('field-blur', { fieldId })
   }, [])
 
-  const sendFieldSelection = useCallback((fieldId: string, text: string) => {
-    socketRef.current?.emit('field-selection', { fieldId, text: text.slice(0, 200) })
-  }, [])
+  const sendFieldSelection = useCallback(
+    (fieldId: string, text: string, start?: number, end?: number) => {
+      socketRef.current?.emit('field-selection', { fieldId, text: text.slice(0, 200), start, end })
+    },
+    []
+  )
 
   const kickUser = useCallback((userId: string) => {
     socketRef.current?.emit('kick-user', { userId })

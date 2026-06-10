@@ -217,19 +217,28 @@ export function CollaborationEditor({
             fieldId = getFieldPath(el, roots)
             text = el.value.slice(start, end).slice(0, 120)
           }
+
+          const key = fieldId ? `${fieldId}::${start}:${end}:${text}` : ''
+          if (key === lastSelectionKeyRef.current) return
+          lastSelectionKeyRef.current = key
+
+          if (selectedFieldRef.current && selectedFieldRef.current !== fieldId) {
+            sendFieldSelection(selectedFieldRef.current, '')
+          }
+          if (fieldId) {
+            sendFieldSelection(fieldId, text, start, end)
+          }
+          selectedFieldRef.current = fieldId
+          return
         }
 
-        const key = fieldId ? `${fieldId}::${text}` : ''
-        if (key === lastSelectionKeyRef.current) return
-        lastSelectionKeyRef.current = key
-
-        if (selectedFieldRef.current && selectedFieldRef.current !== fieldId) {
-          sendFieldSelection(selectedFieldRef.current, '')
+        if (lastSelectionKeyRef.current !== '') {
+          lastSelectionKeyRef.current = ''
+          if (selectedFieldRef.current) {
+            sendFieldSelection(selectedFieldRef.current, '')
+            selectedFieldRef.current = null
+          }
         }
-        if (fieldId) {
-          sendFieldSelection(fieldId, text)
-        }
-        selectedFieldRef.current = fieldId
       })
     }
 
