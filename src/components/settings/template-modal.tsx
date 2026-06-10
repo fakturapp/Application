@@ -32,7 +32,7 @@ export function TemplateModal({ open, onClose, accentColor, currentTemplate, onS
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Choisir un modèle</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">9 modèles de mise en page pour vos documents</p>
+                <p className="text-sm text-muted-foreground mt-0.5">{TEMPLATES.length} modèles de mise en page pour vos documents</p>
               </div>
               <button onClick={onClose} className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                 <X className="h-4 w-4" />

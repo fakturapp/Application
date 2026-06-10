@@ -123,7 +123,7 @@ export function TemplateThumbnail({
           </>)}
 
           {/* ── LATERAL ── */}
-          {T.id === 'lateral' && (<>
+          {T.layout === 'lateral' && (<>
             <div className="absolute top-0 left-0 bottom-0 flex" style={{ width: '28%' }}>
               <div className="h-full w-full flex flex-col p-1.5 pt-2" style={{ backgroundColor: accentColor }}>
                 <div className="h-2 w-5 rounded-full mb-1.5" style={{ backgroundColor: contrastCol, opacity: 0.8 }} />
@@ -182,6 +182,111 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
+          {/* ── STUDIO ── */}
+          {T.id === 'studio' && (<>
+            <div className="flex justify-between items-end mb-1.5">
+              <div className="h-2.5 w-9 rounded-sm" style={{ backgroundColor: T.text, opacity: 0.85 }} />
+              <div className="h-1 w-4 rounded-sm" style={{ backgroundColor: accentColor, opacity: 0.7 }} />
+            </div>
+            <div className="h-[2px] mb-2.5" style={{ backgroundColor: accentColor }} />
+            <div className="flex gap-2 mb-2">
+              <div className="flex-1 space-y-0.5">
+                <div className="h-0.5 w-4 rounded-sm" style={{ backgroundColor: T.textMuted, opacity: 0.35 }} />
+                <div className="h-1 w-6 rounded-sm" style={{ backgroundColor: T.text, opacity: 0.25 }} />
+              </div>
+              <div className="flex-1 space-y-0.5 text-right">
+                <div className="h-0.5 w-4 rounded-sm ml-auto" style={{ backgroundColor: T.textMuted, opacity: 0.35 }} />
+                <div className="h-1 w-5 rounded-sm ml-auto" style={{ backgroundColor: T.text, opacity: 0.25 }} />
+              </div>
+            </div>
+          </>)}
+
+          {/* ── EDITORIAL ── */}
+          {T.id === 'editorial' && (<>
+            <div className="flex flex-col items-center mb-1.5">
+              <div className="h-2 w-10 rounded-sm mb-1" style={{ backgroundColor: T.text, opacity: 0.5 }} />
+              <div className="h-0.5 w-6 rounded-sm" style={{ backgroundColor: T.textMuted, opacity: 0.3 }} />
+            </div>
+            <div className="h-px mb-[2px]" style={{ backgroundColor: T.text, opacity: 0.5 }} />
+            <div className="h-px mb-2" style={{ backgroundColor: T.text, opacity: 0.2 }} />
+            <div className="flex justify-between mb-2">
+              <div className="space-y-0.5">
+                <div className="h-0.5 w-5 rounded-sm" style={{ backgroundColor: T.textMuted, opacity: 0.3 }} />
+                <div className="h-1 w-7 rounded-sm" style={{ backgroundColor: T.text, opacity: 0.2 }} />
+              </div>
+              <div className="h-1.5 w-5 rounded-sm" style={{ backgroundColor: accentColor, opacity: 0.55 }} />
+            </div>
+          </>)}
+
+          {/* ── CARBONE ── */}
+          {T.id === 'carbone' && (<>
+            <div className="rounded-sm px-1.5 py-1.5 mb-2 -mx-1 -mt-1 flex items-center justify-between" style={{ backgroundColor: accentColor }}>
+              <div className="h-2 w-2 rounded-sm" style={{ backgroundColor: contrastCol, opacity: 0.9 }} />
+              <div className="space-y-0.5">
+                <div className="h-1.5 w-7 rounded-sm ml-auto" style={{ backgroundColor: contrastCol, opacity: 0.9 }} />
+                <div className="h-0.5 w-5 rounded-sm ml-auto" style={{ backgroundColor: contrastCol, opacity: 0.45 }} />
+              </div>
+            </div>
+            <div className="flex gap-1.5 mb-2">
+              <div className="flex-1 rounded-sm px-1 py-1" style={{ backgroundColor: T.clientBlockBg, border: `0.5px solid ${T.clientBlockBorder}` }}>
+                <div className="h-0.5 w-4 rounded-sm mb-0.5" style={{ backgroundColor: T.textMuted, opacity: 0.4 }} />
+                <div className="h-1 w-5 rounded-sm" style={{ backgroundColor: T.text, opacity: 0.25 }} />
+              </div>
+              <div className="flex-1 rounded-sm px-1 py-1" style={{ border: `0.5px solid ${T.clientBlockBorder}` }}>
+                <div className="h-0.5 w-4 rounded-sm mb-0.5" style={{ backgroundColor: T.textMuted, opacity: 0.4 }} />
+                <div className="h-1 w-6 rounded-sm" style={{ backgroundColor: T.text, opacity: 0.25 }} />
+              </div>
+            </div>
+          </>)}
+
+          {/* ── HORIZON ── */}
+          {T.id === 'horizon' && (<>
+            <div className="rounded-lg px-2 py-1.5 mb-2 -mx-0.5 flex items-center justify-between" style={{ backgroundColor: accentColor }}>
+              <div className="h-1.5 w-6 rounded-full" style={{ backgroundColor: contrastCol, opacity: 0.85 }} />
+              <div className="h-1 w-4 rounded-full" style={{ backgroundColor: contrastCol, opacity: 0.45 }} />
+            </div>
+            <div className="flex gap-1.5 mb-2">
+              <div className="flex-1 rounded-md px-1 py-1" style={{ backgroundColor: T.clientBlockBg, border: `0.5px solid ${T.clientBlockBorder}` }}>
+                <div className="h-1 w-5 rounded-full mb-0.5" style={{ backgroundColor: T.text, opacity: 0.2 }} />
+                <div className="h-0.5 w-7 rounded-full" style={{ backgroundColor: T.textMuted, opacity: 0.15 }} />
+              </div>
+              <div className="flex-1 flex items-end">
+                <div className="h-1 w-6 rounded-full" style={{ backgroundColor: accentColor, opacity: 0.45 }} />
+              </div>
+            </div>
+          </>)}
+
+          {/* ── PASTEL ── */}
+          {T.id === 'pastel' && (<>
+            <div className="flex justify-between items-start mb-1.5">
+              <div className="h-2 w-7 rounded-full" style={{ backgroundColor: `${accentColor}30` }} />
+              <div className="h-2 w-5 rounded-full" style={{ backgroundColor: accentColor, opacity: 0.55 }} />
+            </div>
+            <div className="rounded-xl px-1.5 py-1 mb-2" style={{ backgroundColor: `${accentColor}0d`, border: `0.5px solid ${accentColor}22` }}>
+              <div className="h-1 w-5 rounded-full mb-0.5" style={{ backgroundColor: T.text, opacity: 0.25 }} />
+              <div className="h-0.5 w-8 rounded-full" style={{ backgroundColor: T.textMuted, opacity: 0.2 }} />
+            </div>
+          </>)}
+
+          {/* ── MONO ── */}
+          {T.id === 'mono' && (<>
+            <div className="flex justify-between items-start mb-1">
+              <div className="flex gap-0.5">
+                <div className="h-1.5 w-1.5" style={{ backgroundColor: accentColor }} />
+                <div className="h-1.5 w-6" style={{ backgroundColor: T.text, opacity: 0.7 }} />
+              </div>
+              <div className="space-y-0.5">
+                <div className="h-0.5 w-6" style={{ backgroundColor: T.textMuted, opacity: 0.4 }} />
+                <div className="h-0.5 w-4 ml-auto" style={{ backgroundColor: T.textMuted, opacity: 0.25 }} />
+              </div>
+            </div>
+            <div className="h-px mb-1.5" style={{ backgroundColor: T.text, opacity: 0.4 }} />
+            <div className="px-1 py-0.5 mb-1.5" style={{ backgroundColor: T.clientBlockBg, border: `0.5px solid ${T.clientBlockBorder}` }}>
+              <div className="h-0.5 w-7 mb-0.5" style={{ backgroundColor: T.text, opacity: 0.3 }} />
+              <div className="h-0.5 w-5" style={{ backgroundColor: T.textMuted, opacity: 0.2 }} />
+            </div>
+          </>)}
+
           {/* ── LIGNE ── */}
           {T.id === 'ligne' && (<>
             <div className="flex justify-between items-start mb-1">
@@ -199,9 +304,9 @@ export function TemplateThumbnail({
           </>)}
 
           {/* ── Common: table + totals ── */}
-          <div style={T.id === 'lateral' ? { marginLeft: '30%' } : undefined} className="flex-1 flex flex-col">
+          <div style={T.layout === 'lateral' ? { marginLeft: '30%' } : undefined} className="flex-1 flex flex-col">
             <>
-              <div className="px-0.5 py-0.5 mb-px" style={{ backgroundColor: accentColor, borderRadius: T.id === 'compact' ? '0' : '2px 2px 0 0' }}>
+              <div className="px-0.5 py-0.5 mb-px" style={{ backgroundColor: accentColor, borderRadius: T.borderRadius === '0px' ? '0' : '2px 2px 0 0' }}>
                 <div className="flex gap-1">
                   <div className="h-0.5 w-4 rounded-full" style={{ backgroundColor: contrastCol, opacity: 0.6 }} />
                   <div className="flex-1" />
@@ -220,7 +325,7 @@ export function TemplateThumbnail({
             </>
             <div className="flex-1" />
             <div className="flex justify-end mt-1">
-              <div className="rounded px-1 py-0.5" style={{ backgroundColor: `${accentColor}15`, borderRadius: T.id === 'compact' ? '0' : '3px' }}>
+              <div className="rounded px-1 py-0.5" style={{ backgroundColor: `${accentColor}15`, borderRadius: T.borderRadius === '0px' ? '0' : '3px' }}>
                 <div className="h-1 w-6 rounded-full" style={{ backgroundColor: accentColor, opacity: 0.5 }} />
               </div>
             </div>
