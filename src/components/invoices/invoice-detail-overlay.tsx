@@ -324,9 +324,10 @@ export function InvoiceDetailOverlay({ invoiceId, onClose, onStatusChange, onDel
     setMarkPaidInfoModalOpen(false)
   }
 
-  function handleMarkPaidSkip() {
+  async function handleMarkPaidSkip() {
     if (!invoice) return
-    api.patch(`/invoices/${invoice.id}/status`, { status: 'paid' })
+    const { error } = await api.patch(`/invoices/${invoice.id}/status`, { status: 'paid' })
+    if (error) { toast(error, 'error'); return }
     setInvoice({ ...invoice, status: 'paid' })
     onStatusChange(invoice.id, 'paid')
     setMarkPaidInfoModalOpen(false)
