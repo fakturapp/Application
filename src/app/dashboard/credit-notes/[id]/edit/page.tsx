@@ -450,6 +450,7 @@ function EditCreditNoteContent() {
         try {
           if (change.path === 'notes') setNotes(change.value)
           else if (change.path === 'accentColor') setAccentColor(change.value)
+          else if (change.path === 'logoUrl') setLogoUrl(change.value)
           else if (change.path === 'lines') setLines(change.value)
           else if (change.path === 'invoiceNumber') setCreditNoteNumber(change.value)
           else if (change.path === 'client') setSelectedClient(change.value)
@@ -485,6 +486,7 @@ function EditCreditNoteContent() {
         options={options}
         documentNumber={creditNoteNumber}
         selectedClient={selectedClient}
+        logoUrl={logoUrl}
       />}
 
       {/* Header */}

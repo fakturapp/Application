@@ -640,6 +640,7 @@ function EditInvoiceContent() {
           else if (change.path === 'accentColor') setAccentColor(change.value)
           else if (change.path === 'paymentMethod') setPaymentMethod(change.value)
           else if (change.path === 'bankAccountId') setBankAccountId(change.value)
+          else if (change.path === 'logoUrl') setLogoUrl(change.value)
           else if (change.path === 'lines') setLines(change.value)
           else if (change.path === 'invoiceNumber') setInvoiceNumber(change.value)
           else if (change.path.startsWith('options.')) {
@@ -678,6 +679,7 @@ function EditInvoiceContent() {
         options={options}
         documentNumber={invoiceNumber}
         selectedClient={selectedClient}
+        logoUrl={logoUrl}
         paymentMethod={paymentMethod}
         bankAccountId={bankAccountId}
       />}

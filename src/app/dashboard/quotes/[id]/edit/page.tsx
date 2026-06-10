@@ -580,6 +580,7 @@ function EditQuoteContent() {
         try {
           if (change.path === 'notes') setNotes(change.value)
           else if (change.path === 'accentColor') setAccentColor(change.value)
+          else if (change.path === 'logoUrl') setLogoUrl(change.value)
           else if (change.path === 'lines') setLines(change.value)
           else if (change.path === 'invoiceNumber') setQuoteNumber(change.value)
           else if (change.path === 'client') setSelectedClient(change.value)
@@ -615,6 +616,7 @@ function EditQuoteContent() {
         options={options}
         documentNumber={quoteNumber}
         selectedClient={selectedClient}
+        logoUrl={logoUrl}
       />}
 
       {/* ── Header ── */}

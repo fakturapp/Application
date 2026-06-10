@@ -35,3 +35,33 @@ export function useBroadcast(path: string, value: any) {
     collab?.sendDocumentChange?.(path, value)
   }, [value, path, collab])
 }
+
+export function useBroadcastObject(prefix: string, obj: Record<string, any>) {
+  const collab = useCollaborationContext()
+  const prevRef = useRef<Record<string, string>>({})
+  const initializedRef = useRef(false)
+
+  useEffect(() => {
+    const snapshot: Record<string, string> = {}
+    for (const [key, value] of Object.entries(obj)) {
+      snapshot[key] = typeof value === 'string' ? value : JSON.stringify(value)
+    }
+
+    if (!initializedRef.current) {
+      initializedRef.current = true
+      prevRef.current = snapshot
+      return
+    }
+
+    const prev = prevRef.current
+    prevRef.current = snapshot
+
+    if (_isApplyingRemote) return
+
+    for (const [key, json] of Object.entries(snapshot)) {
+      if (prev[key] !== json) {
+        collab?.sendDocumentChange?.(`${prefix}.${key}`, obj[key])
+      }
+    }
+  }, [obj, prefix, collab])
+}
