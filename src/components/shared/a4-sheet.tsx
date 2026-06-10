@@ -1172,9 +1172,11 @@ export function A4Sheet({
                   <div className="flex justify-between items-center">
                     <div>
                       {ed ? (
-                        <LogoEditor logoUrl={logoUrl} logoBorderRadius={logoBorderRadius} accentColor={accentColor}
-                          companyLogoUrl={companyLogoUrl} onLogoChange={onLogoChange} onLogoBorderRadiusChange={onLogoBorderRadiusChange}
-                          onLogoUpload={onLogoUpload} T={T} variant="banner" company={company} t={t} />
+                        <div data-collab-target data-collab-id="logo">
+                          <LogoEditor logoUrl={logoUrl} logoBorderRadius={logoBorderRadius} accentColor={accentColor}
+                            companyLogoUrl={companyLogoUrl} onLogoChange={onLogoChange} onLogoBorderRadiusChange={onLogoBorderRadiusChange}
+                            onLogoUpload={onLogoUpload} T={T} variant="banner" company={company} t={t} />
+                        </div>
                       ) : logoUrl ? (
                         <img src={logoUrl} alt="Logo" className="h-12 w-auto max-w-[100px] object-contain mb-1" style={{ borderRadius: `${logoBorderRadius}px` }} />
                       ) : (
@@ -1199,9 +1201,11 @@ export function A4Sheet({
                 <div className="flex justify-between items-start mb-5">
                   <div className="max-w-[55%]" data-collab-id="company">
                     {ed ? (
-                      <LogoEditor logoUrl={logoUrl} logoBorderRadius={logoBorderRadius} accentColor={accentColor}
-                        companyLogoUrl={companyLogoUrl} onLogoChange={onLogoChange} onLogoBorderRadiusChange={onLogoBorderRadiusChange}
-                        onLogoUpload={onLogoUpload} T={T} variant="standard" company={company} t={t} />
+                      <div data-collab-target data-collab-id="logo">
+                        <LogoEditor logoUrl={logoUrl} logoBorderRadius={logoBorderRadius} accentColor={accentColor}
+                          companyLogoUrl={companyLogoUrl} onLogoChange={onLogoChange} onLogoBorderRadiusChange={onLogoBorderRadiusChange}
+                          onLogoUpload={onLogoUpload} T={T} variant="standard" company={company} t={t} />
+                      </div>
                     ) : logoUrl ? (
                       <img src={logoUrl} alt="Logo" className="h-14 w-auto max-w-[110px] object-contain mb-2" style={{ borderRadius: `${logoBorderRadius}px` }} />
                     ) : null}
