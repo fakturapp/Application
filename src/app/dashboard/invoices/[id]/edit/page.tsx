@@ -73,6 +73,7 @@ function EditInvoiceContent() {
   const [sidebarTab, setSidebarTab] = useState<'options' | 'chat'>('options')
   const [aiProcessing, setAiProcessing] = useState(false)
   const editorAreaRef = useRef<HTMLDivElement>(null)
+  const optionsPanelRef = useRef<HTMLDivElement>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [sourceQuote, setSourceQuote] = useState<{ id: string; quoteNumber: string } | null>(null)
   const [unlinking, setUnlinking] = useState(false)
@@ -661,8 +662,8 @@ function EditInvoiceContent() {
       onKicked={(banned) => {
         toast(
           banned
-            ? 'Vous avez été banni de ce document par le propriétaire'
-            : 'Vous avez été expulsé du document par le propriétaire',
+            ? 'Vous avez été banni de ce document'
+            : 'Vous avez été expulsé du document',
           'error'
         )
         router.push('/dashboard')
@@ -755,7 +756,7 @@ function EditInvoiceContent() {
                 <SlidersHorizontal className="h-4 w-4" />
               </button>
             </div>
-            <CollaborationEditor editorRef={editorAreaRef} sheetRef={a4SheetRef}>
+            <CollaborationEditor editorRef={editorAreaRef} panelRef={optionsPanelRef}>
             <div ref={a4SheetRef} className="relative" style={{ transform: `scale(${docZoom / 100})`, transformOrigin: 'top center', ...zoomSpacing }}>
             <AiSheetOverlay open={aiProcessing} />
             <A4Sheet
@@ -842,7 +843,7 @@ function EditInvoiceContent() {
         <AnimatePresence>
           {showOptions && (
             <motion.div initial={{ opacity: 0, x: 20, width: 0 }} animate={{ opacity: 1, x: 0, width: 300 }} exit={{ opacity: 0, x: 20, width: 0 }} transition={{ duration: 0.25, ease: 'easeInOut' }} className="xl:shrink-0 order-2 overflow-hidden">
-              <div className="xl:sticky xl:top-4 w-[300px]">
+              <div className="xl:sticky xl:top-4 w-[300px]" ref={optionsPanelRef}>
                 {invoiceSettings.aiEnabled && (
                   <Tabs
                     tabs={[
