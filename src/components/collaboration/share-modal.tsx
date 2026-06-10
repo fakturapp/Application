@@ -9,11 +9,10 @@ import { FormSelect } from '@/components/ui/dropdown'
 import { useToast } from '@/components/ui/toast'
 import { api } from '@/lib/api'
 import {
-  Link2, Copy, Check, Mail, X, UserPlus, Globe,
-  ChevronDown, Shield, Eye, Pencil, Trash2, Users
+  Link2, Copy, Check, X, UserPlus, Users,
+  ChevronRight, ArrowLeft, Trash2,
 } from '@/components/ui/icons'
 import { CheckboxRoot, CheckboxControl, CheckboxIndicator, CheckboxContent } from '@/components/ui/checkbox'
-
 
 type DocumentType = 'invoice' | 'quote' | 'credit_note'
 type Permission = 'viewer' | 'editor'
@@ -56,7 +55,6 @@ interface ShareModalProps {
 
 const FRONTEND_URL = typeof window !== 'undefined' ? window.location.origin : ''
 
-
 function getInitials(name: string | null, email: string): string {
   if (name) {
     const parts = name.split(' ')
@@ -71,17 +69,46 @@ const permissionLabels: Record<Permission, string> = {
   editor: 'Peut modifier',
 }
 
-const permissionIcons: Record<Permission, typeof Eye> = {
-  viewer: Eye,
-  editor: Pencil,
+const permissionOptions = [
+  { value: 'viewer', label: 'Lecture seule' },
+  { value: 'editor', label: 'Peut modifier' },
+]
+
+const visibilityOptions = [
+  { value: 'anyone', label: 'Tout le monde' },
+  { value: 'team', label: 'Équipe uniquement' },
+]
+
+const viewMotion = {
+  main: {
+    initial: { opacity: 0, x: -32 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -32 },
+  },
+  settings: {
+    initial: { opacity: 0, x: 32 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: 32 },
+  },
 }
 
-// ── Component ─────────────────────────────────────────────────────────────
+const viewTransition = {
+  duration: 0.22,
+  ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      {children}
+    </p>
+  )
+}
 
 export function ShareModal({ open, onClose, documentType, documentId }: ShareModalProps) {
   const { toast } = useToast()
 
-  // State
+  const [view, setView] = useState<'main' | 'settings'>('main')
   const [shares, setShares] = useState<ShareEntry[]>([])
   const [links, setLinks] = useState<ShareLinkEntry[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
@@ -93,8 +120,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
   const [inviting, setInviting] = useState(false)
-
-  // ── Fetch shares and links ──────────────────────────────────────────
+  const [creating, setCreating] = useState(false)
 
   const fetchData = useCallback(async () => {
     if (!documentId) return
@@ -111,14 +137,15 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
   }, [documentId, documentType])
 
   useEffect(() => {
-    if (open) fetchData()
+    if (open) {
+      fetchData()
+      setView('main')
+    }
   }, [open, fetchData])
 
-  // ── Share link ──────────────────────────────────────────────────────
+  const activeLink = links[0]
 
-  const activeLink = links[0] // Show the most recent active link
-
-  const createShareLink = async () => {
+  const createShareLink = async (): Promise<boolean> => {
     const { data, error } = await api.post<{ data: ShareLinkEntry }>('/collaboration/share-links', {
       documentType,
       documentId,
@@ -129,12 +156,14 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     })
     if (error) {
       toast(error, 'error')
-      return
+      return false
     }
     if (data) {
       setLinks((prev) => [data.data, ...prev])
       toast('Lien de partage créé', 'success')
+      return true
     }
+    return false
   }
 
   const copyLink = async (token: string) => {
@@ -150,8 +179,6 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     setLinks((prev) => prev.filter((l) => l.id !== linkId))
     toast('Lien désactivé', 'success')
   }
-
-  // ── Invite by email ─────────────────────────────────────────────────
 
   const inviteByEmail = async () => {
     if (!inviteEmail.trim()) return
@@ -174,8 +201,6 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     setInviting(false)
   }
 
-  // ── Update permission ───────────────────────────────────────────────
-
   const updatePermission = async (shareId: string, permission: Permission) => {
     const { error } = await api.patch(`/collaboration/shares/${shareId}`, { permission })
     if (error) {
@@ -187,8 +212,6 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     )
   }
 
-  // ── Revoke access ───────────────────────────────────────────────────
-
   const revokeAccess = async (shareId: string) => {
     const { error } = await api.delete(`/collaboration/shares/${shareId}`)
     if (error) {
@@ -199,293 +222,330 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     toast('Accès révoqué', 'success')
   }
 
-  // ── Render ──────────────────────────────────────────────────────────
+  const changeLinkPermission = async (value: string) => {
+    const perm = value as Permission
+    if (!activeLink) {
+      setLinkPermission(perm)
+      return
+    }
+    await api.patch(`/collaboration/share-links/${activeLink.id}`, { permission: perm })
+    setLinks((prev) =>
+      prev.map((l) => (l.id === activeLink.id ? { ...l, permission: perm } : l))
+    )
+  }
+
+  const changeLinkVisibility = async (value: string) => {
+    const vis = value as Visibility
+    if (!activeLink) {
+      setLinkVisibility(vis)
+      return
+    }
+    await api.patch(`/collaboration/share-links/${activeLink.id}`, { visibility: vis })
+    setLinks((prev) =>
+      prev.map((l) => (l.id === activeLink.id ? { ...l, visibility: vis } : l))
+    )
+    toast(vis === 'anyone' ? 'Lien accessible à tous' : 'Lien restreint à l\'équipe', 'success')
+  }
+
+  const changeLinkAnonymous = async (checked: boolean) => {
+    if (!activeLink) {
+      setLinkAllowAnonymous(checked)
+      return
+    }
+    await api.patch(`/collaboration/share-links/${activeLink.id}`, {
+      allowAnonymous: checked,
+      ...(checked ? { visibility: 'anyone' } : {}),
+    })
+    setLinks((prev) =>
+      prev.map((l) =>
+        l.id === activeLink.id
+          ? { ...l, allowAnonymous: checked, visibility: checked ? 'anyone' : l.visibility }
+          : l
+      )
+    )
+  }
+
+  const generateLink = async () => {
+    setCreating(true)
+    const ok = await createShareLink()
+    setCreating(false)
+    if (ok) setView('main')
+  }
+
+  const disableLink = async () => {
+    if (!activeLink) return
+    await deleteShareLink(activeLink.id)
+    setView('main')
+  }
+
+  const settingsPermission = activeLink ? activeLink.permission : linkPermission
+  const settingsAnonymous = activeLink ? !!activeLink.allowAnonymous : linkAllowAnonymous
+  const settingsVisibility = settingsAnonymous
+    ? 'anyone'
+    : activeLink ? activeLink.visibility : linkVisibility
+  const settingsAutoExpire = activeLink ? activeLink.autoExpire : linkAutoExpire
 
   return (
     <Dialog open={open} onClose={onClose} className="max-w-lg">
-      <div className="flex items-center justify-between">
-        <DialogTitle className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-            <Users className="h-4 w-4 text-primary" />
-          </div>
-          Partager ce document
-        </DialogTitle>
-        <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted/50">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="mt-5 space-y-5">
-        {/* ── Invite by email ──────────────────────────────────────── */}
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Inviter par email
-          </label>
-          <div className="flex gap-2">
-            <Input
-              type="email"
-              placeholder="email@exemple.com"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && inviteByEmail()}
-              className="flex-1"
-            />
-            <FormSelect
-              value={invitePermission}
-              onChange={(v) => setInvitePermission(v as Permission)}
-              className="w-[140px]"
-              showCheck={false}
-              options={[
-                { value: 'viewer', label: 'Lecture seule' },
-                { value: 'editor', label: 'Peut modifier' },
-              ]}
-            />
-            <Button
-              onClick={inviteByEmail}
-              disabled={!inviteEmail.trim() || inviting}
-              size="icon"
-              title="Inviter"
-            >
-              <UserPlus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* ── Share link ───────────────────────────────────────────── */}
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Lien de partage
-          </label>
-
-          {activeLink ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-background/50 p-2.5">
-                <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <span className="flex-1 truncate text-sm text-muted-foreground">
-                  {FRONTEND_URL}/share/{activeLink.token.slice(0, 12)}...
-                </span>
-                <FormSelect
-                  value={activeLink.permission}
-                  onChange={async (v) => {
-                    const perm = v as Permission
-                    await api.patch(`/collaboration/share-links/${activeLink.id}`, { permission: perm })
-                    setLinks((prev) =>
-                      prev.map((l) => (l.id === activeLink.id ? { ...l, permission: perm } : l))
-                    )
-                  }}
-                  className="h-8 w-[120px] text-xs"
-                  showCheck={false}
-                  options={[
-                    { value: 'viewer', label: 'Lecture seule' },
-                    { value: 'editor', label: 'Peut modifier' },
-                  ]}
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => copyLink(activeLink.token)}
-                  title="Copier le lien"
+      <div className="overflow-x-hidden">
+        <AnimatePresence mode="wait" initial={false}>
+          {view === 'main' ? (
+            <motion.div key="main" {...viewMotion.main} transition={viewTransition}>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                    <Users className="h-4 w-4 text-primary" />
+                  </div>
+                  Partager ce document
+                </DialogTitle>
+                <button
+                  onClick={onClose}
+                  className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                  aria-label="Fermer"
                 >
-                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive"
-                  onClick={() => deleteShareLink(activeLink.id)}
-                  title="Désactiver le lien"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <div className="flex items-center gap-2 px-1">
-                <FormSelect
-                  value={activeLink.visibility}
-                  onChange={async (v) => {
-                    const vis = v as Visibility
-                    await api.patch(`/collaboration/share-links/${activeLink.id}`, { visibility: vis })
-                    setLinks((prev) =>
-                      prev.map((l) => (l.id === activeLink.id ? { ...l, visibility: vis } : l))
-                    )
-                    toast(vis === 'anyone' ? 'Lien accessible à tous' : 'Lien restreint à l\'équipe', 'success')
-                  }}
-                  className="h-7 text-xs w-[160px]"
-                  showCheck={false}
-                  options={[
-                    { value: 'anyone', label: 'Tout le monde' },
-                    { value: 'team', label: 'Équipe uniquement' },
-                  ]}
-                />
-                {activeLink.autoExpire && (
-                  <span className="text-[10px] text-amber-500">Expire quand vous quittez</span>
-                )}
-              </div>
-              <CheckboxRoot
-                isSelected={!!activeLink.allowAnonymous}
-                onChange={async (checked: boolean) => {
-                  await api.patch(`/collaboration/share-links/${activeLink.id}`, {
-                    allowAnonymous: checked,
-                    ...(checked ? { visibility: 'anyone' } : {}),
-                  })
-                  setLinks((prev) =>
-                    prev.map((l) =>
-                      l.id === activeLink.id
-                        ? { ...l, allowAnonymous: checked, visibility: checked ? 'anyone' : l.visibility }
-                        : l
-                    )
-                  )
-                }}
-                className="flex items-center gap-2 px-1"
-              >
-                <CheckboxControl>
-                  <CheckboxIndicator />
-                </CheckboxControl>
-                <CheckboxContent className="text-xs text-muted-foreground mt-[1px]">
-                  Accessible sans compte Faktur (lecture seule, affiché comme Invité)
-                </CheckboxContent>
-              </CheckboxRoot>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <FormSelect
-                  value={linkPermission}
-                  onChange={(v) => setLinkPermission(v as Permission)}
-                  className="w-[130px]"
-                  showCheck={false}
-                  options={[
-                    { value: 'viewer', label: 'Lecture seule' },
-                    { value: 'editor', label: 'Peut modifier' },
-                  ]}
-                />
-                <FormSelect
-                  value={linkVisibility}
-                  onChange={(v) => setLinkVisibility(v as Visibility)}
-                  className="w-[150px]"
-                  showCheck={false}
-                  options={[
-                    { value: 'anyone', label: 'Tout le monde' },
-                    { value: 'team', label: 'Équipe uniquement' },
-                  ]}
-                />
-                <Button variant="outline" onClick={createShareLink} className="gap-1.5 shrink-0">
-                  <Link2 className="h-4 w-4" />
-                  Générer
-                </Button>
-              </div>
-              <CheckboxRoot
-                isSelected={linkAutoExpire}
-                onChange={setLinkAutoExpire}
-                className="flex items-center gap-2 px-1"
-              >
-                <CheckboxControl>
-                  <CheckboxIndicator />
-                </CheckboxControl>
-                <CheckboxContent className="text-xs text-muted-foreground mt-[1px]">
-                  Désactiver le lien quand je quitte la page
-                </CheckboxContent>
-              </CheckboxRoot>
-              <CheckboxRoot
-                isSelected={linkAllowAnonymous}
-                onChange={setLinkAllowAnonymous}
-                className="flex items-center gap-2 px-1"
-              >
-                <CheckboxControl>
-                  <CheckboxIndicator />
-                </CheckboxControl>
-                <CheckboxContent className="text-xs text-muted-foreground mt-[1px]">
-                  Accessible sans compte Faktur (lecture seule, affiché comme Invité)
-                </CheckboxContent>
-              </CheckboxRoot>
-            </div>
-          )}
-        </div>
 
-        {/* ── Collaborators list ───────────────────────────────────── */}
-        {shares.length > 0 && (
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Personnes ayant accès
-            </label>
-            <div className="space-y-1 max-h-48 overflow-y-auto">
-              <AnimatePresence>
-                {shares.map((share) => {
-                  const name = share.sharedWith?.fullName ?? share.sharedWithEmail ?? '?'
-                  const email = share.sharedWith?.email ?? share.sharedWithEmail ?? ''
-                  const Icon = permissionIcons[share.permission]
-                  return (
-                    <motion.div
-                      key={share.id}
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -10 }}
-                      className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted/30 transition-colors"
+              <div className="mt-5 space-y-5">
+                <div>
+                  <SectionLabel>Inviter par email</SectionLabel>
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="email@exemple.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && inviteByEmail()}
+                      className="flex-1"
+                    />
+                    <FormSelect
+                      value={invitePermission}
+                      onChange={(v) => setInvitePermission(v as Permission)}
+                      className="w-[140px] shrink-0"
+                      showCheck={false}
+                      options={permissionOptions}
+                    />
+                    <Button
+                      onClick={inviteByEmail}
+                      disabled={!inviteEmail.trim() || inviting}
+                      size="icon"
+                      title="Inviter"
                     >
-                      {/* Avatar */}
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                        {getInitials(share.sharedWith?.fullName ?? null, email)}
+                      <UserPlus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <SectionLabel>Lien de partage</SectionLabel>
+                  {activeLink ? (
+                    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                        <Link2 className="h-4 w-4 text-primary" />
                       </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{name}</p>
-                        {share.sharedWith?.fullName && (
-                          <p className="text-xs text-muted-foreground truncate">{email}</p>
-                        )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {FRONTEND_URL}/share/{activeLink.token}
+                        </p>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span>{permissionLabels[activeLink.permission]}</span>
+                          <span>·</span>
+                          <span>{activeLink.visibility === 'anyone' ? 'Tout le monde' : 'Équipe'}</span>
+                          {activeLink.allowAnonymous && (
+                            <span className="rounded-full bg-primary/10 px-1.5 py-px text-[10px] font-medium text-primary">
+                              Accès invité
+                            </span>
+                          )}
+                        </div>
                       </div>
-
-                      {/* Status badge for pending */}
-                      {share.status === 'pending' && (
-                        <span className="text-[10px] rounded-full bg-amber-500/10 text-amber-500 px-2 py-0.5 font-medium">
-                          En attente
-                        </span>
-                      )}
-
-                      {/* Permission selector */}
-                      <FormSelect
-                        value={share.permission}
-                        onChange={(v) => updatePermission(share.id, v as Permission)}
-                        className="h-7 w-[120px] text-xs"
-                        showCheck={false}
-                        options={[
-                          { value: 'viewer', label: 'Lecture seule' },
-                          { value: 'editor', label: 'Peut modifier' },
-                        ]}
-                      />
-
-                      {/* Revoke */}
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                        onClick={() => revokeAccess(share.id)}
-                        title="Révoquer l'accès"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => copyLink(activeLink.token)}
+                        title="Copier le lien"
                       >
-                        <X className="h-3.5 w-3.5" />
+                        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                       </Button>
-                    </motion.div>
-                  )
-                })}
-              </AnimatePresence>
-            </div>
-          </div>
-        )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => setView('settings')}
+                        title="Paramètres du lien"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button fullWidth onClick={() => setView('settings')} className="gap-2">
+                      <Link2 className="h-4 w-4" />
+                      Créer un lien de partage
+                    </Button>
+                  )}
+                </div>
 
-        {/* ── Empty state ──────────────────────────────────────────── */}
-        {shares.length === 0 && !loading && (
-          <div className="text-center py-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50 mx-auto mb-2">
-              <UserPlus className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Aucun collaborateur pour le moment
-            </p>
-            <p className="text-xs text-muted-foreground/60 mt-0.5">
-              Invitez quelqu&apos;un par email ou générez un lien
-            </p>
-          </div>
-        )}
+                <div>
+                  <SectionLabel>Personnes ayant accès</SectionLabel>
+                  {shares.length > 0 ? (
+                    <div className="max-h-56 space-y-1 overflow-y-auto pr-1">
+                      <AnimatePresence>
+                        {shares.map((share) => {
+                          const name = share.sharedWith?.fullName ?? share.sharedWithEmail ?? '?'
+                          const email = share.sharedWith?.email ?? share.sharedWithEmail ?? ''
+                          return (
+                            <motion.div
+                              key={share.id}
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, x: -10 }}
+                              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/30"
+                            >
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                                {getInitials(share.sharedWith?.fullName ?? null, email)}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-medium text-foreground">{name}</p>
+                                {share.sharedWith?.fullName && (
+                                  <p className="truncate text-xs text-muted-foreground">{email}</p>
+                                )}
+                              </div>
+                              {share.status === 'pending' && (
+                                <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-500">
+                                  En attente
+                                </span>
+                              )}
+                              <FormSelect
+                                value={share.permission}
+                                onChange={(v) => updatePermission(share.id, v as Permission)}
+                                className="h-7 w-[120px] shrink-0 text-xs"
+                                showCheck={false}
+                                options={permissionOptions}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 shrink-0 text-destructive hover:bg-destructive/10"
+                                onClick={() => revokeAccess(share.id)}
+                                title="Révoquer l'accès"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </motion.div>
+                          )
+                        })}
+                      </AnimatePresence>
+                    </div>
+                  ) : (
+                    !loading && (
+                      <div className="rounded-xl border border-dashed border-border py-5 text-center">
+                        <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-muted/50">
+                          <UserPlus className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">Aucun collaborateur pour le moment</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground/60">
+                          Invitez quelqu&apos;un par email ou créez un lien
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div key="settings" {...viewMotion.settings} transition={viewTransition}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setView('main')}
+                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                    aria-label="Retour"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
+                  <DialogTitle>Paramètres du lien</DialogTitle>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                  aria-label="Fermer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Autorisation</label>
+                  <FormSelect
+                    value={settingsPermission}
+                    onChange={changeLinkPermission}
+                    className="w-full"
+                    showCheck={false}
+                    options={permissionOptions}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Visibilité</label>
+                  <FormSelect
+                    value={settingsVisibility}
+                    onChange={changeLinkVisibility}
+                    disabled={settingsAnonymous}
+                    className="w-full"
+                    showCheck={false}
+                    options={visibilityOptions}
+                  />
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-border p-3">
+                  <CheckboxRoot
+                    isSelected={settingsAutoExpire}
+                    onChange={setLinkAutoExpire}
+                    isDisabled={!!activeLink}
+                    className="flex items-start gap-2.5"
+                  >
+                    <CheckboxControl>
+                      <CheckboxIndicator />
+                    </CheckboxControl>
+                    <CheckboxContent>
+                      <p className="text-sm text-foreground">Désactiver le lien quand je quitte la page</p>
+                    </CheckboxContent>
+                  </CheckboxRoot>
+
+                  <CheckboxRoot
+                    isSelected={settingsAnonymous}
+                    onChange={changeLinkAnonymous}
+                    className="flex items-start gap-2.5"
+                  >
+                    <CheckboxControl>
+                      <CheckboxIndicator />
+                    </CheckboxControl>
+                    <CheckboxContent>
+                      <p className="text-sm text-foreground">Accès sans compte</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Accessible sans compte Faktur, en lecture seule, affiché comme Invité
+                      </p>
+                    </CheckboxContent>
+                  </CheckboxRoot>
+                </div>
+
+                {activeLink ? (
+                  <Button variant="danger-soft" fullWidth onClick={disableLink} className="gap-2">
+                    <Trash2 className="h-4 w-4" />
+                    Désactiver le lien
+                  </Button>
+                ) : (
+                  <Button fullWidth onClick={generateLink} disabled={creating} className="gap-2">
+                    <Link2 className="h-4 w-4" />
+                    Générer le lien
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </Dialog>
   )
