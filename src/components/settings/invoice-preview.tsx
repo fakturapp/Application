@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { getTemplate } from '@/lib/invoice-templates'
@@ -9,6 +10,18 @@ export function InvoicePreview() {
   const { settings, companyLogoUrl } = useInvoiceSettings()
   const currentTemplate = getTemplate(settings.template, settings.darkMode)
   const effectiveLogoUrl = settings.logoSource === 'company' ? companyLogoUrl : settings.logoUrl
+  const previewFont = currentTemplate.font || settings.documentFont || 'Lexend'
+
+  useEffect(() => {
+    if (!previewFont || previewFont === 'Lexend') return
+    const id = `gfont-${previewFont.replace(/\s/g, '-')}`
+    if (document.getElementById(id)) return
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(previewFont)}:wght@400;500;600;700&display=swap`
+    document.head.appendChild(link)
+  }, [previewFont])
   const detailedColumns =
     settings.billingType === 'detailed'
       ? [
@@ -44,7 +57,35 @@ export function InvoicePreview() {
                 border: settings.darkMode ? '1px solid #3f3f46' : '1px solid #e5e7eb',
               }}
             >
-              <div className="flex h-full flex-col p-4">
+              <div
+                className="flex h-full"
+                style={{ fontFamily: `'${previewFont}', 'Segoe UI', sans-serif` }}
+              >
+                {currentTemplate.layout === 'lateral' && (
+                  <div
+                    className="flex w-[26%] shrink-0 flex-col gap-1.5 p-3"
+                    style={{ backgroundColor: settings.accentColor }}
+                  >
+                    {effectiveLogoUrl ? (
+                      <img
+                        src={effectiveLogoUrl}
+                        alt="Logo"
+                        className="mb-1 h-7 w-auto max-w-full self-start object-contain"
+                        style={{ borderRadius: `${settings.logoBorderRadius}px` }}
+                      />
+                    ) : (
+                      <div className="mb-1 h-2.5 w-12 rounded-full bg-white/60" />
+                    )}
+                    <div className="h-1.5 w-full rounded-full bg-white/30" />
+                    <div className="h-1.5 w-4/5 rounded-full bg-white/20" />
+                    <div className="h-1.5 w-3/5 rounded-full bg-white/20" />
+                    <div className="mt-3 h-1.5 w-full rounded-full bg-white/15" />
+                    <div className="h-1.5 w-4/5 rounded-full bg-white/15" />
+                    <div className="mt-auto h-1.5 w-2/3 rounded-full bg-white/20" />
+                  </div>
+                )}
+
+                <div className="flex min-w-0 flex-1 flex-col p-4">
                 {currentTemplate.layout === 'banner' && (
                   <div
                     className="-mx-2 -mt-2 mb-4 rounded-lg px-4 py-3"
@@ -68,6 +109,9 @@ export function InvoicePreview() {
 
                 {currentTemplate.layout !== 'banner' && (
                   <div className="mb-3 flex items-start justify-between">
+                    {currentTemplate.layout === 'lateral' ? (
+                      <div />
+                    ) : (
                     <div className="space-y-2">
                       {effectiveLogoUrl ? (
                         <img
@@ -93,6 +137,7 @@ export function InvoicePreview() {
                         <div className="h-1.5 w-32 rounded-full" style={{ backgroundColor: currentTemplate.borderLight, opacity: 0.6 }} />
                       </div>
                     </div>
+                    )}
                     <div className="space-y-1 text-right">
                       <p className="text-sm font-bold tracking-wide" style={{ color: settings.accentColor }}>
                         FACTURE
@@ -272,6 +317,7 @@ export function InvoicePreview() {
                       </div>
                     </div>
                   )}
+                </div>
                 </div>
               </div>
             </div>
