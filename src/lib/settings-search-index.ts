@@ -4,6 +4,7 @@ import {
   Receipt,
   UsersRound,
   Paintbrush,
+  Palette,
   Settings2,
   ClipboardList,
   FileCheck,
@@ -55,6 +56,14 @@ export const settingsSearchIndex: SettingsSearchItem[] = [
     section: 'Équipe',
     icon: UsersRound,
     keywords: ['membres', 'équipe', 'team', 'rôle', 'invitation', 'collaborateur'],
+  },
+  {
+    href: '/dashboard/settings/interface',
+    label: 'Interface',
+    description: 'Thème du fond de votre espace Faktur',
+    section: 'Général',
+    icon: Palette,
+    keywords: ['interface', 'thème', 'fond', 'background', 'couleur', 'personnalisation'],
   },
   {
     href: '/dashboard/settings/documents/invoices',

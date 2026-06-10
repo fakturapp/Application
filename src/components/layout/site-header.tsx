@@ -24,6 +24,7 @@ const routeTitles: Record<string, string> = {
   '/dashboard/settings/company/bank': 'Banque',
   '/dashboard/settings/company/payment': 'Paiement',
   '/dashboard/settings/members': 'Membres',
+  '/dashboard/settings/interface': 'Interface',
   '/dashboard/settings/documents/invoices': 'Apparence',
   '/dashboard/settings/documents/invoices/options': 'Options',
   '/dashboard/settings/documents/invoices/defaults': 'Valeurs par défaut',
