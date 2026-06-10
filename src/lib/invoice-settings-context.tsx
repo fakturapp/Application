@@ -61,7 +61,7 @@ interface InvoiceSettingsContextType {
   saveError: string | null
   hasChanges: boolean
   updateSettings: (partial: Partial<InvoiceSettings>) => void
-  updateAndSave: (partial: Partial<InvoiceSettings>) => Promise<void>
+  updateAndSave: (partial: Partial<InvoiceSettings>) => Promise<InvoiceSettings | null>
   save: () => Promise<void>
   resetChanges: () => void
   uploadLogo: (file: File) => Promise<void>
@@ -121,7 +121,7 @@ const InvoiceSettingsContext = createContext<InvoiceSettingsContextType>({
   saveError: null,
   hasChanges: false,
   updateSettings: () => {},
-  updateAndSave: async () => {},
+  updateAndSave: async () => null,
   save: async () => {},
   resetChanges: () => {},
   uploadLogo: async () => {},
@@ -206,13 +206,16 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
     setSaving(false)
     if (error) {
       setSaveError(error)
-    } else if (data?.settings) {
+      return null
+    }
+    if (data?.settings) {
       const resolved = { ...data.settings, logoUrl: resolveLogoUrl(data.settings.logoUrl) }
       setSettings(resolved)
       setSavedSettings(resolved)
-    } else {
-      setSavedSettings(next)
+      return resolved
     }
+    setSavedSettings(next)
+    return next
   }, [])
 
   const uploadLogo = useCallback(async (file: File) => {

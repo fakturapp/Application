@@ -449,7 +449,12 @@ export default function InvoiceAppearancePage() {
         onClose={() => setTemplateModalOpen(false)}
         accentColor={settings.accentColor}
         currentTemplate={settings.template}
-        onSelect={(id) => updateAndSave({ template: id })}
+        onSelect={async (id) => {
+          const applied = await updateAndSave({ template: id })
+          if (applied && applied.template !== id) {
+            toast('La personnalisation des documents est réservée aux forfaits Pro et Team', 'error')
+          }
+        }}
       />
     </motion.div>
   )
