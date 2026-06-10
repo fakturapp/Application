@@ -4,15 +4,18 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import type { CollaboratorInfo } from '@/hooks/use-collaboration'
+import { Eye, Pencil } from '@/components/ui/icons'
+import type { CollaboratorInfo, CollabRole } from '@/hooks/use-collaboration'
 
 interface PresenceBarProps {
   collaborators: CollaboratorInfo[]
   latencies?: Map<string, number>
   myUserId?: string | null
+  myRole?: CollabRole | null
   canModerate?: boolean
   onKick?: (userId: string) => void
   onBan?: (userId: string) => void
+  onChangePermission?: (userId: string, permission: 'viewer' | 'editor') => void
   className?: string
 }
 
@@ -31,8 +34,18 @@ function firstName(collab: CollaboratorInfo): string {
 }
 
 function roleLabel(collab: CollaboratorInfo): string {
-  if (collab.isOwner) return 'Propriétaire'
-  return collab.permission === 'editor' ? 'Peut modifier' : 'Lecture seule'
+  switch (collab.role) {
+    case 'owner':
+      return 'Propriétaire'
+    case 'admin':
+      return 'Admin'
+    case 'member':
+      return "Membre de l'équipe"
+    case 'viewer':
+      return 'Lecture seule (équipe)'
+    default:
+      return collab.permission === 'editor' ? 'Invité : peut modifier' : 'Invité : lecture seule'
+  }
 }
 
 function pingTone(ms: number): string {
@@ -48,9 +61,11 @@ export function PresenceBar({
   collaborators,
   latencies = EMPTY_LATENCIES,
   myUserId = null,
+  myRole = null,
   canModerate = false,
   onKick,
   onBan,
+  onChangePermission,
   className,
 }: PresenceBarProps) {
   const [openUserId, setOpenUserId] = useState<string | null>(null)
@@ -66,15 +81,24 @@ export function PresenceBar({
     setConfirm(null)
   }
 
+  const canActOn = (target: CollaboratorInfo): boolean => {
+    if (!canModerate) return false
+    if (target.userId === myUserId) return false
+    if (target.role === 'owner') return false
+    if (target.role === 'admin' && myRole !== 'owner') return false
+    return true
+  }
+
   return (
     <div className={cn('flex items-center', className)}>
       <div className="flex -space-x-2">
         <AnimatePresence mode="popLayout">
           {visible.map((collab, i) => {
             const isSelf = collab.userId === myUserId
-            const interactive = canModerate && !isSelf
+            const interactive = canActOn(collab)
             const isOpen = openUserId === collab.userId
             const ping = latencies.get(collab.userId)
+            const isGuest = collab.role === 'guest'
 
             return (
               <motion.div
@@ -181,6 +205,37 @@ export function PresenceBar({
                         </span>
                       </div>
 
+                      {isGuest && onChangePermission && confirm === null && (
+                        <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => onChangePermission(collab.userId, 'viewer')}
+                            className={cn(
+                              'flex items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors',
+                              collab.permission === 'viewer'
+                                ? 'border-primary/40 bg-primary/10 text-primary'
+                                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                            )}
+                          >
+                            <Eye className="h-3 w-3" />
+                            Lecture
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onChangePermission(collab.userId, 'editor')}
+                            className={cn(
+                              'flex items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors',
+                              collab.permission === 'editor'
+                                ? 'border-primary/40 bg-primary/10 text-primary'
+                                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                            )}
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Modifier
+                          </button>
+                        </div>
+                      )}
+
                       {confirm === null && (
                         <div className="mt-2.5 flex gap-2">
                           <Button
@@ -191,7 +246,7 @@ export function PresenceBar({
                           >
                             Expulser
                           </Button>
-                          {!collab.isOwner && (
+                          {isGuest && (
                             <Button
                               variant="outline"
                               size="sm"
