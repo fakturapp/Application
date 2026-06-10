@@ -650,7 +650,7 @@ function EditInvoiceContent() {
             setSelectedClient(change.value)
           }
         } finally {
-          requestAnimationFrame(() => setApplyingRemote(false))
+          requestAnimationFrame(() => requestAnimationFrame(() => setApplyingRemote(false)))
         }
       }}
       onDocumentSaved={() => {
