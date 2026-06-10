@@ -13,8 +13,11 @@ function layerStyle(layer: BackgroundLayer): React.CSSProperties {
     background: layer.background,
     backgroundImage: layer.backgroundImage,
     backgroundSize: layer.backgroundSize,
+    backgroundPosition: layer.backgroundPosition,
     maskImage: layer.maskImage,
     opacity: layer.opacity,
+    animation: layer.animation,
+    ...(layer.expand ? { top: -160, left: -160, right: -160, bottom: -160 } : {}),
   }
 }
 

@@ -2,8 +2,11 @@ export interface BackgroundLayer {
   background?: string
   backgroundImage?: string
   backgroundSize?: string
+  backgroundPosition?: string
   maskImage?: string
   opacity?: number
+  animation?: string
+  expand?: boolean
 }
 
 export interface BackgroundTheme {
@@ -188,6 +191,152 @@ export const BACKGROUND_THEMES: BackgroundTheme[] = [
     swatch: 'linear-gradient(160deg, rgba(161,161,170,0.35), rgba(161,161,170,0.08))',
     light: [DOTS_LIGHT],
     dark: [DOTS_DARK],
+  },
+  {
+    id: 'flux',
+    name: 'Flux',
+    description: 'Halos vivants qui dérivent lentement',
+    swatch: 'linear-gradient(120deg, rgba(99,102,241,0.55), rgba(236,72,153,0.4), rgba(6,182,212,0.4))',
+    light: [
+      { ...glow('15%', '5%', 'rgba(99,102,241,0.10)', 800, 500), animation: 'gradient-drift 26s ease-in-out infinite', expand: true },
+      { ...glow('80%', '20%', 'rgba(236,72,153,0.07)', 700, 450), animation: 'gradient-drift 34s ease-in-out infinite reverse', expand: true },
+      { ...glow('50%', '90%', 'rgba(6,182,212,0.06)', 900, 500), animation: 'gradient-drift 42s ease-in-out infinite', expand: true },
+      DOTS_LIGHT,
+    ],
+    dark: [
+      { ...glow('15%', '5%', 'rgba(99,102,241,0.12)', 800, 500), animation: 'gradient-drift 26s ease-in-out infinite', expand: true },
+      { ...glow('80%', '20%', 'rgba(236,72,153,0.08)', 700, 450), animation: 'gradient-drift 34s ease-in-out infinite reverse', expand: true },
+      { ...glow('50%', '90%', 'rgba(6,182,212,0.07)', 900, 500), animation: 'gradient-drift 42s ease-in-out infinite', expand: true },
+      DOTS_DARK,
+    ],
+  },
+  {
+    id: 'constellation',
+    name: 'Constellation',
+    description: 'Points scintillants, halo dérivant',
+    swatch: 'linear-gradient(160deg, rgba(139,92,246,0.55), rgba(30,58,138,0.3))',
+    light: [
+      { ...glow('60%', '-120px', 'rgba(139,92,246,0.10)', 900, 480), animation: 'gradient-drift 30s ease-in-out infinite', expand: true },
+      {
+        backgroundImage: 'radial-gradient(rgba(24,24,27,0.07) 1.2px, transparent 1.2px)',
+        backgroundSize: '34px 34px',
+        animation: 'bg-pan 120s linear infinite',
+      },
+    ],
+    dark: [
+      { ...glow('60%', '-120px', 'rgba(139,92,246,0.13)', 900, 480), animation: 'gradient-drift 30s ease-in-out infinite', expand: true },
+      {
+        backgroundImage: 'radial-gradient(rgba(255,255,255,0.07) 1.2px, transparent 1.2px)',
+        backgroundSize: '34px 34px',
+        animation: 'bg-pan 120s linear infinite',
+      },
+    ],
+  },
+  {
+    id: 'vagues',
+    name: 'Vagues',
+    description: 'Lignes diagonales en mouvement',
+    swatch: 'linear-gradient(160deg, rgba(14,165,233,0.5), rgba(45,212,191,0.25))',
+    light: [
+      glow('50%', '-160px', 'rgba(14,165,233,0.08)'),
+      {
+        backgroundImage:
+          'repeating-linear-gradient(45deg, rgba(24,24,27,0.035) 0px, rgba(24,24,27,0.035) 1px, transparent 1px, transparent 14px)',
+        backgroundSize: '240px 240px',
+        animation: 'bg-pan 80s linear infinite',
+        maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.25) 70%)',
+      },
+    ],
+    dark: [
+      glow('50%', '-160px', 'rgba(14,165,233,0.10)'),
+      {
+        backgroundImage:
+          'repeating-linear-gradient(45deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 14px)',
+        backgroundSize: '240px 240px',
+        animation: 'bg-pan 80s linear infinite',
+        maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.25) 70%)',
+      },
+    ],
+  },
+  {
+    id: 'carreaux',
+    name: 'Carreaux',
+    description: 'Damier discret, géométrique',
+    swatch: 'linear-gradient(160deg, rgba(113,113,122,0.45), rgba(99,102,241,0.2))',
+    light: [
+      glow('50%', '-180px', 'rgba(99,102,241,0.06)'),
+      {
+        backgroundImage:
+          'linear-gradient(45deg, rgba(24,24,27,0.03) 25%, transparent 25%, transparent 75%, rgba(24,24,27,0.03) 75%), linear-gradient(45deg, rgba(24,24,27,0.03) 25%, transparent 25%, transparent 75%, rgba(24,24,27,0.03) 75%)',
+        backgroundSize: '48px 48px, 48px 48px',
+        backgroundPosition: '0 0, 24px 24px',
+        maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 75%)',
+      },
+    ],
+    dark: [
+      glow('50%', '-180px', 'rgba(99,102,241,0.08)'),
+      {
+        backgroundImage:
+          'linear-gradient(45deg, rgba(255,255,255,0.028) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.028) 75%), linear-gradient(45deg, rgba(255,255,255,0.028) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.028) 75%)',
+        backgroundSize: '48px 48px, 48px 48px',
+        backgroundPosition: '0 0, 24px 24px',
+        maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 75%)',
+      },
+    ],
+  },
+  {
+    id: 'circuit',
+    name: 'Circuit',
+    description: 'Grille et nœuds, esprit technique',
+    swatch: 'linear-gradient(160deg, rgba(16,185,129,0.5), rgba(113,113,122,0.2))',
+    light: [
+      glow('20%', '-140px', 'rgba(16,185,129,0.07)', 900, 460),
+      GRID_LIGHT,
+      {
+        backgroundImage: 'radial-gradient(rgba(16,185,129,0.10) 1.5px, transparent 1.5px)',
+        backgroundSize: '64px 64px',
+        animation: 'bg-pan 160s linear infinite',
+        maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 70%)',
+      },
+    ],
+    dark: [
+      glow('20%', '-140px', 'rgba(16,185,129,0.09)', 900, 460),
+      GRID_DARK,
+      {
+        backgroundImage: 'radial-gradient(rgba(52,211,153,0.12) 1.5px, transparent 1.5px)',
+        backgroundSize: '64px 64px',
+        animation: 'bg-pan 160s linear infinite',
+        maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 70%)',
+      },
+    ],
+  },
+  {
+    id: 'pluie',
+    name: 'Pluie',
+    description: 'Fines lignes qui glissent doucement',
+    swatch: 'linear-gradient(180deg, rgba(59,130,246,0.5), rgba(30,64,175,0.2))',
+    light: [
+      glow('70%', '-140px', 'rgba(59,130,246,0.08)', 900, 460),
+      {
+        backgroundImage:
+          'linear-gradient(180deg, rgba(24,24,27,0.05) 0%, rgba(24,24,27,0.05) 35%, transparent 35%)',
+        backgroundSize: '3px 56px',
+        animation: 'bg-pan-y 14s linear infinite',
+        maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.12) 80%)',
+        opacity: 0.7,
+      },
+    ],
+    dark: [
+      glow('70%', '-140px', 'rgba(59,130,246,0.10)', 900, 460),
+      {
+        backgroundImage:
+          'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.05) 35%, transparent 35%)',
+        backgroundSize: '3px 56px',
+        animation: 'bg-pan-y 14s linear infinite',
+        maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.12) 80%)',
+        opacity: 0.7,
+      },
+    ],
   },
 ]
 

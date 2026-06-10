@@ -424,6 +424,16 @@ html.preprod body {
   75% { transform: translate(-30px, -10px) scale(1.04); opacity: 0.85; }
 }
 
+@keyframes bg-pan {
+  from { background-position: 0 0; }
+  to { background-position: 240px 240px; }
+}
+
+@keyframes bg-pan-y {
+  from { background-position: 0 0; }
+  to { background-position: 0 240px; }
+}
+
 * {
   border-color: var(--border);
 }
