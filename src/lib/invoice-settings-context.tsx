@@ -61,6 +61,7 @@ interface InvoiceSettingsContextType {
   saveError: string | null
   hasChanges: boolean
   updateSettings: (partial: Partial<InvoiceSettings>) => void
+  updateAndSave: (partial: Partial<InvoiceSettings>) => Promise<void>
   save: () => Promise<void>
   resetChanges: () => void
   uploadLogo: (file: File) => Promise<void>
@@ -120,6 +121,7 @@ const InvoiceSettingsContext = createContext<InvoiceSettingsContextType>({
   saveError: null,
   hasChanges: false,
   updateSettings: () => {},
+  updateAndSave: async () => {},
   save: async () => {},
   resetChanges: () => {},
   uploadLogo: async () => {},
@@ -185,6 +187,20 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
     setSettings((prev) => ({ ...prev, ...partial }))
   }, [])
 
+  const updateAndSave = useCallback(async (partial: Partial<InvoiceSettings>) => {
+    setSaveError(null)
+    const next = { ...settingsRef.current, ...partial }
+    setSettings(next)
+    setSaving(true)
+    const { error } = await api.put('/settings/invoices', next)
+    setSaving(false)
+    if (error) {
+      setSaveError(error)
+    } else {
+      setSavedSettings(next)
+    }
+  }, [])
+
   const uploadLogo = useCallback(async (file: File) => {
     const formData = new FormData()
     formData.append('logo', file)
@@ -213,6 +229,7 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
         saveError,
         hasChanges,
         updateSettings,
+        updateAndSave,
         save,
         resetChanges,
         uploadLogo,

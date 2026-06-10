@@ -54,7 +54,7 @@ const accentColors = [
 
 export default function InvoiceAppearancePage() {
   const { toast } = useToast()
-  const { settings, companyLogoUrl, loading, updateSettings, uploadLogo, refreshCompanyLogo } = useInvoiceSettings()
+  const { settings, companyLogoUrl, loading, updateSettings, updateAndSave, uploadLogo, refreshCompanyLogo } = useInvoiceSettings()
   const { user } = useAuth()
   const locked = !(user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team')
   const [uploading, setUploading] = useState(false)
@@ -449,7 +449,7 @@ export default function InvoiceAppearancePage() {
         onClose={() => setTemplateModalOpen(false)}
         accentColor={settings.accentColor}
         currentTemplate={settings.template}
-        onSelect={(id) => updateSettings({ template: id })}
+        onSelect={(id) => updateAndSave({ template: id })}
       />
     </motion.div>
   )
