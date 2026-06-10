@@ -187,10 +187,12 @@ export function useCollaboration({
       })
     })
 
-    socket.on('cursor-moved', (data: CursorPosition) => {
+    socket.on('cursor-moved', (data: CursorPosition & { fieldId?: string }) => {
+      const anchor =
+        typeof data.anchor === 'string' ? data.anchor : typeof data.fieldId === 'string' ? data.fieldId : ''
       setCursors((prev) => {
         const next = new Map(prev)
-        next.set(data.userId, { ...data, _ts: Date.now() } as any)
+        next.set(data.userId, { userId: data.userId, anchor, x: data.x, y: data.y, _ts: Date.now() } as any)
         return next
       })
     })
@@ -334,7 +336,7 @@ export function useCollaboration({
     const now = Date.now()
     if (!isHideSignal && now - lastCursorSend.current < 33) return
     lastCursorSend.current = now
-    socketRef.current?.emit('cursor-move', { anchor, x, y })
+    socketRef.current?.emit('cursor-move', { anchor, x, y, fieldId: anchor || undefined })
   }, [])
 
   const sendDocumentChange = useCallback((path: string, value: any) => {
