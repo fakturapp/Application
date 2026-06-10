@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/lib/auth'
 import { Sidebar } from '@/components/layout/sidebar'
 import { ThemedBackground } from '@/components/layout/themed-background'
+import { UiThemeSync } from '@/components/layout/ui-theme-sync'
 import { SiteHeader } from '@/components/layout/site-header'
 import { RouteProgressBar } from '@/components/layout/route-progress'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -361,6 +362,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <TutorialProvider>
     <div className="relative h-screen overflow-hidden bg-background">
       <ThemedBackground />
+      <UiThemeSync />
 
       <Sidebar
         teams={teams}
