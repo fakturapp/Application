@@ -127,6 +127,7 @@ export function FieldHighlights({
             height: box.height + 4,
             borderRadius: 6,
             boxShadow: `0 0 0 2px ${box.color}, 0 0 12px 0 ${box.color}33`,
+            backgroundColor: box.selection ? `${box.color}2b` : undefined,
           }}
         >
           <span
