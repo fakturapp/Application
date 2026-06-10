@@ -238,15 +238,20 @@ export default function TeamPage() {
     e.preventDefault()
     setInviting(true)
     const { data, error } = await api.post<{
-      invitation: { inviteUrl: string; token: string }
-    }>('/team/invite', { email: inviteEmail, role: inviteRole })
+      invitation: { inviteUrl: string; token: string; email: string }
+    }>(
+      '/team/invite',
+      selectedUser
+        ? { userId: selectedUser.id, role: inviteRole }
+        : { email: inviteEmail, role: inviteRole }
+    )
     setInviting(false)
 
     if (error) return toast(error, 'error')
     if (data?.invitation) {
       setInviteResult({ url: data.invitation.inviteUrl, token: data.invitation.token })
       t.success('Invitation envoyée', {
-        description: `${inviteEmail} a reçu un lien pour rejoindre l'équipe.`,
+        description: `${selectedUser?.fullName ?? data.invitation.email ?? inviteEmail} a reçu un lien pour rejoindre l'équipe.`,
         actionProps: {
           children: 'Copier le lien',
           variant: 'outline',
@@ -1039,7 +1044,7 @@ export default function TeamPage() {
                           onMouseDown={(e) => {
                             e.preventDefault()
                             setSelectedUser(u)
-                            setInviteEmail(u.emailHint.replace(/\*+/, ''))
+                            setInviteEmail('')
                             setShowSuggestions(false)
                             setSearchResults([])
                           }}
@@ -1081,7 +1086,7 @@ export default function TeamPage() {
                 <Button variant="outline" type="button" onClick={resetInviteDialog}>
                   Annuler
                 </Button>
-                <Button type="submit" disabled={inviting || !inviteEmail}>
+                <Button type="submit" disabled={inviting || (!inviteEmail && !selectedUser)}>
                   {inviting ? (
                     <><Spinner /> Envoi...</>
                   ) : (
