@@ -50,6 +50,7 @@ function EditCreditNoteContent() {
   const [mode, setMode] = useState<'edit' | 'preview'>('edit')
   const editorAreaRef = useRef<HTMLDivElement>(null)
   const a4SheetRef = useRef<HTMLDivElement>(null)
+  const optionsPanelRef = useRef<HTMLDivElement>(null)
   const [creditNoteNumber, setCreditNoteNumber] = useState('')
   const [company, setCompany] = useState<CompanyInfo | null>(null)
   const [selectedClient, setSelectedClient] = useState<ClientInfo | null>(null)
@@ -467,6 +468,13 @@ function EditCreditNoteContent() {
         toast('Votre accès à ce document a été révoqué', 'error')
         router.push('/dashboard')
       }}
+      onKicked={(banned) => {
+        toast(
+          banned ? 'Vous avez été banni de ce document' : 'Vous avez été expulsé du document',
+          'error'
+        )
+        router.push('/dashboard')
+      }}
     >
     <motion.div initial="hidden" animate="visible" className="space-y-5 px-4 lg:px-6 py-4 md:py-5">
       {collabEnabled && <CollaborationReadOnlyBanner />}
@@ -529,7 +537,7 @@ function EditCreditNoteContent() {
       {/* Main content */}
       <div className="flex flex-col xl:flex-row gap-5">
         <motion.div variants={fadeUp} custom={1} className="flex-1 min-w-0 order-1">
-          <CollaborationEditor editorRef={editorAreaRef} sheetRef={a4SheetRef}>
+          <CollaborationEditor editorRef={editorAreaRef} panelRef={optionsPanelRef}>
           <div ref={a4SheetRef} className="rounded-xl relative">
             <button onClick={() => setShowOptions(!showOptions)} className="absolute top-3 right-3 z-10 p-1.5 rounded-lg border border-border bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground transition-colors" title={showOptions ? 'Masquer les options' : 'Afficher les options'}>
               <SlidersHorizontal className="h-4 w-4" />
@@ -608,7 +616,7 @@ function EditCreditNoteContent() {
         <AnimatePresence>
           {showOptions && (
             <motion.div initial={{ opacity: 0, x: 20, width: 0 }} animate={{ opacity: 1, x: 0, width: 300 }} exit={{ opacity: 0, x: 20, width: 0 }} transition={{ duration: 0.25, ease: 'easeInOut' }} className="xl:shrink-0 order-2 overflow-hidden">
-              <div className="xl:sticky xl:top-4 w-[300px]">
+              <div className="xl:sticky xl:top-4 w-[300px]" ref={optionsPanelRef}>
                 <DocumentOptionsPanel
                   options={options}
                   onChange={handleOptionsChange}
