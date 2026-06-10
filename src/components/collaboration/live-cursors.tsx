@@ -80,21 +80,14 @@ export function LiveCursors({ cursors, collaborators, editorRef, panelRef }: Liv
 
         anyVisible = true
 
-        const isFreeAnchor = target.anchor === 'ed:'
-        const ax = isFreeAnchor ? target.x : clamp01(target.x)
-        const ay = isFreeAnchor ? target.y : clamp01(target.y)
-        let tx = rect.left + ax * rect.width
-        let ty = rect.top + ay * rect.height
+        const tx = rect.left + clamp01(target.x) * rect.width
+        const ty = rect.top + clamp01(target.y) * rect.height
+        const offscreen = tx < -20 || ty < -20 || tx > window.innerWidth + 20 || ty > window.innerHeight + 20
 
-        const minX = 8
-        const minY = 8
-        const maxX = window.innerWidth - 30
-        const maxY = window.innerHeight - 30
-        const cx = Math.min(Math.max(tx, minX), maxX)
-        const cy = Math.min(Math.max(ty, minY), maxY)
-        const offscreen = cx !== tx || cy !== ty
-        tx = cx
-        ty = cy
+        if (offscreen) {
+          el.style.opacity = '0'
+          continue
+        }
 
         let spring = springsRef.current.get(userId)
         if (!spring || !spring.initialized) {
@@ -121,7 +114,7 @@ export function LiveCursors({ cursors, collaborators, editorRef, panelRef }: Liv
         }
 
         el.style.transform = `translate3d(${spring.x}px, ${spring.y}px, 0)`
-        el.style.opacity = offscreen ? '0.55' : '1'
+        el.style.opacity = '1'
       }
 
       if (anyVisible) {

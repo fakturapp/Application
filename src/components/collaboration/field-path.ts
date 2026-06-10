@@ -206,16 +206,5 @@ export function getCursorAnchor(roots: CollabRoots, x: number, y: number): Curso
     }
   }
 
-  if (roots.editor) {
-    const rect = roots.editor.getBoundingClientRect()
-    if (rect.width > 0 && rect.height > 0) {
-      const ox = (x - rect.left) / rect.width
-      const oy = (y - rect.top) / rect.height
-      if (ox >= -1 && ox <= 2 && oy >= -1 && oy <= 2) {
-        return { anchor: 'ed:', x: ox, y: oy }
-      }
-    }
-  }
-
   return null
 }
