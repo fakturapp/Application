@@ -1197,7 +1197,7 @@ export function A4Sheet({
 
               {T.layout !== 'banner' && (
                 <div className="flex justify-between items-start mb-5">
-                  <div className="max-w-[55%]">
+                  <div className="max-w-[55%]" data-collab-id="company">
                     {ed ? (
                       <LogoEditor logoUrl={logoUrl} logoBorderRadius={logoBorderRadius} accentColor={accentColor}
                         companyLogoUrl={companyLogoUrl} onLogoChange={onLogoChange} onLogoBorderRadiusChange={onLogoBorderRadiusChange}
@@ -1225,7 +1225,7 @@ export function A4Sheet({
                     )}
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-right" data-collab-id="docinfo">
                     {isClassique ? (
                       <>
                         <div className="text-[14px] font-semibold mb-1" style={{ color: T.text }}>
@@ -1265,7 +1265,7 @@ export function A4Sheet({
 
               {T.layout === 'banner' && company && (
                 <div className="flex justify-between items-start mb-5">
-                  <div className="text-[12px] leading-[1.6]" style={{ color: T.text }}>
+                  <div className="text-[12px] leading-[1.6]" style={{ color: T.text }} data-collab-id="company">
                     <div>{ie(company.legalName, (v) => onCompanyFieldChange('legalName', v), `font-semibold text-[13px]`, t.society)}</div>
                     <div>{ie(company.addressLine1 || '', (v) => onCompanyFieldChange('addressLine1', v), 'text-[12px]', t.address)}</div>
                     <div>
@@ -1275,7 +1275,7 @@ export function A4Sheet({
                     <div>{ie(company.phone || '', (v) => onCompanyFieldChange('phone', v), 'text-[12px]', t.phone)}</div>
                     <div>{ie(company.email || '', (v) => onCompanyFieldChange('email', v), 'text-[12px]', t.email)}</div>
                   </div>
-                  <div className="text-[12px] text-right leading-[1.8]" style={{ color: T.text }}>
+                  <div className="text-[12px] text-right leading-[1.8]" style={{ color: T.text }} data-collab-id="docinfo">
                     <div>
                       {t.quoteNumber} {ie(quoteNumber, onQuoteNumberChange, `font-semibold`, 'D-0001')}
                     </div>
@@ -1313,7 +1313,7 @@ export function A4Sheet({
               )}
 
               <div className="flex justify-end mb-5">
-                <div className="relative w-full max-w-[50%] group">
+                <div className="relative w-full max-w-[50%] group" data-collab-id="client" data-collab-target>
                   <div className="text-[12px] leading-[1.5] space-y-[3px]">
                     {ed ? (
                       <div
@@ -1971,10 +1971,14 @@ export function A4Sheet({
 
   const renderSheetFrame = (children: ReactNode) => (
     <div
+      data-collab-page="0"
       className={cn('w-full max-w-[960px] rounded-xl relative overflow-hidden', overflowRing)}
       style={{ aspectRatio: '210 / 297', ...sheetSurface }}
     >
-      <div className={cn('absolute inset-0', isPreview ? 'overflow-hidden' : 'overflow-y-auto')}>
+      <div
+        data-collab-root
+        className={cn('absolute inset-0', isPreview ? 'overflow-hidden' : 'overflow-y-auto')}
+      >
         {children}
       </div>
     </div>
@@ -2054,10 +2058,12 @@ export function A4Sheet({
                 }}
               >
                 <div
+                  data-collab-page="0"
                   className={cn('absolute left-0 rounded-xl', overflowRing)}
                   style={{ top: 0, width: A4_SHEET_W, height: A4_SHEET_H, ...sheetSurface }}
                 />
                 <div
+                  data-collab-page="1"
                   className={cn('absolute left-0 rounded-xl', overflowRing)}
                   style={{
                     top: A4_SHEET_H + SPLIT_GAP,
@@ -2067,6 +2073,7 @@ export function A4Sheet({
                   }}
                 />
                 <div
+                  data-collab-root
                   className="absolute overflow-hidden"
                   style={{
                     top: PAGE_PAD_Y,
@@ -2103,15 +2110,18 @@ export function A4Sheet({
               >
                 <div className="absolute inset-0 flex" style={{ gap: SPLIT_GAP }}>
                   <div
+                    data-collab-page="0"
                     className={cn('h-full rounded-xl', overflowRing)}
                     style={{ width: A4_SHEET_W, ...sheetSurface }}
                   />
                   <div
+                    data-collab-page="1"
                     className={cn('h-full rounded-xl', overflowRing)}
                     style={{ width: A4_SHEET_W, ...sheetSurface }}
                   />
                 </div>
                 <div
+                  data-collab-root
                   className="absolute inset-0 overflow-hidden"
                   style={{
                     columnCount: 2,
