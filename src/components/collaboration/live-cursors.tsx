@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { CollaboratorInfo, CursorPosition } from '@/hooks/use-collaboration'
+import { getCollabRoots, resolveFieldPath } from '@/components/collaboration/field-path'
 
 const STIFFNESS = 380
 const DAMPING = 36
 const EPSILON = 0.05
-const HIDE_SENTINEL = -5
 
 interface SpringState {
   x: number
@@ -19,8 +20,8 @@ interface SpringState {
 interface LiveCursorsProps {
   cursors: Map<string, CursorPosition>
   collaborators: CollaboratorInfo[]
-  containerRef: React.RefObject<HTMLElement | null>
-  sheetRef: React.RefObject<HTMLElement | null>
+  editorRef: React.RefObject<HTMLElement | null>
+  panelRef?: React.RefObject<HTMLElement | null>
 }
 
 function getDisplayName(collab: CollaboratorInfo): string {
@@ -28,22 +29,21 @@ function getDisplayName(collab: CollaboratorInfo): string {
   return collab.email.split('@')[0]
 }
 
-function isVisiblePosition(pos: CursorPosition): boolean {
-  return pos.x > HIDE_SENTINEL && pos.y > HIDE_SENTINEL
-}
-
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
 }
 
-export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: LiveCursorsProps) {
+export function LiveCursors({ cursors, collaborators, editorRef, panelRef }: LiveCursorsProps) {
   const collabMap = new Map(collaborators.map((c) => [c.userId, c]))
-  const targetsRef = useRef(new Map<string, { x: number; y: number; visible: boolean }>())
+  const targetsRef = useRef(new Map<string, { anchor: string; x: number; y: number }>())
   const springsRef = useRef(new Map<string, SpringState>())
   const elementsRef = useRef(new Map<string, HTMLDivElement>())
   const rafRef = useRef<number | null>(null)
   const lastTimeRef = useRef(0)
   const windowFocusedRef = useRef(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
 
   const stopLoop = useCallback(() => {
     if (rafRef.current !== null) {
@@ -55,13 +55,7 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
   const tick = useCallback(
     (currentTime: number) => {
       rafRef.current = null
-      const container = containerRef.current
-      const sheet = sheetRef.current
-      if (!container || !sheet) return
-
-      const containerRect = container.getBoundingClientRect()
-      const sheetRect = sheet.getBoundingClientRect()
-      if (sheetRect.width === 0 || sheetRect.height === 0) return
+      const roots = getCollabRoots(editorRef.current, panelRef?.current ?? null)
 
       const dt = Math.min((currentTime - lastTimeRef.current) / 1000, 0.05)
       lastTimeRef.current = currentTime
@@ -72,19 +66,22 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
         const el = elementsRef.current.get(userId)
         if (!el) continue
 
-        if (!target.visible || !windowFocusedRef.current) {
+        const anchorEl = target.anchor ? resolveFieldPath(target.anchor, roots) : null
+        if (!anchorEl || !windowFocusedRef.current) {
+          el.style.opacity = '0'
+          continue
+        }
+
+        const rect = anchorEl.getBoundingClientRect()
+        if (rect.width === 0 || rect.height === 0) {
           el.style.opacity = '0'
           continue
         }
 
         anyVisible = true
 
-        const offSheet = target.x < 0 || target.x > 1 || target.y < 0 || target.y > 1
-        const cx = clamp01(target.x)
-        const cy = clamp01(target.y)
-
-        const tx = sheetRect.left - containerRect.left + cx * sheetRect.width
-        const ty = sheetRect.top - containerRect.top + cy * sheetRect.height
+        const tx = rect.left + clamp01(target.x) * rect.width
+        const ty = rect.top + clamp01(target.y) * rect.height
 
         let spring = springsRef.current.get(userId)
         if (!spring || !spring.initialized) {
@@ -111,14 +108,14 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
         }
 
         el.style.transform = `translate3d(${spring.x}px, ${spring.y}px, 0)`
-        el.style.opacity = offSheet ? '0.5' : '1'
+        el.style.opacity = '1'
       }
 
       if (anyVisible) {
         rafRef.current = requestAnimationFrame(tick)
       }
     },
-    [containerRef, sheetRef]
+    [editorRef, panelRef]
   )
 
   const ensureLoop = useCallback(() => {
@@ -130,11 +127,7 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
 
   useEffect(() => {
     for (const [userId, pos] of cursors) {
-      targetsRef.current.set(userId, {
-        x: pos.x,
-        y: pos.y,
-        visible: isVisiblePosition(pos),
-      })
+      targetsRef.current.set(userId, { anchor: pos.anchor ?? '', x: pos.x, y: pos.y })
     }
     for (const userId of targetsRef.current.keys()) {
       if (!cursors.has(userId)) {
@@ -163,20 +156,14 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
     window.addEventListener('blur', handleBlur)
     window.addEventListener('focus', handleFocus)
     window.addEventListener('resize', handleResize)
+    window.addEventListener('scroll', handleResize, true)
     return () => {
       window.removeEventListener('blur', handleBlur)
       window.removeEventListener('focus', handleFocus)
       window.removeEventListener('resize', handleResize)
+      window.removeEventListener('scroll', handleResize, true)
     }
   }, [ensureLoop])
-
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-    const ro = new ResizeObserver(() => ensureLoop())
-    ro.observe(container)
-    return () => ro.disconnect()
-  }, [containerRef, ensureLoop])
 
   useEffect(() => stopLoop, [stopLoop])
 
@@ -188,8 +175,10 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
     }
   }, [])
 
-  return (
-    <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden">
+  if (!mounted) return null
+
+  return createPortal(
+    <div className="pointer-events-none fixed inset-0 z-[70] overflow-hidden">
       {Array.from(cursors.keys()).map((userId) => {
         const collab = collabMap.get(userId)
         if (!collab) return null
@@ -229,6 +218,7 @@ export function LiveCursors({ cursors, collaborators, containerRef, sheetRef }: 
           </div>
         )
       })}
-    </div>
+    </div>,
+    document.body
   )
 }
