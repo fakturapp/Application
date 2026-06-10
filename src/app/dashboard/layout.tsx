@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/lib/auth'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ThemedBackground } from '@/components/layout/themed-background'
 import { SiteHeader } from '@/components/layout/site-header'
 import { RouteProgressBar } from '@/components/layout/route-progress'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -359,38 +360,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <EmailProvider>
     <TutorialProvider>
     <div className="relative h-screen overflow-hidden bg-background">
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-        <div
-          className="absolute inset-0 dark:hidden"
-          style={{
-            background:
-              'radial-gradient(1100px 480px at 50% -160px, rgba(99,102,241,0.09), transparent 70%)',
-          }}
-        />
-        <div
-          className="absolute inset-0 dark:hidden"
-          style={{
-            backgroundImage: 'radial-gradient(rgba(24,24,27,0.05) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-            maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.35) 60%, rgba(0,0,0,0.15))',
-          }}
-        />
-        <div
-          className="absolute inset-0 hidden dark:block"
-          style={{
-            background:
-              'radial-gradient(1100px 480px at 50% -160px, rgba(99,102,241,0.12), transparent 70%)',
-          }}
-        />
-        <div
-          className="absolute inset-0 hidden dark:block"
-          style={{
-            backgroundImage: 'radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-            maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.35) 60%, rgba(0,0,0,0.15))',
-          }}
-        />
-      </div>
+      <ThemedBackground />
 
       <Sidebar
         teams={teams}
