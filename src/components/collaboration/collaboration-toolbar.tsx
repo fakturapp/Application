@@ -1,12 +1,17 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ShareModal } from '@/components/collaboration/share-modal'
 import { PresenceBar } from '@/components/collaboration/presence-bar'
 import { LiveCursors } from '@/components/collaboration/live-cursors'
 import { FieldHighlights } from '@/components/collaboration/field-highlights'
-import { getFieldPath, isEditableElement } from '@/components/collaboration/field-path'
+import {
+  getCollabRoots,
+  getCursorAnchor,
+  getFieldPath,
+  isEditableElement,
+} from '@/components/collaboration/field-path'
 import { ReadOnlyBanner } from '@/components/collaboration/read-only-banner'
 import { useCollaborationContext } from '@/components/collaboration/collaboration-provider'
 import { Share2, Wifi, WifiOff, FlaskConical } from '@/components/ui/icons'
@@ -32,6 +37,7 @@ export function CollaborationToolbar({
 
   const collaborators = collab?.collaborators ?? []
   const isConnected = collab?.isConnected ?? false
+  const canModerate = collab?.myRole === 'owner' || collab?.myRole === 'admin'
 
   return (
     <>
@@ -61,9 +67,11 @@ export function CollaborationToolbar({
           collaborators={collaborators}
           latencies={collab?.latencies}
           myUserId={collab?.myUserId}
-          canModerate={collab?.isOwner ?? false}
+          myRole={collab?.myRole ?? null}
+          canModerate={canModerate}
           onKick={(id) => collab?.kickUser(id)}
           onBan={(id) => collab?.banUser(id)}
+          onChangePermission={(id, permission) => collab?.changePermission(id, permission)}
         />
 
         {}
@@ -107,16 +115,17 @@ export function CollaborationReadOnlyBanner() {
 
 interface CollaborationEditorProps {
   editorRef: React.RefObject<HTMLDivElement | null>
-  sheetRef: React.RefObject<HTMLElement | null>
+  panelRef?: React.RefObject<HTMLElement | null>
   children: React.ReactNode
 }
 
-const CLICKABLE_SELECTOR = 'button, a, [role="button"], [data-collab-target], .cursor-pointer'
+const CLICKABLE_SELECTOR = 'button, a, [role="button"], .cursor-pointer'
 const CLICK_HIGHLIGHT_MS = 2500
+const CURSOR_THROTTLE_MS = 33
 
 export function CollaborationEditor({
   editorRef,
-  sheetRef,
+  panelRef,
   children,
 }: CollaborationEditorProps) {
   const collab = useCollaborationContext()
@@ -132,31 +141,50 @@ export function CollaborationEditor({
   const sendFieldBlur = collab?.sendFieldBlur
   const sendFieldSelection = collab?.sendFieldSelection
 
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (!sheetRef.current || !isConnected || !sendCursorMove) return
-      const rect = sheetRef.current.getBoundingClientRect()
-      if (rect.width === 0 || rect.height === 0) return
-      const xPct = (e.clientX - rect.left) / rect.width
-      const yPct = (e.clientY - rect.top) / rect.height
-      sendCursorMove(xPct, yPct)
-    },
-    [sheetRef, isConnected, sendCursorMove]
-  )
-
-  const handlePointerLeave = useCallback(() => {
-    sendCursorMove?.(-10, -10)
-  }, [sendCursorMove])
+  const cursorVisibleRef = useRef(false)
+  const lastCursorComputeRef = useRef(0)
 
   useEffect(() => {
-    const container = editorRef.current
-    if (!container || !isConnected || !sendFieldFocus || !sendFieldBlur) return
+    if (!isConnected || !sendCursorMove) return
+
+    const hideCursor = () => {
+      if (!cursorVisibleRef.current) return
+      cursorVisibleRef.current = false
+      sendCursorMove('', -1, -1)
+    }
+
+    const handlePointerMove = (e: PointerEvent) => {
+      const now = Date.now()
+      if (now - lastCursorComputeRef.current < CURSOR_THROTTLE_MS) return
+      lastCursorComputeRef.current = now
+
+      const roots = getCollabRoots(editorRef.current, panelRef?.current ?? null)
+      const anchor = getCursorAnchor(roots, e.clientX, e.clientY)
+      if (anchor) {
+        cursorVisibleRef.current = true
+        sendCursorMove(anchor.anchor, anchor.x, anchor.y)
+      } else {
+        hideCursor()
+      }
+    }
+
+    document.addEventListener('pointermove', handlePointerMove)
+    document.addEventListener('mouseleave', hideCursor)
+    window.addEventListener('blur', hideCursor)
+    return () => {
+      document.removeEventListener('pointermove', handlePointerMove)
+      document.removeEventListener('mouseleave', hideCursor)
+      window.removeEventListener('blur', hideCursor)
+    }
+  }, [editorRef, panelRef, isConnected, sendCursorMove])
+
+  useEffect(() => {
+    if (!isConnected || !sendFieldFocus || !sendFieldBlur) return
 
     const pathFor = (target: EventTarget | null): string | null => {
-      const sheet = sheetRef.current
-      if (!sheet || !isEditableElement(target)) return null
-      if (!sheet.contains(target)) return null
-      return getFieldPath(target, sheet)
+      if (!isEditableElement(target)) return null
+      const roots = getCollabRoots(editorRef.current, panelRef?.current ?? null)
+      return getFieldPath(target, roots)
     }
 
     const handleFocusIn = (e: FocusEvent) => {
@@ -168,13 +196,13 @@ export function CollaborationEditor({
       if (path) sendFieldBlur(path)
     }
 
-    container.addEventListener('focusin', handleFocusIn)
-    container.addEventListener('focusout', handleFocusOut)
+    document.addEventListener('focusin', handleFocusIn)
+    document.addEventListener('focusout', handleFocusOut)
     return () => {
-      container.removeEventListener('focusin', handleFocusIn)
-      container.removeEventListener('focusout', handleFocusOut)
+      document.removeEventListener('focusin', handleFocusIn)
+      document.removeEventListener('focusout', handleFocusOut)
     }
-  }, [editorRef, sheetRef, isConnected, sendFieldFocus, sendFieldBlur])
+  }, [editorRef, panelRef, isConnected, sendFieldFocus, sendFieldBlur])
 
   const selectedFieldRef = useRef<string | null>(null)
   const lastSelectionKeyRef = useRef('')
@@ -186,22 +214,17 @@ export function CollaborationEditor({
     const broadcastSelection = () => {
       cancelAnimationFrame(raf)
       raf = requestAnimationFrame(() => {
-        const sheet = sheetRef.current
-        if (!sheet) return
+        const roots = getCollabRoots(editorRef.current, panelRef?.current ?? null)
 
         const el = document.activeElement
         let fieldId: string | null = null
         let text = ''
 
-        if (
-          el &&
-          (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) &&
-          sheet.contains(el)
-        ) {
+        if (el && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) {
           const start = el.selectionStart ?? 0
           const end = el.selectionEnd ?? 0
           if (end > start) {
-            fieldId = getFieldPath(el, sheet)
+            fieldId = getFieldPath(el, roots)
             text = el.value.slice(start, end).slice(0, 120)
           }
         }
@@ -225,24 +248,27 @@ export function CollaborationEditor({
       document.removeEventListener('selectionchange', broadcastSelection)
       cancelAnimationFrame(raf)
     }
-  }, [isConnected, sendFieldSelection, sheetRef])
+  }, [editorRef, panelRef, isConnected, sendFieldSelection])
 
   const clickedPathRef = useRef<string | null>(null)
   const clickBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const container = editorRef.current
-    if (!container || !isConnected || !sendFieldFocus || !sendFieldBlur) return
+    if (!isConnected || !sendFieldFocus || !sendFieldBlur) return
 
     const handlePointerDown = (e: PointerEvent) => {
-      const sheet = sheetRef.current
-      if (!sheet) return
       const origin = e.target instanceof Element ? e.target : null
-      const target = origin?.closest(CLICKABLE_SELECTOR)
-      if (!(target instanceof HTMLElement) || !sheet.contains(target)) return
+      if (!origin) return
+      const roots = getCollabRoots(editorRef.current, panelRef?.current ?? null)
+      const inScope = (el: Element) =>
+        (roots.content?.contains(el) ?? false) || (roots.panel?.contains(el) ?? false)
+
+      const target =
+        origin.closest('[data-collab-target]') ?? origin.closest(CLICKABLE_SELECTOR)
+      if (!(target instanceof HTMLElement) || !inScope(target)) return
       if (isEditableElement(target)) return
 
-      const path = getFieldPath(target, sheet)
+      const path = getFieldPath(target, roots)
       if (!path) return
 
       if (clickBlurTimerRef.current) clearTimeout(clickBlurTimerRef.current)
@@ -258,36 +284,31 @@ export function CollaborationEditor({
       }, CLICK_HIGHLIGHT_MS)
     }
 
-    container.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('pointerdown', handlePointerDown)
     return () => {
-      container.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('pointerdown', handlePointerDown)
       if (clickBlurTimerRef.current) clearTimeout(clickBlurTimerRef.current)
     }
-  }, [editorRef, sheetRef, isConnected, sendFieldFocus, sendFieldBlur])
+  }, [editorRef, panelRef, isConnected, sendFieldFocus, sendFieldBlur])
 
   const isReadOnly = myPermission === 'viewer'
 
   return (
-    <div
-      className="relative"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      ref={editorRef as React.RefObject<HTMLDivElement>}
-    >
+    <div className="relative" ref={editorRef as React.RefObject<HTMLDivElement>}>
       {isConnected && (
         <>
           <LiveCursors
             cursors={cursors}
             collaborators={collaborators}
-            containerRef={editorRef}
-            sheetRef={sheetRef}
+            editorRef={editorRef}
+            panelRef={panelRef}
           />
           <FieldHighlights
             focusedFields={focusedFields}
             selections={selections}
             collaborators={collaborators}
-            containerRef={editorRef}
-            sheetRef={sheetRef}
+            editorRef={editorRef}
+            panelRef={panelRef}
           />
         </>
       )}
