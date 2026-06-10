@@ -73,6 +73,9 @@ function EditQuoteContent() {
   const [sidebarTab, setSidebarTab] = useState<'options' | 'chat'>('options')
   const [aiProcessing, setAiProcessing] = useState(false)
   const editorAreaRef = useRef<HTMLDivElement>(null)
+  const optionsPanelRef = useRef<HTMLDivElement>(null)
+  const [sharedAccess, setSharedAccess] = useState<{ permission: 'viewer' | 'editor' } | null>(null)
+  const collabActive = collabEnabled || !!sharedAccess
 
   const [lines, setLines] = useState<DocumentLine[]>([])
 
@@ -110,7 +113,7 @@ function EditQuoteContent() {
   const [notes, setNotes] = useState('')
   const [isDirty, setIsDirty] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  const { showModal, confirmNavigation, cancelNavigation, requestNavigation } = useUnsavedChanges(isDirty)
+  const { showModal, confirmNavigation, cancelNavigation, requestNavigation } = useUnsavedChanges(isDirty && !sharedAccess)
 
   useEffect(() => {
     async function init() {
@@ -122,8 +125,24 @@ function EditQuoteContent() {
 
       if (companyRes.data?.company) setCompany(companyRes.data.company)
 
-      if (quoteRes.data?.quote) {
-        const q = quoteRes.data.quote
+      let loadedQuote = quoteRes.data?.quote ?? null
+      if (!loadedQuote && quoteRes.error) {
+        const sharedRes = await api.get<{
+          document: any
+          shared: { permission: 'viewer' | 'editor' }
+        }>(`/collaboration/documents/quote/${quoteId}`)
+        if (sharedRes.data?.document) {
+          loadedQuote = sharedRes.data.document
+          setSharedAccess(sharedRes.data.shared)
+        } else {
+          toast(sharedRes.error || quoteRes.error || 'Document introuvable', 'error')
+          router.push('/dashboard')
+          return
+        }
+      }
+
+      if (loadedQuote) {
+        const q = loadedQuote
         setQuoteNumber(q.quoteNumber)
         setAccentColor(q.accentColor || '#6366f1')
         setLogoUrl(q.logoUrl)
@@ -555,7 +574,7 @@ function EditQuoteContent() {
     <CollaborationProvider
       documentType="quote"
       documentId={quoteId}
-      enabled={!!quoteId && collabEnabled}
+      enabled={!!quoteId && collabActive}
       onDocumentChange={(change) => {
         setApplyingRemote(true)
         try {
@@ -579,10 +598,17 @@ function EditQuoteContent() {
         toast('Votre accès à ce document a été révoqué', 'error')
         router.push('/dashboard')
       }}
+      onKicked={(banned) => {
+        toast(
+          banned ? 'Vous avez été banni de ce document' : 'Vous avez été expulsé du document',
+          'error'
+        )
+        router.push('/dashboard')
+      }}
     >
     <motion.div initial="hidden" animate="visible" className="space-y-5 px-4 lg:px-6 py-4 md:py-5">
-      {collabEnabled && <CollaborationReadOnlyBanner />}
-      {collabEnabled && <SyncBroadcaster
+      {collabActive && <CollaborationReadOnlyBanner />}
+      {collabActive && <SyncBroadcaster
         notes={notes}
         accentColor={accentColor}
         lines={lines}
@@ -607,17 +633,19 @@ function EditQuoteContent() {
 
         {/* Mode toggle + Download */}
         <div className="flex items-center gap-3">
-          {collabEnabled && <CollaborationToolbar
+          {collabActive && <CollaborationToolbar
             documentType="quote"
             documentId={quoteId}
-
+            canShare={!sharedAccess}
             className="flex items-center gap-2"
           />}
           <DocumentZoom value={docZoom} onChange={setDocZoom} />
-          <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
-            {downloading ? <Spinner className="h-3.5 w-3.5 mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
-            {downloading ? 'Téléchargement...' : 'Télécharger'}
-          </Button>
+          {!sharedAccess && (
+            <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
+              {downloading ? <Spinner className="h-3.5 w-3.5 mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
+              {downloading ? 'Téléchargement...' : 'Télécharger'}
+            </Button>
+          )}
           <div className="flex rounded-lg border border-border overflow-hidden">
             <button
               onClick={() => setMode('edit')}
@@ -664,7 +692,7 @@ function EditQuoteContent() {
               <SlidersHorizontal className="h-4 w-4" />
             </button>
           </div>
-          <CollaborationEditor editorRef={editorAreaRef} sheetRef={a4SheetRef}>
+          <CollaborationEditor editorRef={editorAreaRef} panelRef={optionsPanelRef}>
           <div ref={a4SheetRef} className="relative" style={{ transform: `scale(${docZoom / 100})`, transformOrigin: 'top center', ...zoomSpacing }}>
           <AiSheetOverlay open={aiProcessing} />
           <A4Sheet
@@ -753,7 +781,7 @@ function EditQuoteContent() {
               transition={{ duration: 0.25, ease: 'easeInOut' }}
               className="xl:shrink-0 order-2 overflow-hidden"
             >
-              <div className="xl:sticky xl:top-4 w-[300px]">
+              <div className="xl:sticky xl:top-4 w-[300px]" ref={optionsPanelRef}>
                 {invoiceSettings.aiEnabled && (
                   <Tabs
                     tabs={[
@@ -856,9 +884,19 @@ function EditQuoteContent() {
           <div className="text-sm text-muted-foreground">
             Total : <span className="font-bold text-foreground">{total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
           </div>
-          <Button onClick={handleSave} disabled={saving} size="sm" className="min-w-[140px] rounded-xl">
-            {saving ? (<><Spinner /> Enregistrement...</>) : (<><Save className="h-4 w-4 mr-1.5" /> Sauvegarder</>)}
-          </Button>
+          {sharedAccess ? (
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground" title="Vos modifications sont visibles en direct par le propriétaire, qui peut les enregistrer.">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              Synchronisé en direct
+            </div>
+          ) : (
+            <Button onClick={handleSave} disabled={saving} size="sm" className="min-w-[140px] rounded-xl">
+              {saving ? (<><Spinner /> Enregistrement...</>) : (<><Save className="h-4 w-4 mr-1.5" /> Sauvegarder</>)}
+            </Button>
+          )}
         </motion.div>
       </div>
 
