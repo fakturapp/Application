@@ -41,6 +41,7 @@ interface ShareLinkEntry {
   permission: Permission
   visibility: Visibility
   autoExpire: boolean
+  allowAnonymous?: boolean
   isActive: boolean
   expiresAt: string | null
   createdAt: string
@@ -88,6 +89,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
   const [linkPermission, setLinkPermission] = useState<Permission>('viewer')
   const [linkVisibility, setLinkVisibility] = useState<Visibility>('anyone')
   const [linkAutoExpire, setLinkAutoExpire] = useState(true)
+  const [linkAllowAnonymous, setLinkAllowAnonymous] = useState(false)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
   const [inviting, setInviting] = useState(false)
@@ -121,8 +123,9 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
       documentType,
       documentId,
       permission: linkPermission,
-      visibility: linkVisibility,
+      visibility: linkAllowAnonymous ? 'anyone' : linkVisibility,
       autoExpire: linkAutoExpire,
+      allowAnonymous: linkAllowAnonymous,
     })
     if (error) {
       toast(error, 'error')
@@ -318,6 +321,30 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                   <span className="text-[10px] text-amber-500">Expire quand vous quittez</span>
                 )}
               </div>
+              <CheckboxRoot
+                isSelected={!!activeLink.allowAnonymous}
+                onChange={async (checked: boolean) => {
+                  await api.patch(`/collaboration/share-links/${activeLink.id}`, {
+                    allowAnonymous: checked,
+                    ...(checked ? { visibility: 'anyone' } : {}),
+                  })
+                  setLinks((prev) =>
+                    prev.map((l) =>
+                      l.id === activeLink.id
+                        ? { ...l, allowAnonymous: checked, visibility: checked ? 'anyone' : l.visibility }
+                        : l
+                    )
+                  )
+                }}
+                className="flex items-center gap-2 px-1"
+              >
+                <CheckboxControl>
+                  <CheckboxIndicator />
+                </CheckboxControl>
+                <CheckboxContent className="text-xs text-muted-foreground mt-[1px]">
+                  Accessible sans compte Faktur (lecture seule, affiché comme Invité)
+                </CheckboxContent>
+              </CheckboxRoot>
             </div>
           ) : (
             <div className="space-y-3">
@@ -347,9 +374,9 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                   Générer
                 </Button>
               </div>
-              <CheckboxRoot 
-                isSelected={linkAutoExpire} 
-                onChange={setLinkAutoExpire} 
+              <CheckboxRoot
+                isSelected={linkAutoExpire}
+                onChange={setLinkAutoExpire}
                 className="flex items-center gap-2 px-1"
               >
                 <CheckboxControl>
@@ -357,6 +384,18 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                 </CheckboxControl>
                 <CheckboxContent className="text-xs text-muted-foreground mt-[1px]">
                   Désactiver le lien quand je quitte la page
+                </CheckboxContent>
+              </CheckboxRoot>
+              <CheckboxRoot
+                isSelected={linkAllowAnonymous}
+                onChange={setLinkAllowAnonymous}
+                className="flex items-center gap-2 px-1"
+              >
+                <CheckboxControl>
+                  <CheckboxIndicator />
+                </CheckboxControl>
+                <CheckboxContent className="text-xs text-muted-foreground mt-[1px]">
+                  Accessible sans compte Faktur (lecture seule, affiché comme Invité)
                 </CheckboxContent>
               </CheckboxRoot>
             </div>
