@@ -34,6 +34,7 @@ import { InvoiceDetailOverlay } from '@/components/invoices/invoice-detail-overl
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { AiDocumentModal } from '@/components/ai/ai-document-modal'
 import { useActiveEditors, ActiveEditorsBadge } from '@/components/collaboration/active-editors-badge'
+import { SharedWithMeSection } from '@/components/collaboration/shared-with-me'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -296,6 +297,8 @@ export default function InvoicesPage() {
           ))}
         </div>
       </motion.div>
+
+      <SharedWithMeSection documentType="invoice" />
 
       {/* Invoices list */}
       {loading ? (

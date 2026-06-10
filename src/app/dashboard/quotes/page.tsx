@@ -32,6 +32,7 @@ import { QuoteDetailOverlay } from '@/components/quotes/quote-detail-overlay'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { AiDocumentModal } from '@/components/ai/ai-document-modal'
 import { useActiveEditors, ActiveEditorsBadge } from '@/components/collaboration/active-editors-badge'
+import { SharedWithMeSection } from '@/components/collaboration/shared-with-me'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -282,6 +283,8 @@ export default function QuotesPage() {
           ))}
         </div>
       </motion.div>
+
+      <SharedWithMeSection documentType="quote" />
 
       {/* Quotes list */}
       {loading ? (

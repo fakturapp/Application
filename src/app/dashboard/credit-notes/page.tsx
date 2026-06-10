@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/icons'
 import { CreditNoteDetailOverlay } from '@/components/credit-notes/credit-note-detail-overlay'
 import { useActiveEditors, ActiveEditorsBadge } from '@/components/collaboration/active-editors-badge'
+import { SharedWithMeSection } from '@/components/collaboration/shared-with-me'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -178,6 +179,8 @@ export default function CreditNotesPage() {
           ))}
         </div>
       </motion.div>
+
+      <SharedWithMeSection documentType="credit_note" />
 
       {/* Credit notes list */}
       {loading ? (
