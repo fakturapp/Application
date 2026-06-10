@@ -1,15 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { CollaboratorInfo, FieldSelection } from '@/hooks/use-collaboration'
-import { resolveFieldPath } from '@/components/collaboration/field-path'
+import { getCollabRoots, resolveFieldPath } from '@/components/collaboration/field-path'
 
 interface FieldHighlightsProps {
   focusedFields: Map<string, string>
   selections?: Map<string, FieldSelection>
   collaborators: CollaboratorInfo[]
-  containerRef: React.RefObject<HTMLElement | null>
-  sheetRef: React.RefObject<HTMLElement | null>
+  editorRef: React.RefObject<HTMLElement | null>
+  panelRef?: React.RefObject<HTMLElement | null>
 }
 
 interface HighlightBox {
@@ -54,21 +55,22 @@ export function FieldHighlights({
   focusedFields,
   selections = EMPTY_SELECTIONS,
   collaborators,
-  containerRef,
-  sheetRef,
+  editorRef,
+  panelRef,
 }: FieldHighlightsProps) {
   const [boxes, setBoxes] = useState<HighlightBox[]>([])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
     const compute = () => {
-      const container = containerRef.current
-      const sheet = sheetRef.current
-      if (!container || !sheet || (focusedFields.size === 0 && selections.size === 0)) {
+      if (focusedFields.size === 0 && selections.size === 0) {
         setBoxes((prev) => (prev.length === 0 ? prev : []))
         return
       }
 
-      const containerRect = container.getBoundingClientRect()
+      const roots = getCollabRoots(editorRef.current, panelRef?.current ?? null)
       const next: HighlightBox[] = []
       const fieldIds = new Set([...focusedFields.keys(), ...selections.keys()])
 
@@ -77,7 +79,7 @@ export function FieldHighlights({
         if (!userId) continue
         const collab = collaborators.find((c) => c.userId === userId)
         if (!collab) continue
-        const el = resolveFieldPath(fieldId, sheet)
+        const el = resolveFieldPath(fieldId, roots)
         if (!el) continue
         const rect = el.getBoundingClientRect()
         if (rect.width === 0 || rect.height === 0) continue
@@ -89,8 +91,8 @@ export function FieldHighlights({
           name: getDisplayName(collab),
           selection:
             selection && selection.userId === userId && selection.text ? selection.text : null,
-          top: rect.top - containerRect.top,
-          left: rect.left - containerRect.left,
+          top: rect.top,
+          left: rect.left,
           width: rect.width,
           height: rect.height,
         })
@@ -100,18 +102,20 @@ export function FieldHighlights({
     }
 
     compute()
-    const interval = setInterval(compute, 150)
+    const interval = setInterval(compute, 120)
     window.addEventListener('resize', compute)
+    window.addEventListener('scroll', compute, true)
     return () => {
       clearInterval(interval)
       window.removeEventListener('resize', compute)
+      window.removeEventListener('scroll', compute, true)
     }
-  }, [focusedFields, selections, collaborators, containerRef, sheetRef])
+  }, [focusedFields, selections, collaborators, editorRef, panelRef])
 
-  if (boxes.length === 0) return null
+  if (!mounted || boxes.length === 0) return null
 
-  return (
-    <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
+  return createPortal(
+    <div className="pointer-events-none fixed inset-0 z-[65] overflow-hidden">
       {boxes.map((box) => (
         <div
           key={box.fieldId}
@@ -141,6 +145,7 @@ export function FieldHighlights({
           )}
         </div>
       ))}
-    </div>
+    </div>,
+    document.body
   )
 }
