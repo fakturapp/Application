@@ -47,6 +47,7 @@ export interface UseCollaborationOptions {
   documentType: 'invoice' | 'quote' | 'credit_note'
   documentId: string | null
   enabled?: boolean
+  guestToken?: string
   onDocumentChange?: (change: DocumentChange) => void
   onDocumentSaved?: (savedByUserId: string) => void
   onAccessRevoked?: () => void
@@ -79,6 +80,7 @@ export function useCollaboration({
   documentType,
   documentId,
   enabled = true,
+  guestToken,
   onDocumentChange,
   onDocumentSaved,
   onAccessRevoked,
@@ -109,12 +111,12 @@ export function useCollaboration({
   useEffect(() => {
     if (!enabled || !documentId) return
 
-    const token = localStorage.getItem('faktur_token')
+    const token = guestToken ? null : localStorage.getItem('faktur_token')
 
     const socket = io(`${WS_URL}/collaboration`, {
       path: '/ws',
       withCredentials: true,
-      auth: token ? { token } : {},
+      auth: guestToken ? { guestToken } : token ? { token } : {},
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
@@ -327,7 +329,7 @@ export function useCollaboration({
       setIsConnected(false)
       setMyColor(null)
     }
-  }, [documentType, documentId, enabled])
+  }, [documentType, documentId, enabled, guestToken])
 
   // Throttle cursor moves to ~30fps to avoid flooding
   const lastCursorSend = useRef(0)
