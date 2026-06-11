@@ -34,7 +34,12 @@ import {
   ChevronRight,
 } from '@/components/ui/icons'
 
-type StorageCategory = 'company_logo' | 'invoice_logo' | 'team_icon' | 'payment_link_pdf'
+type StorageCategory =
+  | 'company_logo'
+  | 'invoice_logo'
+  | 'team_icon'
+  | 'payment_link_pdf'
+  | 'ui_background'
 
 interface DocCategoryUsage {
   type: string
@@ -71,9 +76,16 @@ const CATEGORY_META: Record<StorageCategory, { label: string; icon: typeof Build
   invoice_logo: { label: 'Logos de facture', icon: Receipt, isImage: true },
   team_icon: { label: "Icônes d'équipe", icon: UsersRound, isImage: true },
   payment_link_pdf: { label: 'PDF de paiement', icon: FileText, isImage: false },
+  ui_background: { label: "Fonds d'écran personnalisés", icon: ImageIcon, isImage: true },
 }
 
-const CATEGORY_ORDER: StorageCategory[] = ['company_logo', 'invoice_logo', 'team_icon', 'payment_link_pdf']
+const CATEGORY_ORDER: StorageCategory[] = [
+  'company_logo',
+  'invoice_logo',
+  'team_icon',
+  'ui_background',
+  'payment_link_pdf',
+]
 
 const DOC_META: Record<string, { icon: typeof FileText; href: string }> = {
   invoice: { icon: FileText, href: '/dashboard/invoices' },
