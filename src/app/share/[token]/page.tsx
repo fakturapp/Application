@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { api } from '@/lib/api'
+import { api, publicApi } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { accountLoginUrl } from '@/lib/account-redirect'
 import { Spinner } from '@/components/ui/spinner'
@@ -31,8 +31,20 @@ export default function ShareLinkPage() {
     if (loading) return
 
     if (!user) {
-      setStatus('unauthenticated')
-      return
+      let cancelled = false
+      async function probeGuestAccess() {
+        const { data } = await publicApi.get<{ allowed: boolean }>(`/share/guest/${token}/check`)
+        if (cancelled) return
+        if (data?.allowed) {
+          router.replace(`/share/live/${token}`)
+          return
+        }
+        setStatus('unauthenticated')
+      }
+      probeGuestAccess()
+      return () => {
+        cancelled = true
+      }
     }
 
     async function validate() {
@@ -90,17 +102,11 @@ export default function ShareLinkPage() {
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">Connexion requise</h2>
           <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Connectez-vous pour accéder à ce document partagé, ou continuez en tant
-            qu&apos;invité si le lien le permet.
+            Connectez-vous pour accéder à ce document partagé.
           </p>
-          <div className="flex flex-col items-center gap-2.5">
-            <Button onClick={() => { window.location.href = accountLoginUrl(window.location.href) }} className="gap-2">
-              <LogIn className="h-4 w-4" /> Se connecter
-            </Button>
-            <Button variant="ghost" onClick={() => router.push(`/share/live/${token}`)}>
-              Continuer sans compte
-            </Button>
-          </div>
+          <Button onClick={() => { window.location.href = accountLoginUrl(window.location.href) }} className="gap-2">
+            <LogIn className="h-4 w-4" /> Se connecter
+          </Button>
         </motion.div>
       </div>
     )
