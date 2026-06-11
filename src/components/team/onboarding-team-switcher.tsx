@@ -3,15 +3,23 @@
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import { api } from '@/lib/api'
+import { Avatar } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem, DropdownLabel } from '@/components/ui/dropdown'
 import { Spinner } from '@/components/ui/spinner'
-import { Building2, ChevronsUpDown } from '@/components/ui/icons'
+import { ChevronsUpDown, Check } from '@/components/ui/icons'
+
+interface TeamWithIcon {
+  id: string
+  name: string
+  iconUrl?: string | null
+  onboardingCompletedAt: string | null
+}
 
 export function OnboardingTeamSwitcher() {
   const { user } = useAuth()
   const [switching, setSwitching] = useState(false)
 
-  const teams = user?.teams ?? []
+  const teams = (user?.teams ?? []) as unknown as TeamWithIcon[]
   if (teams.length === 0) return null
 
   const current = teams.find((t) => t.id === user?.currentTeamId) ?? null
@@ -29,8 +37,17 @@ export function OnboardingTeamSwitcher() {
 
   const row = (
     <>
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-        {switching ? <Spinner /> : <Building2 className="h-3.5 w-3.5" />}
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+        {switching ? (
+          <Spinner />
+        ) : (
+          <Avatar
+            src={current?.iconUrl}
+            fallback={current?.name?.[0]}
+            size="sm"
+            className="h-7 w-7 rounded-lg text-[10px]"
+          />
+        )}
       </span>
       <span className="min-w-0 flex-1 text-left">
         <span className="block truncate text-[12px] font-semibold leading-tight text-foreground">
@@ -65,20 +82,31 @@ export function OnboardingTeamSwitcher() {
       }
     >
       <DropdownLabel>Équipes</DropdownLabel>
-      {teams.map((t) => (
-        <DropdownItem
-          key={t.id}
-          selected={t.id === user?.currentTeamId}
-          onClick={() => switchTo(t.id)}
-        >
-          <span className="flex flex-1 flex-col">
-            <span className="truncate">{t.name}</span>
-            <span className="text-[10px] font-normal text-muted-foreground">
-              {t.onboardingCompletedAt ? 'Configurée' : 'À configurer'}
+      {teams.map((t) => {
+        const isActive = t.id === user?.currentTeamId
+        return (
+          <DropdownItem
+            key={t.id}
+            selected={isActive}
+            onClick={() => switchTo(t.id)}
+            className={isActive ? 'bg-surface' : undefined}
+          >
+            <Avatar
+              src={t.iconUrl}
+              fallback={t.name?.[0]}
+              size="sm"
+              className="h-6 w-6 shrink-0 rounded-md text-[10px]"
+            />
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate">{t.name}</span>
+              <span className="text-[10px] font-normal text-muted-foreground">
+                {t.onboardingCompletedAt ? 'Configurée' : 'À configurer'}
+              </span>
             </span>
-          </span>
-        </DropdownItem>
-      ))}
+            {isActive && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
+          </DropdownItem>
+        )
+      })}
     </Dropdown>
   )
 }
