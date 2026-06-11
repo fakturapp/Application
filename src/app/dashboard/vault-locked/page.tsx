@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { Avatar } from '@/components/ui/avatar'
-import { api, onVaultLocked } from '@/lib/api'
+import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { accountUrl } from '@/lib/account-redirect'
 import { isFakturDesktop } from '@/lib/is-desktop'
@@ -74,10 +74,6 @@ export default function VaultLockedPage() {
       router.replace('/dashboard')
     }
   }, [user, router])
-
-  useEffect(() => {
-    return onVaultLocked(() => {})
-  }, [])
 
   async function handleUnlock(e: React.FormEvent) {
     e.preventDefault()

@@ -9,7 +9,6 @@ import { readSsoTries, returnUrlWithTries, clearSsoParam, MAX_SSO_TRIES } from '
 import { diagnoseSessionLoop, type SessionDiagnostics } from '@/lib/session-diagnostics'
 import { SessionLoopScreen } from '@/components/auth/session-loop-screen'
 import { CryptoResetModal } from '@/components/modals/crypto-reset-modal'
-import { VaultUnlockModal } from '@/components/modals/vault-unlock-modal'
 import { RecoveryKeySetupModal } from '@/components/modals/recovery-key-setup-modal'
 
 export interface TeamSummary {
@@ -288,14 +287,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const shouldShowVaultPage =
         !!user.vaultLocked &&
         user.currentTeamEncryptionMode === 'private' &&
-        !user.cryptoResetNeeded &&
-        !forceCryptoReset
+        !user.cryptoResetNeeded
       if (shouldShowVaultPage && !isVaultLocked && !isAccountDeletion) {
-        router.replace('/dashboard/vault-locked')
-        return
-      }
-      if (!shouldShowVaultPage && isVaultLocked) {
-        router.replace('/dashboard')
+        const current =
+          typeof window !== 'undefined'
+            ? window.location.pathname + window.location.search
+            : pathname
+        const suffix = current.startsWith('/dashboard')
+          ? `?returnTo=${encodeURIComponent(current)}`
+          : ''
+        router.replace(`/dashboard/vault-locked${suffix}`)
         return
       }
     }
@@ -372,22 +373,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.replace('/login')
   }
 
-  const [forceCryptoReset, setForceCryptoReset] = useState(false)
-
   async function handleCryptoRecovered() {
-    setForceCryptoReset(false)
     await refreshUser()
   }
 
   async function handleCryptoWiped() {
-    setForceCryptoReset(false)
     await refreshUser()
     router.replace('/onboarding/team')
   }
 
   async function handleCryptoRefresh() {
     await refreshUser()
-    setForceCryptoReset(false)
   }
 
   return (
@@ -406,17 +402,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         />
       )}
       <CryptoResetModal
-        open={!!user?.cryptoResetNeeded || forceCryptoReset}
+        open={!!user?.cryptoResetNeeded}
         canRecoverWithPassword={!!user?.canRecoverWithPassword}
         hasRecoveryKey={!!user?.hasRecoveryKey}
         onRecovered={handleCryptoRecovered}
         onWiped={handleCryptoWiped}
         onLogout={() => logout()}
         onRefresh={handleCryptoRefresh}
-      />
-      <VaultUnlockModal
-        forceOpen={false}
-        onStartRecovery={() => setForceCryptoReset(true)}
       />
       <RecoveryKeySetupModal
         open={

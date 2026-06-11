@@ -31,12 +31,6 @@ function redirectToVaultLocked() {
   window.location.replace(`${VAULT_LOCKED_PATH}${suffix}`)
 }
 
-let vaultLockedListeners: (() => void)[] = []
-export function onVaultLocked(cb: () => void) {
-  vaultLockedListeners.push(cb)
-  return () => { vaultLockedListeners = vaultLockedListeners.filter((l) => l !== cb) }
-}
-
 let storageFullListeners: ((message: string) => void)[] = []
 export function onStorageFull(cb: (message: string) => void) {
   storageFullListeners.push(cb)
