@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/toast'
 import { Spinner } from '@/components/ui/spinner'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { A4Sheet, ClientModal, type DocumentLine, type ClientInfo, type CompanyInfo } from '@/components/shared/a4-sheet'
 import { DocumentOptionsPanel } from '@/components/shared/document-options'
 import { Save, ArrowLeft, Eye, Pencil, SlidersHorizontal, Download, Link2, Unlink, X, Sparkles, Settings } from '@/components/ui/icons'
@@ -49,6 +50,7 @@ function EditInvoiceContent() {
   const invoiceId = params.id as string
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
   const { settings: invoiceSettings, companyLogoUrl, loading: settingsLoading, refreshSettings, updateSettings, uploadLogo } = useInvoiceSettings()
   const collabEnabled = invoiceSettings.collaborationEnabled
   const defaultVatRate = Number.isFinite(Number(invoiceSettings.defaultVatRate))
@@ -78,8 +80,12 @@ function EditInvoiceContent() {
   const [sourceQuote, setSourceQuote] = useState<{ id: string; quoteNumber: string } | null>(null)
   const [unlinking, setUnlinking] = useState(false)
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false)
-  const [sharedAccess, setSharedAccess] = useState<{ permission: 'viewer' | 'editor' } | null>(null)
+  const [sharedAccess, setSharedAccess] = useState<{ permission: 'viewer' | 'editor'; canShare?: boolean } | null>(null)
   const collabActive = collabEnabled || !!sharedAccess
+  const teamRole = user?.currentTeamRole
+  const canShareDocument = sharedAccess
+    ? !!sharedAccess.canShare
+    : teamRole === 'admin' || teamRole === 'super_admin'
   const [paymentMethod, setPaymentMethod] = useState<string>('')
   const [bankAccountId, setBankAccountId] = useState<string>('')
   const [bankAccounts, setBankAccounts] = useState<{ id: string; label: string; bankName: string | null; isDefault: boolean }[]>([])
@@ -152,7 +158,7 @@ function EditInvoiceContent() {
       if (!inv && invoiceRes.error) {
         const sharedRes = await api.get<{
           document: any
-          shared: { permission: 'viewer' | 'editor' }
+          shared: { permission: 'viewer' | 'editor'; canShare?: boolean }
         }>(`/collaboration/documents/invoice/${invoiceId}`)
         if (sharedRes.data?.document) {
           inv = sharedRes.data.document
@@ -700,7 +706,7 @@ function EditInvoiceContent() {
           {collabActive && <CollaborationToolbar
             documentType="invoice"
             documentId={invoiceId}
-            canShare={!sharedAccess}
+            canShare={canShareDocument}
             className="flex items-center gap-2"
           />}
           <DocumentZoom value={docZoom} onChange={setDocZoom} />

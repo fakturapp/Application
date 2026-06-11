@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/toast'
 import { Spinner } from '@/components/ui/spinner'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { A4Sheet, ClientModal, type DocumentLine, type ClientInfo, type CompanyInfo } from '@/components/shared/a4-sheet'
 import { DocumentOptionsPanel } from '@/components/shared/document-options'
 import { Save, ArrowLeft, Eye, Pencil, Download, SlidersHorizontal, X, Sparkles, Settings } from '@/components/ui/icons'
@@ -48,6 +49,7 @@ function EditQuoteContent() {
   const searchParams = useSearchParams()
   const quoteId = params.id as string
   const { toast } = useToast()
+  const { user } = useAuth()
   const { settings: invoiceSettings, companyLogoUrl, loading: settingsLoading, refreshSettings, updateSettings, uploadLogo } = useInvoiceSettings()
   const collabEnabled = invoiceSettings.collaborationEnabled
   const defaultVatRate = Number.isFinite(Number(invoiceSettings.defaultVatRate))
@@ -74,8 +76,12 @@ function EditQuoteContent() {
   const [aiProcessing, setAiProcessing] = useState(false)
   const editorAreaRef = useRef<HTMLDivElement>(null)
   const optionsPanelRef = useRef<HTMLDivElement>(null)
-  const [sharedAccess, setSharedAccess] = useState<{ permission: 'viewer' | 'editor' } | null>(null)
+  const [sharedAccess, setSharedAccess] = useState<{ permission: 'viewer' | 'editor'; canShare?: boolean } | null>(null)
   const collabActive = collabEnabled || !!sharedAccess
+  const teamRole = user?.currentTeamRole
+  const canShareDocument = sharedAccess
+    ? !!sharedAccess.canShare
+    : teamRole === 'admin' || teamRole === 'super_admin'
 
   const [lines, setLines] = useState<DocumentLine[]>([])
 
@@ -129,7 +135,7 @@ function EditQuoteContent() {
       if (!loadedQuote && quoteRes.error) {
         const sharedRes = await api.get<{
           document: any
-          shared: { permission: 'viewer' | 'editor' }
+          shared: { permission: 'viewer' | 'editor'; canShare?: boolean }
         }>(`/collaboration/documents/quote/${quoteId}`)
         if (sharedRes.data?.document) {
           loadedQuote = sharedRes.data.document
@@ -638,7 +644,7 @@ function EditQuoteContent() {
           {collabActive && <CollaborationToolbar
             documentType="quote"
             documentId={quoteId}
-            canShare={!sharedAccess}
+            canShare={canShareDocument}
             className="flex items-center gap-2"
           />}
           <DocumentZoom value={docZoom} onChange={setDocZoom} />

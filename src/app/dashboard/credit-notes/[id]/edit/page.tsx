@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/toast'
 import { Spinner } from '@/components/ui/spinner'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { A4Sheet, ClientModal, type DocumentLine, type ClientInfo, type CompanyInfo } from '@/components/shared/a4-sheet'
 import { DocumentOptionsPanel } from '@/components/shared/document-options'
 import { Save, ArrowLeft, Eye, Pencil, SlidersHorizontal, X, FileText } from '@/components/ui/icons'
@@ -39,6 +40,7 @@ function EditCreditNoteContent() {
   const creditNoteId = params.id as string
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
   const { settings: invoiceSettings, companyLogoUrl, loading: settingsLoading, refreshSettings, updateSettings, uploadLogo } = useInvoiceSettings()
   const collabEnabled = invoiceSettings.collaborationEnabled
   const defaultVatRate = Number.isFinite(Number(invoiceSettings.defaultVatRate))
@@ -51,7 +53,7 @@ function EditCreditNoteContent() {
   const editorAreaRef = useRef<HTMLDivElement>(null)
   const a4SheetRef = useRef<HTMLDivElement>(null)
   const optionsPanelRef = useRef<HTMLDivElement>(null)
-  const [sharedAccess, setSharedAccess] = useState<{ permission: 'viewer' | 'editor' } | null>(null)
+  const [sharedAccess, setSharedAccess] = useState<{ permission: 'viewer' | 'editor'; canShare?: boolean } | null>(null)
   const [creditNoteNumber, setCreditNoteNumber] = useState('')
   const [company, setCompany] = useState<CompanyInfo | null>(null)
   const [selectedClient, setSelectedClient] = useState<ClientInfo | null>(null)
@@ -97,6 +99,10 @@ function EditCreditNoteContent() {
   const [isDirty, setIsDirty] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const collabActive = collabEnabled || !!sharedAccess
+  const teamRole = user?.currentTeamRole
+  const canShareDocument = sharedAccess
+    ? !!sharedAccess.canShare
+    : teamRole === 'admin' || teamRole === 'super_admin'
   const { showModal, confirmNavigation, cancelNavigation, requestNavigation } = useUnsavedChanges(isDirty && !sharedAccess)
 
   useEffect(() => {
@@ -115,7 +121,7 @@ function EditCreditNoteContent() {
       if (!loadedCreditNote && cnRes.error) {
         const sharedRes = await api.get<{
           document: any
-          shared: { permission: 'viewer' | 'editor' }
+          shared: { permission: 'viewer' | 'editor'; canShare?: boolean }
         }>(`/collaboration/documents/credit_note/${creditNoteId}`)
         if (sharedRes.data?.document) {
           loadedCreditNote = sharedRes.data.document
@@ -524,7 +530,7 @@ function EditCreditNoteContent() {
           {collabActive && <CollaborationToolbar
             documentType="credit_note"
             documentId={creditNoteId}
-            canShare={!sharedAccess}
+            canShare={canShareDocument}
             className="flex items-center gap-2"
           />}
           <div className="flex rounded-lg border border-border overflow-hidden">
