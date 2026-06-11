@@ -121,6 +121,7 @@ export default function OnboardingBillingPage() {
   const [customPaymentMethod, setCustomPaymentMethod] = useState('')
   const [paymentConditions, setPaymentConditions] = useState('Paiement à 30 jours')
   const [hasCompany, setHasCompany] = useState(false)
+  const [tab, setTab] = useState<'mode' | 'numbering' | 'payments' | 'conditions'>('mode')
 
   useEffect(() => {
     let cancelled = false
@@ -224,8 +225,6 @@ export default function OnboardingBillingPage() {
     { id: 'payments' as const, label: 'Paiements', icon: Banknote },
     { id: 'conditions' as const, label: 'Conditions', icon: PenLine },
   ]
-  type TabId = (typeof TABS)[number]['id']
-  const [tab, setTab] = useState<TabId>('mode')
 
   return (
     <motion.div initial="hidden" animate="visible">
