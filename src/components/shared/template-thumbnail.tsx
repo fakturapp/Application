@@ -35,7 +35,6 @@ export function TemplateThumbnail({
       >
         <div className={`h-full w-full ${p} flex flex-col relative`} style={{ backgroundColor: T.docBg }}>
 
-          {/* ── CLASSIQUE: dashed borders, blue-gray ── */}
           {T.id === 'classique' && (<>
             <div className="flex justify-between items-start mb-2">
               <div className="space-y-0.5">
@@ -53,7 +52,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── MODERNE: full-width colored banner ── */}
           {T.id === 'moderne' && (<>
             <div className="rounded-md px-2 py-1.5 mb-2 -mx-1 -mt-1" style={{ backgroundColor: accentColor }}>
               <div className="flex justify-between items-center">
@@ -76,22 +74,20 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── COMPACT ── */}
           {T.id === 'compact' && (<>
             <div className="flex justify-between items-start mb-1">
-              <div className="h-2 w-8 rounded-none bg-gray-200" />
+              <div className="h-2 w-8 rounded-none" style={{ backgroundColor: T.text, opacity: 0.2 }} />
               <div className="text-right space-y-0.5">
                 <div className="h-1.5 w-5 rounded-none" style={{ backgroundColor: accentColor, opacity: 0.7 }} />
-                <div className="h-0.5 w-4 rounded-none bg-gray-300" />
+                <div className="h-0.5 w-4 rounded-none" style={{ backgroundColor: T.textMuted, opacity: 0.4 }} />
               </div>
             </div>
-            <div className="border border-gray-300 px-1 py-0.5 mb-1">
-              <div className="h-1 w-5 rounded-none bg-gray-200 mb-0.5" />
-              <div className="h-0.5 w-8 rounded-none bg-gray-100" />
+            <div className="px-1 py-0.5 mb-1" style={{ backgroundColor: T.clientBlockBg, border: `1px solid ${T.clientBlockBorder}` }}>
+              <div className="h-1 w-5 rounded-none mb-0.5" style={{ backgroundColor: T.text, opacity: 0.2 }} />
+              <div className="h-0.5 w-8 rounded-none" style={{ backgroundColor: T.textMuted, opacity: 0.25 }} />
             </div>
           </>)}
 
-          {/* ── ELEGANCE ── */}
           {T.id === 'elegance' && (<>
             <div className="flex justify-between items-start mb-1.5">
               <div className="space-y-0.5">
@@ -108,7 +104,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── AUDACIEUX ── */}
           {T.id === 'audacieux' && (<>
             <div className="rounded-xl px-2 py-2.5 mb-2 -mx-1 -mt-1 relative overflow-hidden" style={{ backgroundColor: accentColor }}>
               <div className="absolute -right-2 -top-2 w-8 h-8 rounded-full" style={{ backgroundColor: contrastCol, opacity: 0.08 }} />
@@ -122,7 +117,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── LATERAL ── */}
           {T.layout === 'lateral' && (<>
             <div className="absolute top-0 left-0 bottom-0 flex" style={{ width: '28%' }}>
               <div className="h-full w-full flex flex-col p-1.5 pt-2" style={{ backgroundColor: accentColor }}>
@@ -146,7 +140,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── MINIMALISTE ── */}
           {T.id === 'minimaliste' && (<>
             <div className="flex justify-between items-start mb-3">
               <div className="h-2 w-7 rounded-full" style={{ backgroundColor: T.text, opacity: 0.1 }} />
@@ -159,7 +152,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── DUO ── */}
           {T.id === 'duo' && (<>
             <div className="flex -mx-1 -mt-1 mb-2 overflow-hidden rounded-md">
               <div className="flex-1 px-1.5 py-1.5" style={{ backgroundColor: accentColor }}>
@@ -182,7 +174,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── STUDIO ── */}
           {T.id === 'studio' && (<>
             <div className="flex justify-between items-end mb-1.5">
               <div className="h-2.5 w-9 rounded-sm" style={{ backgroundColor: T.text, opacity: 0.85 }} />
@@ -201,7 +192,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── EDITORIAL ── */}
           {T.id === 'editorial' && (<>
             <div className="flex flex-col items-center mb-1.5">
               <div className="h-2 w-10 rounded-sm mb-1" style={{ backgroundColor: T.text, opacity: 0.5 }} />
@@ -218,7 +208,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── CARBONE ── */}
           {T.id === 'carbone' && (<>
             <div className="rounded-sm px-1.5 py-1.5 mb-2 -mx-1 -mt-1 flex items-center justify-between" style={{ backgroundColor: accentColor }}>
               <div className="h-2 w-2 rounded-sm" style={{ backgroundColor: contrastCol, opacity: 0.9 }} />
@@ -239,7 +228,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── HORIZON ── */}
           {T.id === 'horizon' && (<>
             <div className="rounded-lg px-2 py-1.5 mb-2 -mx-0.5 flex items-center justify-between" style={{ backgroundColor: accentColor }}>
               <div className="h-1.5 w-6 rounded-full" style={{ backgroundColor: contrastCol, opacity: 0.85 }} />
@@ -256,7 +244,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── PASTEL ── */}
           {T.id === 'pastel' && (<>
             <div className="flex justify-between items-start mb-1.5">
               <div className="h-2 w-7 rounded-full" style={{ backgroundColor: `${accentColor}30` }} />
@@ -268,7 +255,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── MONO ── */}
           {T.id === 'mono' && (<>
             <div className="flex justify-between items-start mb-1">
               <div className="flex gap-0.5">
@@ -287,7 +273,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── LIGNE ── */}
           {T.id === 'ligne' && (<>
             <div className="flex justify-between items-start mb-1">
               <div className="space-y-0.5">
@@ -303,7 +288,6 @@ export function TemplateThumbnail({
             </div>
           </>)}
 
-          {/* ── Common: table + totals ── */}
           <div style={T.layout === 'lateral' ? { marginLeft: '30%' } : undefined} className="flex-1 flex flex-col">
             <>
               <div className="px-0.5 py-0.5 mb-px" style={{ backgroundColor: accentColor, borderRadius: T.borderRadius === '0px' ? '0' : '2px 2px 0 0' }}>
