@@ -2,47 +2,118 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/lib/auth'
+import { useTheme } from '@/lib/theme'
 import { usePathname, useRouter } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
+import { Avatar } from '@/components/ui/avatar'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, Users, Shield, Building2, Mail, Receipt, LogOut } from '@/components/ui/icons'
+import { Check, LogOut, Moon, Sun } from '@/components/ui/icons'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { OnboardingTeamSwitcher } from '@/components/team/onboarding-team-switcher'
+import {
+  ONBOARDING_ENCRYPTION_EVENT,
+  visibleOnboardingSteps,
+  type OnboardingStep,
+} from '@/lib/onboarding-steps'
 
 const Iridescence = dynamic(() => import('@/components/ui/iridescence'), { ssr: false })
 
-interface Step {
-  id: string
-  label: string
-  path: string
-  icon: React.ElementType
-  privateOnly?: boolean
-  requiresNoTeam?: boolean
+function StepRow({
+  step,
+  index,
+  state,
+  clickable,
+  onSelect,
+}: {
+  step: OnboardingStep
+  index: number
+  state: 'done' | 'current' | 'upcoming'
+  clickable: boolean
+  onSelect: () => void
+}) {
+  const Icon = step.icon
+  return (
+    <button
+      onClick={() => clickable && onSelect()}
+      disabled={!clickable}
+      className={cn(
+        'group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-200',
+        state === 'current' && 'bg-surface',
+        state === 'done' && clickable && 'cursor-pointer hover:bg-surface-hover',
+        state === 'done' && !clickable && 'cursor-default',
+        state === 'upcoming' && 'cursor-not-allowed'
+      )}
+    >
+      {state === 'current' && (
+        <motion.span
+          layoutId="onboarding-step-indicator"
+          className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-accent"
+          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+        />
+      )}
+      <span
+        className={cn(
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+          state === 'current' && 'bg-accent-soft text-accent',
+          state === 'done' && 'bg-success-soft text-success',
+          state === 'upcoming' && 'bg-surface text-muted-secondary'
+        )}
+      >
+        {state === 'done' ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span
+          className={cn(
+            'block truncate text-[13px] font-medium leading-tight',
+            state === 'current' && 'text-foreground',
+            state === 'done' && 'text-foreground/80',
+            state === 'upcoming' && 'text-muted-secondary'
+          )}
+        >
+          {step.label}
+        </span>
+        <span
+          className={cn(
+            'block truncate text-[11px] leading-tight',
+            state === 'current' ? 'text-muted-foreground' : 'text-muted-secondary'
+          )}
+        >
+          {state === 'done' ? 'Terminé' : step.description}
+        </span>
+      </span>
+      <span
+        className={cn(
+          'text-[10px] font-mono tabular-nums',
+          state === 'current' ? 'font-semibold text-accent' : 'text-muted-secondary'
+        )}
+      >
+        {String(index + 1).padStart(2, '0')}
+      </span>
+    </button>
+  )
 }
 
-const ALL_STEPS: Step[] = [
-  { id: 'team', label: 'Équipe', path: '/onboarding/team', icon: Users, requiresNoTeam: true },
-  { id: 'recovery-key', label: 'Sécurité', path: '/onboarding/recovery-key', icon: Shield, privateOnly: true },
-  { id: 'company', label: 'Entreprise', path: '/onboarding/company', icon: Building2 },
-  { id: 'email', label: 'Email', path: '/onboarding/email', icon: Mail },
-  { id: 'billing', label: 'Facturation', path: '/onboarding/billing', icon: Receipt },
-]
-
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  const { user, loading, logout } = useAuth()
+  const { resolvedTheme, setTheme } = useTheme()
   const pathname = usePathname()
   const router = useRouter()
 
-  const isStandardTeam = user?.currentTeamEncryptionMode === 'standard'
+  const [pendingPrivate, setPendingPrivate] = useState(false)
+  useEffect(() => {
+    function onMode(e: Event) {
+      setPendingPrivate((e as CustomEvent).detail === 'private')
+    }
+    window.addEventListener(ONBOARDING_ENCRYPTION_EVENT, onMode)
+    return () => window.removeEventListener(ONBOARDING_ENCRYPTION_EVENT, onMode)
+  }, [])
+
   const hasTeam = !!user?.currentTeamId
-  const steps = ALL_STEPS.filter((s) => {
-    if (s.privateOnly && isStandardTeam) return false
-    if (s.requiresNoTeam && hasTeam) return false
-    return true
-  })
+  const isPrivate = hasTeam ? user?.currentTeamEncryptionMode === 'private' : pendingPrivate
+  const steps = visibleOnboardingSteps({ hasTeam, isPrivate })
 
   const [navigating, setNavigating] = useState(false)
   const prevPathRef = useRef(pathname)
@@ -53,44 +124,47 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
     }
   }, [pathname])
   useEffect(() => {
-    function onStart() { setNavigating(true) }
+    function onStart() {
+      setNavigating(true)
+    }
     window.addEventListener('faktur:onboarding-navigate', onStart)
     return () => window.removeEventListener('faktur:onboarding-navigate', onStart)
   }, [])
+
+  function toggleTheme() {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+  }
 
   if (loading || !user) {
     return (
       <div className="relative min-h-screen">
         <div className="fixed inset-0 z-0 bg-surface" />
         <div className="fixed inset-0 z-[1] bg-black/10" />
-        <div className="fixed inset-y-0 left-0 z-10 flex w-[280px] lg:w-[320px] flex-col bg-overlay shadow-overlay rounded-r-[2rem]">
-          <div className="px-5 pt-6 pb-4 space-y-2">
+        <div className="fixed inset-y-0 left-0 z-10 hidden w-[280px] flex-col rounded-r-[2rem] bg-overlay shadow-overlay md:flex lg:w-[320px]">
+          <div className="space-y-2 px-5 pb-4 pt-6">
             <Skeleton className="h-2 w-16 rounded" />
             <Skeleton className="h-4 w-40 rounded" />
             <Skeleton className="h-2 w-20 rounded" />
           </div>
-          <div className="mx-5 mb-4"><Skeleton className="h-1 w-full rounded-full" /></div>
+          <div className="mx-5 mb-4">
+            <Skeleton className="h-1 w-full rounded-full" />
+          </div>
           <div className="mx-5 h-px bg-separator" />
-          <div className="flex-1 px-4 py-3 space-y-1">
+          <div className="flex-1 space-y-1 px-4 py-3">
             {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full rounded-xl" />
+              <Skeleton key={i} className="h-12 w-full rounded-xl" />
             ))}
           </div>
           <div className="mx-5 h-px bg-separator" />
-          <div className="p-4">
-            <div className="flex items-center gap-2.5 px-2">
-              <Skeleton className="h-7 w-7 rounded-lg" />
-              <div className="flex-1 space-y-1">
-                <Skeleton className="h-3 w-24 rounded" />
-                <Skeleton className="h-2 w-16 rounded" />
-              </div>
-            </div>
+          <div className="space-y-2 p-4">
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
           </div>
         </div>
-        <div className="fixed inset-y-0 right-0 left-[280px] lg:left-[320px] z-[2] flex items-center justify-center">
-          <div className="w-full max-w-2xl px-10 space-y-6">
-            <Skeleton className="h-6 w-48 rounded-lg mx-auto" />
-            <Skeleton className="h-3 w-64 rounded mx-auto" />
+        <div className="fixed inset-y-0 left-0 right-0 z-[2] flex items-center justify-center md:left-[280px] lg:left-[320px]">
+          <div className="w-full max-w-2xl space-y-6 px-10">
+            <Skeleton className="mx-auto h-6 w-48 rounded-lg" />
+            <Skeleton className="mx-auto h-3 w-64 rounded" />
             <Skeleton className="h-12 w-full rounded-xl" />
             <Skeleton className="h-12 w-full rounded-xl" />
             <Skeleton className="h-11 w-full rounded-xl" />
@@ -101,113 +175,88 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
   }
 
   const currentStepIndex = steps.findIndex((s) => pathname.startsWith(s.path))
+  const safeIndex = currentStepIndex === -1 ? 0 : currentStepIndex
+  const currentStep = steps[safeIndex]
+  const displayName = user.fullName || user.email.split('@')[0]
+  const initials = (user.fullName || user.email).slice(0, 2).toUpperCase()
 
   return (
     <div className="relative min-h-screen">
       <div className="fixed inset-0 z-0">
         <Iridescence color={[0.4, 0.3, 1]} speed={0.4} amplitude={0.1} />
       </div>
-      <div className="fixed inset-0 z-[1] bg-black/25 pointer-events-none" />
+      <div className="pointer-events-none fixed inset-0 z-[1] bg-black/25" />
 
       <motion.aside
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="fixed inset-y-0 left-0 z-10 flex w-[280px] lg:w-[320px] flex-col bg-overlay shadow-overlay rounded-r-[2rem]"
+        className="fixed inset-y-0 left-0 z-10 hidden w-[280px] flex-col rounded-r-[2rem] bg-overlay shadow-overlay md:flex lg:w-[320px]"
       >
-        <div className="px-5 pt-6 pb-4">
-          <p className="text-[10px] font-bold text-muted-secondary uppercase tracking-[0.15em] mb-1">
+        <div className="px-5 pb-4 pt-6">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-secondary">
             Configuration
           </p>
-          <p className="text-[15px] font-semibold text-foreground leading-snug tracking-[-0.015em]">
+          <p className="text-[15px] font-semibold leading-snug tracking-[-0.015em] text-foreground">
             Configurons votre compte
           </p>
-          <p className="text-[12px] text-muted-foreground mt-1">
-            Étape {currentStepIndex + 1} sur {steps.length}
+          <p className="mt-1 text-[12px] text-muted-foreground">
+            Étape {safeIndex + 1} sur {steps.length}
           </p>
         </div>
 
-        <OnboardingTeamSwitcher />
-
         <div className="mx-5 mb-4">
-          <div className="h-1 rounded-full bg-surface overflow-hidden">
+          <div className="h-1 overflow-hidden rounded-full bg-surface">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
+              animate={{ width: `${((safeIndex + 1) / steps.length) * 100}%` }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="h-full bg-accent rounded-full"
+              className="h-full rounded-full bg-accent"
             />
           </div>
         </div>
 
         <div className="mx-5 h-px bg-separator" />
 
-        <nav className="flex-1 overflow-y-auto px-4 py-3 space-y-0.5">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-4 py-3">
           {steps.map((step, i) => {
-            const Icon = step.icon
-            const isActive = i === currentStepIndex
-            const isCompleted = i < currentStepIndex
-            const isClickable = isCompleted
-            const isPending = i > currentStepIndex
-
+            const state = i === safeIndex ? 'current' : i < safeIndex ? 'done' : 'upcoming'
+            const clickable = state === 'done' && !!step.backNavigable
             return (
-              <button
+              <StepRow
                 key={step.id}
-                onClick={() => isClickable && router.push(step.path)}
-                disabled={!isClickable}
-                className={cn(
-                  'flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 text-left',
-                  isActive && 'bg-surface text-foreground',
-                  isCompleted && 'text-foreground hover:bg-surface-hover cursor-pointer',
-                  isPending && 'text-muted-secondary cursor-not-allowed'
-                )}
-              >
-                <div
-                  className={cn(
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors',
-                    isActive && 'bg-accent-soft text-accent',
-                    isCompleted && 'bg-success-soft text-success',
-                    isPending && 'bg-surface text-muted-secondary'
-                  )}
-                >
-                  {isCompleted ? (
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  ) : (
-                    <Icon className="h-3.5 w-3.5" />
-                  )}
-                </div>
-                <span className="flex-1 whitespace-nowrap">{step.label}</span>
-                <span
-                  className={cn(
-                    'text-[10px] font-mono tabular-nums',
-                    isActive ? 'text-accent font-semibold' : 'text-muted-secondary'
-                  )}
-                >
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-              </button>
+                step={step}
+                index={i}
+                state={state}
+                clickable={clickable}
+                onSelect={() => router.push(step.path)}
+              />
             )
           })}
         </nav>
 
         <div className="mx-5 h-px bg-separator" />
 
-        <div className="p-4">
-          <div className="flex items-center gap-2.5 rounded-xl px-2 py-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent text-[10px] font-bold">
-              {(user.fullName || user.email).slice(0, 2).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-medium text-foreground truncate leading-tight">
-                {user.fullName || user.email}
+        <div className="space-y-2 p-4">
+          <OnboardingTeamSwitcher />
+          <div className="flex items-center gap-2.5 rounded-xl bg-surface px-3 py-2">
+            <Avatar src={user.avatarUrl} alt={displayName} fallback={initials} size="sm" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[12px] font-semibold leading-tight text-foreground">
+                {displayName}
               </p>
-              <p className="text-[10px] text-muted-foreground truncate">
-                Installation en cours
-              </p>
+              <p className="truncate text-[10.5px] text-muted-foreground">{user.email}</p>
             </div>
             <button
-              onClick={() => { localStorage.removeItem('faktur_token'); window.location.href = '/login' }}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:text-danger hover:bg-danger-soft transition-colors"
+              onClick={toggleTheme}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+              title={resolvedTheme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+            >
+              {resolvedTheme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+            </button>
+            <button
+              onClick={() => void logout()}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-danger-soft hover:text-danger"
               title="Se déconnecter"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -216,29 +265,77 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
         </div>
       </motion.aside>
 
-      <main className="fixed inset-y-0 right-0 left-[280px] lg:left-[320px] z-[1] overflow-y-auto">
-        <div className="relative h-full">
-        <div className="flex items-center justify-center px-8 pt-6 pb-2">
-          <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity drop-shadow-md">
-            <img src="/logo.svg" alt="Faktur" className="h-7 w-7" />
-            <span className="text-base font-semibold tracking-[-0.02em] text-white">Faktur</span>
-          </Link>
-        </div>
-
-        <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-6 md:px-10">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="w-full max-w-2xl"
+      <main className="fixed inset-y-0 left-0 right-0 z-[1] overflow-y-auto md:left-[280px] lg:left-[320px]">
+        <div className="relative min-h-full">
+          <div className="hidden items-center justify-center px-8 pb-2 pt-6 md:flex">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 drop-shadow-md transition-opacity hover:opacity-80"
             >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+              <img src="/logo.svg" alt="Faktur" className="h-7 w-7" />
+              <span className="text-base font-semibold tracking-[-0.02em] text-white">Faktur</span>
+            </Link>
+          </div>
+
+          <div className="px-5 pt-5 md:hidden">
+            <div className="flex items-center justify-between rounded-2xl bg-overlay px-4 py-3 shadow-overlay">
+              <Link href="/" className="flex items-center gap-2">
+                <img src="/logo.svg" alt="Faktur" className="h-6 w-6" />
+                <span className="text-sm font-semibold tracking-[-0.02em] text-foreground">
+                  Faktur
+                </span>
+              </Link>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={toggleTheme}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+                  title={resolvedTheme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+                >
+                  {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </button>
+                <button
+                  onClick={() => void logout()}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-danger-soft hover:text-danger"
+                  title="Se déconnecter"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="mt-3 rounded-2xl bg-overlay px-4 py-3 shadow-overlay">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[12px] font-semibold text-foreground">
+                  {currentStep?.label ?? 'Configuration'}
+                </p>
+                <p className="text-[11px] tabular-nums text-muted-foreground">
+                  {safeIndex + 1} / {steps.length}
+                </p>
+              </div>
+              <div className="h-1 overflow-hidden rounded-full bg-surface">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((safeIndex + 1) / steps.length) * 100}%` }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="h-full rounded-full bg-accent"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-8 sm:px-6 md:px-10">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="w-full max-w-2xl"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
       </main>
 
@@ -252,7 +349,9 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
             className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-background/85 backdrop-blur-sm"
           >
             <Spinner size="lg" className="text-accent" />
-            <p className="mt-4 text-sm font-medium text-foreground">Préparation de l’étape suivante…</p>
+            <p className="mt-4 text-sm font-medium text-foreground">
+              Préparation de l&apos;étape suivante…
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
