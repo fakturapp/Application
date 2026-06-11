@@ -1,7 +1,6 @@
 import {
   Building2,
   Crown,
-  Palette,
   Receipt,
   Shield,
   Users,
@@ -52,15 +51,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     description: 'Numérotation et paiement',
     path: '/onboarding/billing',
     icon: Receipt,
-    optional: true,
-    backNavigable: true,
-  },
-  {
-    id: 'interface',
-    label: 'Interface',
-    description: 'Votre thème personnel',
-    path: '/onboarding/interface',
-    icon: Palette,
     optional: true,
     backNavigable: true,
   },
