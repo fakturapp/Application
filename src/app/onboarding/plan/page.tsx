@@ -164,9 +164,6 @@ export default function OnboardingPlanPage() {
             >
               <ChevronLeft className="h-4 w-4" /> Précédent
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Aucun paiement requis : le plan Gratuit reste actif tant que vous ne changez rien.
-            </p>
           </motion.div>
         </CardContent>
       </Card>
