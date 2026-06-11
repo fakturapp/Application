@@ -378,7 +378,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }}
         onLogout={openLogoutConfirm}
         onLockVault={handleLockVault}
-        canLockVault={user.currentTeamEncryptionMode === 'private'}
+        canLockVault={user.currentTeamEncryptionMode === 'private' && !user.vaultLocked}
         collapsed={sidebarCollapsed}
         badges={sidebarBadges}
         isAdmin={user.isAdmin}
