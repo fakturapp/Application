@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { readThemeCookie, writeThemeCookieMode } from '@/lib/ui-theme'
 
 type Theme = 'light' | 'dark' | 'system'
 type ResolvedTheme = 'light' | 'dark'
@@ -32,7 +33,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem('faktur_theme') as Theme | null
-    const t = stored || 'system'
+    const cookieMode = readThemeCookie()?.mode
+    const t = cookieMode && cookieMode !== 'system' ? cookieMode : stored || 'system'
     setThemeState(t)
     const resolved = resolveTheme(t)
     setResolvedTheme(resolved)
@@ -60,6 +62,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme)
     localStorage.setItem('faktur_theme', newTheme)
+    writeThemeCookieMode(newTheme)
     const resolved = resolveTheme(newTheme)
     setResolvedTheme(resolved)
     applyTheme(resolved)
