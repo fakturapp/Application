@@ -14,7 +14,7 @@ import {
 import { RecoveryKeyDisplay } from '@/components/shared/recovery-key-display'
 import { useOnboardingNav } from '@/lib/onboarding-nav'
 import { useAuth } from '@/lib/auth'
-import { KeyRound } from '@/components/ui/icons'
+import { KeyRound, Lock } from '@/components/ui/icons'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -69,17 +69,21 @@ export default function OnboardingRecoveryKeyPage() {
   return (
     <motion.div initial="hidden" animate="visible">
       <Card className="overflow-hidden border-border/50">
-        <CardContent className="p-8">
+        <CardContent className="p-6 sm:p-8">
           <div className="space-y-6">
-            <motion.div variants={fadeUp} custom={0} className="flex flex-col items-center gap-4 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-soft border border-accent/20">
-                <KeyRound className="h-8 w-8 text-indigo-500" />
+            <motion.div
+              variants={fadeUp}
+              custom={0}
+              className="flex flex-col items-center gap-4 text-center"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-accent/20 bg-accent-soft">
+                <KeyRound className="h-8 w-8 text-accent" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">Votre clef de secours</h1>
+                <h1 className="text-2xl font-bold">Votre clé de secours</h1>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Cette clef vous permettra de récupérer vos données chiffrées en cas de perte de mot de passe.
-                  Conservez-la dans un endroit sûr.
+                  Vous avez choisi le Mode Privé : vos données sont chiffrées de bout en bout.
+                  Cette clé est le seul moyen de les récupérer si vous perdez votre mot de passe.
                 </p>
               </div>
             </motion.div>
@@ -89,21 +93,31 @@ export default function OnboardingRecoveryKeyPage() {
             </motion.div>
 
             <motion.div variants={fadeUp} custom={2}>
+              <div className="flex items-start gap-3 rounded-lg border border-amber-400/20 bg-amber-400/5 p-3">
+                <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Conservez cette clé hors de Faktur : gestionnaire de mots de passe, coffre-fort,
+                  impression papier. Elle ne sera plus jamais affichée.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div variants={fadeUp} custom={3}>
               <CheckboxRoot
                 isSelected={ackSaved}
                 onChange={(checked) => setAckSaved(!!checked)}
-                className="flex items-start gap-3 cursor-pointer rounded-lg border border-border p-3"
+                className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3"
               >
                 <CheckboxControl className="mt-0.5">
                   <CheckboxIndicator />
                 </CheckboxControl>
-                <CheckboxContent className="text-sm text-foreground leading-tight">
-                  Je confirme avoir sauvegardé ma clef de secours dans un endroit sûr.
+                <CheckboxContent className="text-sm leading-tight text-foreground">
+                  Je confirme avoir sauvegardé ma clé de secours dans un endroit sûr.
                 </CheckboxContent>
               </CheckboxRoot>
             </motion.div>
 
-            <motion.div variants={fadeUp} custom={3}>
+            <motion.div variants={fadeUp} custom={4}>
               <Button onClick={handleContinue} className="w-full" disabled={!ackSaved}>
                 Continuer
               </Button>
