@@ -330,7 +330,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="w-full max-w-2xl"
+                className={`w-full ${pathname === '/onboarding/plan' ? 'max-w-6xl' : 'max-w-2xl'}`}
               >
                 {children}
               </motion.div>
