@@ -189,7 +189,7 @@ export default function OnboardingPlanPage() {
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => nav('/onboarding/interface')}
+          onClick={() => nav('/onboarding/billing')}
           className="gap-1.5"
           disabled={finishing}
         >

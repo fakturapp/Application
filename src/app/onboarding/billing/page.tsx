@@ -195,7 +195,7 @@ export default function OnboardingBillingPage() {
       await api.put('/company', { paymentConditions: paymentConditions.trim() })
     }
 
-    nav('/onboarding/interface')
+    nav('/onboarding/plan')
   }
 
   if (loading) {
@@ -401,7 +401,7 @@ export default function OnboardingBillingPage() {
             <Button type="button" variant="ghost" onClick={() => nav('/onboarding/company')} className="gap-1.5">
               <ChevronLeft className="h-4 w-4" /> Précédent
             </Button>
-            <Button type="button" variant="outline" className="flex-1" onClick={() => nav('/onboarding/interface')} disabled={saving}>
+            <Button type="button" variant="outline" className="flex-1" onClick={() => nav('/onboarding/plan')} disabled={saving}>
               Passer cette étape
             </Button>
             <Button className="flex-1 gap-1.5" onClick={handleSubmit} disabled={saving}>
