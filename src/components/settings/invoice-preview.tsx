@@ -6,6 +6,13 @@ import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { getTemplate } from '@/lib/invoice-templates'
 import { Eye, ImagePlus } from '@/components/ui/icons'
 
+function contrastText(hex: string) {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128 ? '#000000' : '#ffffff'
+}
+
 export function InvoicePreview() {
   const { settings, companyLogoUrl } = useInvoiceSettings()
   const currentTemplate = getTemplate(settings.template, settings.darkMode)
@@ -102,7 +109,7 @@ export function InvoicePreview() {
                       ) : (
                         <div className="h-2.5 w-16 rounded-full bg-white/50" />
                       )}
-                      <p className="text-xs font-bold tracking-wide text-white">FACTURE</p>
+                      <p className="text-xs font-bold tracking-wide" style={{ color: contrastText(settings.accentColor) }}>FACTURE</p>
                     </div>
                   </div>
                 )}
@@ -168,7 +175,14 @@ export function InvoicePreview() {
                     <p className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: settings.accentColor }}>
                       Client
                     </p>
-                    <div className="space-y-0.5">
+                    <div
+                      className="space-y-0.5 px-2 py-1.5"
+                      style={{
+                        backgroundColor: currentTemplate.clientBlockBg,
+                        border: `1px solid ${currentTemplate.clientBlockBorder}`,
+                        borderRadius: currentTemplate.borderRadius,
+                      }}
+                    >
                       <div className="h-2 w-24 rounded-full" style={{ backgroundColor: currentTemplate.borderLight }} />
                       <div className="h-1.5 w-28 rounded-full" style={{ backgroundColor: currentTemplate.borderLight, opacity: 0.6 }} />
                     </div>
