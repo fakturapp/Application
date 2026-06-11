@@ -45,20 +45,25 @@ export default function OnboardingTeamImportPage() {
 
   useEffect(() => {
     if (user?.currentTeamId) {
-      const hasKey = sessionStorage.getItem('zenvoice_recovery_key')
+      const hasKey =
+        sessionStorage.getItem(`faktur_recovery_key_${user.currentTeamId}`) ??
+        sessionStorage.getItem('zenvoice_recovery_key')
       router.replace(hasKey ? '/onboarding/recovery-key' : '/onboarding/company')
     }
   }, [user, router])
 
-  const handleFileSelect = useCallback((file: File) => {
-    setImportFile(file)
-    setIsEncrypted(file.name.endsWith('.fpdata'))
+  const handleFileSelect = useCallback(
+    (file: File) => {
+      setImportFile(file)
+      setIsEncrypted(file.name.endsWith('.fpdata'))
 
-    const baseName = file.name.replace(/\.(zip|fpdata)$/, '').replace(/-export$/, '')
-    if (baseName && !importName) {
-      setImportName(baseName)
-    }
-  }, [importName])
+      const baseName = file.name.replace(/\.(zip|fpdata)$/, '').replace(/-export$/, '')
+      if (baseName && !importName) {
+        setImportName(baseName)
+      }
+    },
+    [importName]
+  )
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
@@ -70,7 +75,7 @@ export default function OnboardingTeamImportPage() {
       return
     }
 
-    setError('Format non supporte. Utilisez un fichier .zip ou .fpdata')
+    setError('Format non supporté. Utilisez un fichier .zip ou .fpdata')
   }
 
   async function handleImport(e: React.FormEvent) {
@@ -87,7 +92,10 @@ export default function OnboardingTeamImportPage() {
       formData.append('decryptionPassword', importPassword)
     }
 
-    const { data, error: requestError } = await api.upload<ImportTeamResponse>('/team/import', formData)
+    const { data, error: requestError } = await api.upload<ImportTeamResponse>(
+      '/team/import',
+      formData
+    )
     setLoading(false)
 
     if (requestError) {
@@ -95,12 +103,12 @@ export default function OnboardingTeamImportPage() {
       return
     }
 
-    if (data?.recoveryKey) {
-      sessionStorage.setItem('zenvoice_recovery_key', data.recoveryKey)
+    if (data?.recoveryKey && data.team) {
+      sessionStorage.setItem(`faktur_recovery_key_${data.team.id}`, data.recoveryKey)
     }
 
     await refreshUser()
-    toast(`Equipe "${data?.team.name}" importee`, 'success')
+    toast(`Équipe "${data?.team.name}" importée`, 'success')
     router.push(data?.recoveryKey ? '/onboarding/recovery-key' : '/onboarding/company')
   }
 
@@ -109,27 +117,28 @@ export default function OnboardingTeamImportPage() {
       <motion.div variants={fadeUp} custom={0}>
         <Link
           href="/onboarding/team"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          Retour a la creation d&apos;equipe
+          Retour à la création d&apos;équipe
         </Link>
       </motion.div>
 
       <Card className="overflow-hidden border-border/50">
-        <CardContent className="p-8">
+        <CardContent className="p-6 sm:p-8">
           <form onSubmit={handleImport}>
             <FieldGroup>
               <motion.div variants={fadeUp} custom={1} className="text-center">
-                <h1 className="text-2xl font-bold">Importer une equipe</h1>
+                <h1 className="text-2xl font-bold">Importer une équipe</h1>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Importez une sauvegarde existante puis continuez l&apos;onboarding avec cette equipe.
+                  Importez une sauvegarde existante puis continuez la configuration avec cette
+                  équipe.
                 </p>
               </motion.div>
 
               {error && (
                 <motion.div variants={fadeUp} custom={2}>
-                  <FieldError className="text-center bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                  <FieldError className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-center">
                     {error}
                   </FieldError>
                 </motion.div>
@@ -155,7 +164,7 @@ export default function OnboardingTeamImportPage() {
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 cursor-pointer transition-all ${
+                  className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 transition-all ${
                     dragOver
                       ? 'border-primary bg-primary/5'
                       : importFile
@@ -168,12 +177,12 @@ export default function OnboardingTeamImportPage() {
                       <FileArchive className="h-8 w-8 text-primary" />
                       <div className="text-center">
                         <p className="text-sm font-medium text-foreground">{importFile.name}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           {(importFile.size / 1024).toFixed(1)} Ko
                           {isEncrypted && (
-                            <span className="inline-flex items-center gap-1 ml-2 text-amber-400">
+                            <span className="ml-2 inline-flex items-center gap-1 text-amber-400">
                               <Lock className="h-3 w-3" />
-                              Chiffre
+                              Chiffré
                             </span>
                           )}
                         </p>
@@ -184,9 +193,11 @@ export default function OnboardingTeamImportPage() {
                     <>
                       <Upload className="h-8 w-8 text-muted-foreground" />
                       <div className="text-center">
-                        <p className="text-sm font-medium text-foreground">Glissez-deposez un fichier ici</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          ou cliquez pour selectionner (.zip ou .fpdata)
+                        <p className="text-sm font-medium text-foreground">
+                          Glissez-déposez un fichier ici
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          ou cliquez pour sélectionner (.zip ou .fpdata)
                         </p>
                       </div>
                     </>
@@ -197,18 +208,18 @@ export default function OnboardingTeamImportPage() {
               {isEncrypted && (
                 <motion.div variants={fadeUp} custom={4}>
                   <Field>
-                    <FieldLabel htmlFor="importPassword">Mot de passe de dechiffrement</FieldLabel>
+                    <FieldLabel htmlFor="importPassword">Mot de passe de déchiffrement</FieldLabel>
                     <Input
                       id="importPassword"
                       name="archive-password"
                       type="password"
                       value={importPassword}
                       onChange={(e) => setImportPassword(e.target.value)}
-                      placeholder="Mot de passe utilise lors de l'export"
+                      placeholder="Mot de passe utilisé lors de l'export"
                       autoComplete="off"
                     />
                     <FieldDescription>
-                      Ce fichier est chiffre. Entrez le mot de passe defini lors de l&apos;export.
+                      Ce fichier est chiffré. Entrez le mot de passe défini lors de l&apos;export.
                     </FieldDescription>
                   </Field>
                 </motion.div>
@@ -220,17 +231,18 @@ export default function OnboardingTeamImportPage() {
 
               <motion.div variants={fadeUp} custom={6}>
                 <Field>
-                  <FieldLabel htmlFor="importName">Nom de l&apos;equipe</FieldLabel>
+                  <FieldLabel htmlFor="importName">Nom de l&apos;équipe</FieldLabel>
                   <Input
                     id="importName"
                     value={importName}
                     onChange={(e) => setImportName(e.target.value)}
-                    placeholder="Nom de l'equipe importee"
+                    placeholder="Nom de l'équipe importée"
                     required
                     minLength={2}
                   />
                   <FieldDescription>
-                    Vous pouvez modifier le nom de l&apos;equipe importee avant la fin de l&apos;import.
+                    Vous pouvez modifier le nom de l&apos;équipe importée avant la fin de
+                    l&apos;import.
                   </FieldDescription>
                 </Field>
               </motion.div>
@@ -239,12 +251,18 @@ export default function OnboardingTeamImportPage() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={loading || !importFile || importName.length < 2 || (isEncrypted && !importPassword)}
+                  disabled={
+                    loading || !importFile || importName.length < 2 || (isEncrypted && !importPassword)
+                  }
                 >
                   {loading ? (
-                    <><Spinner /> Importation en cours...</>
+                    <>
+                      <Spinner /> Importation en cours…
+                    </>
                   ) : (
-                    <><Upload className="h-4 w-4 mr-2" /> Importer l&apos;equipe</>
+                    <>
+                      <Upload className="mr-2 h-4 w-4" /> Importer l&apos;équipe
+                    </>
                   )}
                 </Button>
               </motion.div>
