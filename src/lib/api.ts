@@ -19,13 +19,22 @@ function recordApiError(method: string, endpoint: string, status: number, body: 
   })
 }
 
-let vaultLockListeners: (() => void)[] = []
-export function onVaultLocked(cb: () => void) {
-  vaultLockListeners.push(cb)
-  return () => { vaultLockListeners = vaultLockListeners.filter((l) => l !== cb) }
+const VAULT_LOCKED_PATH = '/dashboard/vault-locked'
+
+function redirectToVaultLocked() {
+  if (typeof window === 'undefined') return
+  if (window.location.pathname === VAULT_LOCKED_PATH) return
+  const current = window.location.pathname + window.location.search
+  const suffix = current.startsWith('/dashboard')
+    ? `?returnTo=${encodeURIComponent(current)}`
+    : ''
+  window.location.replace(`${VAULT_LOCKED_PATH}${suffix}`)
 }
-function notifyVaultLocked() {
-  vaultLockListeners.forEach((cb) => cb())
+
+let vaultLockedListeners: (() => void)[] = []
+export function onVaultLocked(cb: () => void) {
+  vaultLockedListeners.push(cb)
+  return () => { vaultLockedListeners = vaultLockedListeners.filter((l) => l !== cb) }
 }
 
 let storageFullListeners: ((message: string) => void)[] = []
@@ -66,7 +75,7 @@ function handleVaultOrSession(data: any, status: number): { error: string } | nu
   const { code, message } = parseErrorPayload(data)
 
   if (status === 423 && (code === 'VAULT_LOCKED' || code === 'vault_locked')) {
-    notifyVaultLocked()
+    redirectToVaultLocked()
     return { error: 'VAULT_LOCKED' }
   }
 

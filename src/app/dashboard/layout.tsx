@@ -107,29 +107,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [pathname])
 
   useEffect(() => {
-    if (user) {
-      api.get<{ teams: TeamListItem[] }>('/team/all').then(({ data }) => {
-        if (data?.teams) {
-          setTeams(data.teams)
-          setTeamsLoaded(true)
-        }
-      })
-      api.get<{ quoteDrafts: number; invoiceDrafts: number }>('/dashboard/sidebar-counts').then(({ data }) => {
-        if (data) {
-          setSidebarBadges({
-            '/dashboard/quotes/drafts': data.quoteDrafts,
-            '/dashboard/invoices/drafts': data.invoiceDrafts,
-          })
-        }
-      })
-      api.get<StorageUsageSummary>('/storage/usage').then(({ data }) => {
-        if (data) setStorage(data)
-      })
-    }
+    if (!user) return
+    api.get<{ teams: TeamListItem[] }>('/team/all').then(({ data }) => {
+      if (data?.teams) {
+        setTeams(data.teams)
+        setTeamsLoaded(true)
+      }
+    })
+    if (user.vaultLocked) return
+    api.get<{ quoteDrafts: number; invoiceDrafts: number }>('/dashboard/sidebar-counts').then(({ data }) => {
+      if (data) {
+        setSidebarBadges({
+          '/dashboard/quotes/drafts': data.quoteDrafts,
+          '/dashboard/invoices/drafts': data.invoiceDrafts,
+        })
+      }
+    })
+    api.get<StorageUsageSummary>('/storage/usage').then(({ data }) => {
+      if (data) setStorage(data)
+    })
   }, [user?.currentTeamId])
 
   useEffect(() => {
-    if (!user) return
+    if (!user || user.vaultLocked) return
     function refetchStorage() {
       api.get<StorageUsageSummary>('/storage/usage').then(({ data }) => {
         if (data) setStorage(data)
