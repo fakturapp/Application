@@ -348,6 +348,10 @@ export const CUSTOM_BACKGROUND_ID = 'custom'
 export const BACKGROUND_SETTINGS_STORAGE_KEY = 'faktur_bg_settings'
 export const BACKGROUND_SETTINGS_EVENT = 'faktur-bg-settings'
 
+const UI_THEME_COOKIE_NAME = 'faktur_ui_theme'
+const UI_THEME_COOKIE_DOMAIN = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || '.fakturapp.cc'
+const UI_THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+
 export interface BackgroundSettings {
   themeId: string
   intensity: number
@@ -385,7 +389,64 @@ export function loadBackgroundThemeId(): string {
   }
 }
 
+function readUiThemeCookieRaw(): string | null {
+  if (typeof document === 'undefined') return null
+  const cookies = document.cookie ? document.cookie.split('; ') : []
+  for (const cookie of cookies) {
+    const eq = cookie.indexOf('=')
+    if (eq === -1) continue
+    if (cookie.slice(0, eq) === UI_THEME_COOKIE_NAME) {
+      return decodeURIComponent(cookie.slice(eq + 1))
+    }
+  }
+  return null
+}
+
+function loadCookieBackgroundSettings(): BackgroundSettings | null {
+  const raw = readUiThemeCookieRaw()
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return null
+    if (typeof parsed.background !== 'string' || !parsed.background) return null
+    return {
+      themeId: parsed.background,
+      intensity: clampSetting(parsed.backgroundIntensity, 20, 100, 100),
+      customUrl:
+        typeof parsed.customBackgroundUrl === 'string' && parsed.customBackgroundUrl
+          ? parsed.customBackgroundUrl
+          : null,
+      customBlur: clampSetting(parsed.customBlur, 0, 40, 0),
+      customDim: clampSetting(parsed.customDim, 0, 80, 30),
+    }
+  } catch {
+    return null
+  }
+}
+
+function writeCookieBackgroundSettings(settings: BackgroundSettings): void {
+  if (typeof document === 'undefined') return
+  const raw = readUiThemeCookieRaw()
+  if (!raw) return
+  try {
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return
+    const next = {
+      ...parsed,
+      background: settings.themeId,
+      backgroundIntensity: settings.intensity,
+      customBackgroundUrl: settings.customUrl,
+      customBlur: settings.customBlur,
+      customDim: settings.customDim,
+    }
+    const value = encodeURIComponent(JSON.stringify(next))
+    document.cookie = `${UI_THEME_COOKIE_NAME}=${value}; domain=${UI_THEME_COOKIE_DOMAIN}; path=/; max-age=${UI_THEME_COOKIE_MAX_AGE}; secure; samesite=lax`
+  } catch {}
+}
+
 export function loadBackgroundSettings(): BackgroundSettings {
+  const fromCookie = loadCookieBackgroundSettings()
+  if (fromCookie) return fromCookie
   const themeId = loadBackgroundThemeId()
   try {
     const raw = localStorage.getItem(BACKGROUND_SETTINGS_STORAGE_KEY)
@@ -410,6 +471,7 @@ export function saveBackgroundSettings(settings: BackgroundSettings) {
     localStorage.setItem(BACKGROUND_SETTINGS_STORAGE_KEY, JSON.stringify(settings))
     localStorage.setItem(BACKGROUND_THEME_STORAGE_KEY, settings.themeId)
   } catch {}
+  writeCookieBackgroundSettings(settings)
   window.dispatchEvent(new CustomEvent(BACKGROUND_SETTINGS_EVENT, { detail: settings }))
 }
 

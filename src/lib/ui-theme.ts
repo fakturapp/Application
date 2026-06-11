@@ -14,6 +14,10 @@ export interface UiTheme {
 
 export const DEFAULT_ACCENT = '#5957e8'
 export const UI_ACCENT_STORAGE_KEY = 'faktur_ui_accent'
+export const UI_THEME_COOKIE_NAME = 'faktur_ui_theme'
+
+const THEME_COOKIE_DOMAIN = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || '.fakturapp.cc'
+const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 export const DEFAULT_BACKGROUND_INTENSITY = 100
 export const MIN_BACKGROUND_INTENSITY = 20
@@ -153,6 +157,32 @@ export function parseUiTheme(raw: string | null | undefined): UiTheme {
   }
 }
 
+export function writeThemeCookie(theme: UiTheme): void {
+  if (typeof document === 'undefined') return
+  const value = encodeURIComponent(serializeUiTheme(theme))
+  document.cookie = `${UI_THEME_COOKIE_NAME}=${value}; domain=${THEME_COOKIE_DOMAIN}; path=/; max-age=${THEME_COOKIE_MAX_AGE}; secure; samesite=lax`
+}
+
+export function readThemeCookie(): UiTheme | null {
+  if (typeof document === 'undefined') return null
+  const cookies = document.cookie ? document.cookie.split('; ') : []
+  for (const cookie of cookies) {
+    const eq = cookie.indexOf('=')
+    if (eq === -1) continue
+    if (cookie.slice(0, eq) === UI_THEME_COOKIE_NAME) {
+      const raw = decodeURIComponent(cookie.slice(eq + 1))
+      return raw ? parseUiTheme(raw) : null
+    }
+  }
+  return null
+}
+
+export function writeThemeCookieMode(mode: UiMode): void {
+  const current = readThemeCookie()
+  if (!current) return
+  writeThemeCookie({ ...current, mode })
+}
+
 export function applyAccent(accent: string | null) {
   const root = document.documentElement
   if (accent && accent.toLowerCase() !== DEFAULT_ACCENT) {
@@ -170,7 +200,10 @@ export function applyAccent(accent: string | null) {
 
 export function bootCachedAccent() {
   try {
-    const cached = localStorage.getItem(UI_ACCENT_STORAGE_KEY)
+    const cookieTheme = readThemeCookie()
+    const cached = cookieTheme
+      ? cookieTheme.accent
+      : localStorage.getItem(UI_ACCENT_STORAGE_KEY)
     if (cached && /^#[0-9a-fA-F]{6}$/.test(cached)) {
       const root = document.documentElement
       if (cached.toLowerCase() !== DEFAULT_ACCENT) {
@@ -182,6 +215,7 @@ export function bootCachedAccent() {
 }
 
 export function applyUiTheme(theme: UiTheme, setMode?: (mode: UiMode) => void) {
+  writeThemeCookie(theme)
   applyAccent(theme.accent)
   const current = loadBackgroundSettings()
   saveBackgroundSettings({
