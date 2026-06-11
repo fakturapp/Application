@@ -13,6 +13,7 @@ import {
   Mail,
   Bell,
 } from '@/components/ui/icons'
+import { accountUrl } from '@/lib/account-redirect'
 import type { ElementType } from 'react'
 
 export interface SettingsSearchItem {
@@ -58,7 +59,7 @@ export const settingsSearchIndex: SettingsSearchItem[] = [
     keywords: ['membres', 'équipe', 'team', 'rôle', 'invitation', 'collaborateur'],
   },
   {
-    href: '/dashboard/settings/interface',
+    href: accountUrl('/settings/ui'),
     label: 'Interface',
     description: 'Thème du fond de votre espace Faktur',
     section: 'Général',

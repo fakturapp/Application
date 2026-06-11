@@ -52,7 +52,7 @@ export const CHANGELOG: ChangelogMonth[] = [
       {
         id: 'themes-interface',
         title: "Thèmes d'interface personnels",
-        body: `Un véritable [studio de thème](/dashboard/settings/interface) s'installe dans les paramètres. Choisissez le mode clair, sombre ou système, l'une des huit couleurs d'accent et l'un des seize fonds d'écran, dont des fonds animés à base de halos dérivants, de vagues, de circuits ou de pluie. Huit préréglages composés, de Minuit à Café, permettent d'adopter une ambiance en un clic, avec un aperçu en direct. Le thème est enregistré par utilisateur et vous suit partout, sur le tableau de bord, l'espace compte et le portail développeur. L'application adopte au passage une iconographie pleine et plus affirmée.`,
+        body: `Un véritable [studio de thème](/settings/ui) s'installe dans les paramètres. Choisissez le mode clair, sombre ou système, l'une des huit couleurs d'accent et l'un des seize fonds d'écran, dont des fonds animés à base de halos dérivants, de vagues, de circuits ou de pluie. Huit préréglages composés, de Minuit à Café, permettent d'adopter une ambiance en un clic, avec un aperçu en direct. Le thème est enregistré par utilisateur et vous suit partout, sur le tableau de bord, l'espace compte et le portail développeur. L'application adopte au passage une iconographie pleine et plus affirmée.`,
       },
       {
         id: 'stockage-equipe',
