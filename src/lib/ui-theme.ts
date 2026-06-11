@@ -1,4 +1,4 @@
-import { saveBackgroundThemeId } from '@/lib/background-themes'
+import { loadBackgroundSettings, saveBackgroundSettings } from '@/lib/background-themes'
 
 export type UiMode = 'light' | 'dark' | 'system'
 
@@ -6,10 +6,22 @@ export interface UiTheme {
   mode: UiMode
   accent: string | null
   background: string | null
+  backgroundIntensity: number
+  customBackgroundUrl: string | null
+  customBlur: number
+  customDim: number
 }
 
 export const DEFAULT_ACCENT = '#5957e8'
 export const UI_ACCENT_STORAGE_KEY = 'faktur_ui_accent'
+
+export const DEFAULT_BACKGROUND_INTENSITY = 100
+export const MIN_BACKGROUND_INTENSITY = 20
+export const MAX_BACKGROUND_INTENSITY = 100
+export const DEFAULT_CUSTOM_BLUR = 0
+export const MAX_CUSTOM_BLUR = 40
+export const DEFAULT_CUSTOM_DIM = 30
+export const MAX_CUSTOM_DIM = 80
 
 export const ACCENT_COLORS = [
   { id: 'indigo', name: 'Indigo', color: '#5957e8' },
@@ -29,59 +41,90 @@ export interface UiPreset {
   theme: UiTheme
 }
 
+function presetTheme(mode: UiMode, accent: string, background: string): UiTheme {
+  return {
+    mode,
+    accent,
+    background,
+    backgroundIntensity: DEFAULT_BACKGROUND_INTENSITY,
+    customBackgroundUrl: null,
+    customBlur: DEFAULT_CUSTOM_BLUR,
+    customDim: DEFAULT_CUSTOM_DIM,
+  }
+}
+
 export const UI_PRESETS: UiPreset[] = [
   {
     id: 'faktur',
     name: 'Faktur',
     description: 'Le thème par défaut, indigo et net',
-    theme: { mode: 'system', accent: '#5957e8', background: 'aurore' },
+    theme: presetTheme('system', '#5957e8', 'aurore'),
   },
   {
     id: 'minuit',
     name: 'Minuit',
     description: 'Sombre, bleu profond',
-    theme: { mode: 'dark', accent: '#3b82f6', background: 'minuit' },
+    theme: presetTheme('dark', '#3b82f6', 'minuit'),
   },
   {
     id: 'cafe',
     name: 'Café',
     description: 'Sombre et chaleureux, ambre doré',
-    theme: { mode: 'dark', accent: '#f59e0b', background: 'or' },
+    theme: presetTheme('dark', '#f59e0b', 'or'),
   },
   {
     id: 'foret',
     name: 'Forêt',
     description: 'Clair, vert nature',
-    theme: { mode: 'light', accent: '#10b981', background: 'foret' },
+    theme: presetTheme('light', '#10b981', 'foret'),
   },
   {
     id: 'bonbon',
     name: 'Bonbon',
     description: 'Clair, rose pastel',
-    theme: { mode: 'light', accent: '#ec4899', background: 'nebuleuse' },
+    theme: presetTheme('light', '#ec4899', 'nebuleuse'),
   },
   {
     id: 'ocean',
     name: 'Océan',
     description: 'Clair, cyan marin',
-    theme: { mode: 'light', accent: '#06b6d4', background: 'ocean' },
+    theme: presetTheme('light', '#06b6d4', 'ocean'),
   },
   {
     id: 'carbone',
     name: 'Carbone',
     description: 'Sombre, violet technique',
-    theme: { mode: 'dark', accent: '#8b5cf6', background: 'grille' },
+    theme: presetTheme('dark', '#8b5cf6', 'grille'),
   },
   {
     id: 'creme',
     name: 'Crème',
     description: 'Clair, minimal et doux',
-    theme: { mode: 'light', accent: '#f59e0b', background: 'papier' },
+    theme: presetTheme('light', '#f59e0b', 'papier'),
   },
 ]
 
+export function clampThemeNumber(
+  value: unknown,
+  min: number,
+  max: number,
+  fallback: number
+): number {
+  const num = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN
+  if (!Number.isFinite(num)) return fallback
+  return Math.min(max, Math.max(min, Math.round(num)))
+}
+
 export function parseUiTheme(raw: string | null | undefined): UiTheme {
-  const fallback: UiTheme = { mode: 'system', accent: null, background: null }
+  const fallback: UiTheme = {
+    mode: 'system',
+    accent: null,
+    background: null,
+    backgroundIntensity: DEFAULT_BACKGROUND_INTENSITY,
+    customBackgroundUrl: null,
+    customBlur: DEFAULT_CUSTOM_BLUR,
+    customDim: DEFAULT_CUSTOM_DIM,
+  }
   if (!raw) return fallback
   try {
     const parsed = JSON.parse(raw)
@@ -92,6 +135,18 @@ export function parseUiTheme(raw: string | null | undefined): UiTheme {
           ? parsed.accent
           : null,
       background: typeof parsed?.background === 'string' ? parsed.background : null,
+      backgroundIntensity: clampThemeNumber(
+        parsed?.backgroundIntensity,
+        MIN_BACKGROUND_INTENSITY,
+        MAX_BACKGROUND_INTENSITY,
+        DEFAULT_BACKGROUND_INTENSITY
+      ),
+      customBackgroundUrl:
+        typeof parsed?.customBackgroundUrl === 'string' && parsed.customBackgroundUrl
+          ? parsed.customBackgroundUrl
+          : null,
+      customBlur: clampThemeNumber(parsed?.customBlur, 0, MAX_CUSTOM_BLUR, DEFAULT_CUSTOM_BLUR),
+      customDim: clampThemeNumber(parsed?.customDim, 0, MAX_CUSTOM_DIM, DEFAULT_CUSTOM_DIM),
     }
   } catch {
     return fallback
@@ -128,7 +183,14 @@ export function bootCachedAccent() {
 
 export function applyUiTheme(theme: UiTheme, setMode?: (mode: UiMode) => void) {
   applyAccent(theme.accent)
-  if (theme.background) saveBackgroundThemeId(theme.background)
+  const current = loadBackgroundSettings()
+  saveBackgroundSettings({
+    themeId: theme.background ?? current.themeId,
+    intensity: theme.backgroundIntensity,
+    customUrl: theme.customBackgroundUrl,
+    customBlur: theme.customBlur,
+    customDim: theme.customDim,
+  })
   if (setMode) setMode(theme.mode)
 }
 
