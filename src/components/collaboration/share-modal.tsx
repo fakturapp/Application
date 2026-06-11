@@ -8,9 +8,10 @@ import { Input } from '@/components/ui/input'
 import { FormSelect } from '@/components/ui/dropdown'
 import { useToast } from '@/components/ui/toast'
 import { api } from '@/lib/api'
+import { cn } from '@/lib/cn'
 import {
   Link2, Copy, Check, X, UserPlus, Users,
-  ChevronRight, ArrowLeft, Trash2,
+  ChevronRight, ChevronDown, ArrowLeft, Trash2,
 } from '@/components/ui/icons'
 import { CheckboxRoot, CheckboxControl, CheckboxIndicator, CheckboxContent } from '@/components/ui/checkbox'
 
@@ -21,6 +22,7 @@ interface ShareEntry {
   id: string
   permission: Permission
   status: 'active' | 'pending'
+  canShare?: boolean
   sharedWithEmail: string | null
   sharedWith: {
     id: string
@@ -41,6 +43,7 @@ interface ShareLinkEntry {
   visibility: Visibility
   autoExpire: boolean
   allowAnonymous?: boolean
+  allowResharing?: boolean
   isActive: boolean
   expiresAt: string | null
   createdAt: string
@@ -117,6 +120,8 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
   const [linkVisibility, setLinkVisibility] = useState<Visibility>('anyone')
   const [linkAutoExpire, setLinkAutoExpire] = useState(true)
   const [linkAllowAnonymous, setLinkAllowAnonymous] = useState(false)
+  const [linkAllowResharing, setLinkAllowResharing] = useState(false)
+  const [expandedShareId, setExpandedShareId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
   const [inviting, setInviting] = useState(false)
@@ -140,6 +145,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     if (open) {
       fetchData()
       setView('main')
+      setExpandedShareId(null)
     }
   }, [open, fetchData])
 
@@ -153,6 +159,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
       visibility: linkAllowAnonymous ? 'anyone' : linkVisibility,
       autoExpire: linkAutoExpire,
       allowAnonymous: linkAllowAnonymous,
+      allowResharing: linkAllowResharing,
     })
     if (error) {
       toast(error, 'error')
@@ -212,6 +219,17 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     )
   }
 
+  const updateCanShare = async (shareId: string, canShare: boolean) => {
+    const { error } = await api.patch(`/collaboration/shares/${shareId}`, { canShare })
+    if (error) {
+      toast(error, 'error')
+      return
+    }
+    setShares((prev) =>
+      prev.map((s) => (s.id === shareId ? { ...s, canShare } : s))
+    )
+  }
+
   const revokeAccess = async (shareId: string) => {
     const { error } = await api.delete(`/collaboration/shares/${shareId}`)
     if (error) {
@@ -265,6 +283,17 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
     )
   }
 
+  const changeLinkResharing = async (checked: boolean) => {
+    if (!activeLink) {
+      setLinkAllowResharing(checked)
+      return
+    }
+    await api.patch(`/collaboration/share-links/${activeLink.id}`, { allowResharing: checked })
+    setLinks((prev) =>
+      prev.map((l) => (l.id === activeLink.id ? { ...l, allowResharing: checked } : l))
+    )
+  }
+
   const generateLink = async () => {
     setCreating(true)
     const ok = await createShareLink()
@@ -280,6 +309,7 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
 
   const settingsPermission = activeLink ? activeLink.permission : linkPermission
   const settingsAnonymous = activeLink ? !!activeLink.allowAnonymous : linkAllowAnonymous
+  const settingsResharing = activeLink ? !!activeLink.allowResharing : linkAllowResharing
   const settingsVisibility = settingsAnonymous
     ? 'anyone'
     : activeLink ? activeLink.visibility : linkVisibility
@@ -394,44 +424,94 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                         {shares.map((share) => {
                           const name = share.sharedWith?.fullName ?? share.sharedWithEmail ?? '?'
                           const email = share.sharedWith?.email ?? share.sharedWithEmail ?? ''
+                          const expanded = expandedShareId === share.id
                           return (
                             <motion.div
                               key={share.id}
                               initial={{ opacity: 0, y: -4 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, x: -10 }}
-                              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/30"
                             >
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                                {getInitials(share.sharedWith?.fullName ?? null, email)}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium text-foreground">{name}</p>
-                                {share.sharedWith?.fullName && (
-                                  <p className="truncate text-xs text-muted-foreground">{email}</p>
-                                )}
-                              </div>
-                              {share.status === 'pending' && (
-                                <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-500">
-                                  En attente
-                                </span>
-                              )}
-                              <FormSelect
-                                value={share.permission}
-                                onChange={(v) => updatePermission(share.id, v as Permission)}
-                                className="h-7 w-[120px] shrink-0 text-xs"
-                                showCheck={false}
-                                options={permissionOptions}
-                              />
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 shrink-0 text-destructive hover:bg-destructive/10"
-                                onClick={() => revokeAccess(share.id)}
-                                title="Révoquer l'accès"
+                              <button
+                                type="button"
+                                onClick={() => setExpandedShareId(expanded ? null : share.id)}
+                                className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted/30"
                               >
-                                <X className="h-3.5 w-3.5" />
-                              </Button>
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                                  {getInitials(share.sharedWith?.fullName ?? null, email)}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-medium text-foreground">{name}</p>
+                                  {share.sharedWith?.fullName && (
+                                    <p className="truncate text-xs text-muted-foreground">{email}</p>
+                                  )}
+                                </div>
+                                {share.status === 'pending' && (
+                                  <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-500">
+                                    En attente
+                                  </span>
+                                )}
+                                <span className="shrink-0 text-xs text-muted-foreground">
+                                  {permissionLabels[share.permission]}
+                                </span>
+                                <ChevronDown
+                                  className={cn(
+                                    'h-4 w-4 shrink-0 text-muted-foreground transition-transform',
+                                    expanded && 'rotate-180'
+                                  )}
+                                />
+                              </button>
+                              <AnimatePresence initial={false}>
+                                {expanded && (
+                                  <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.18 }}
+                                    className="overflow-hidden"
+                                  >
+                                    <div className="mb-1 ml-11 mr-2 mt-1 space-y-3 rounded-lg border border-border bg-muted/20 p-3">
+                                      <div className="flex items-center justify-between gap-3">
+                                        <span className="text-xs font-medium text-muted-foreground">
+                                          Autorisation
+                                        </span>
+                                        <FormSelect
+                                          value={share.permission}
+                                          onChange={(v) => updatePermission(share.id, v as Permission)}
+                                          className="h-7 w-[130px] shrink-0 text-xs"
+                                          showCheck={false}
+                                          options={permissionOptions}
+                                        />
+                                      </div>
+                                      <CheckboxRoot
+                                        isSelected={!!share.canShare}
+                                        onChange={(checked) => updateCanShare(share.id, checked)}
+                                        className="flex items-start gap-2.5"
+                                      >
+                                        <CheckboxControl>
+                                          <CheckboxIndicator />
+                                        </CheckboxControl>
+                                        <CheckboxContent>
+                                          <p className="text-sm text-foreground">Autoriser le partage</p>
+                                          <p className="mt-0.5 text-xs text-muted-foreground">
+                                            Cette personne peut partager le document à son tour
+                                          </p>
+                                        </CheckboxContent>
+                                      </CheckboxRoot>
+                                      <Button
+                                        variant="danger-soft"
+                                        size="sm"
+                                        fullWidth
+                                        onClick={() => revokeAccess(share.id)}
+                                        className="gap-1.5"
+                                      >
+                                        <X className="h-3.5 w-3.5" />
+                                        Révoquer l&apos;accès
+                                      </Button>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
                             </motion.div>
                           )
                         })}
@@ -526,6 +606,22 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                       <p className="text-sm text-foreground">Accès sans compte</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         Accessible sans compte Faktur, en lecture seule, affiché comme Invité
+                      </p>
+                    </CheckboxContent>
+                  </CheckboxRoot>
+
+                  <CheckboxRoot
+                    isSelected={settingsResharing}
+                    onChange={changeLinkResharing}
+                    className="flex items-start gap-2.5"
+                  >
+                    <CheckboxControl>
+                      <CheckboxIndicator />
+                    </CheckboxControl>
+                    <CheckboxContent>
+                      <p className="text-sm text-foreground">Autoriser les invités à partager le document</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Les personnes qui rejoignent via ce lien pourront le partager à leur tour
                       </p>
                     </CheckboxContent>
                   </CheckboxRoot>
