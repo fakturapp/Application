@@ -79,7 +79,7 @@ function contrastText(hex: string) {
   const r = parseInt(hex.slice(1, 3), 16)
   const g = parseInt(hex.slice(3, 5), 16)
   const b = parseInt(hex.slice(5, 7), 16)
-  return (r * 299 + g * 587 + b * 114) / 1000 > 128 ? '#000' : '#fff'
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128 ? '#000000' : '#ffffff'
 }
 
 function fmtCurrency(n: number, lang?: string) {
@@ -834,6 +834,7 @@ type PageRole = 'single' | 'first' | 'continuation'
 
 const A4_SHEET_W = 960
 const A4_SHEET_H = Math.round(A4_SHEET_W * (297 / 210))
+const SIDEBAR_W = Math.round(A4_SHEET_W * 0.22)
 const SPLIT_GAP = 24
 const SPLIT_W = A4_SHEET_W * 2 + SPLIT_GAP
 const PAGE_PAD_X = 40
@@ -955,6 +956,11 @@ export function A4Sheet({
   const T = getTemplate(template, darkMode)
   const t = getTranslations(lang)
   const isClassique = T.id === 'classique'
+  const isLateral = T.layout === 'lateral'
+  const sidebarW = isLateral ? SIDEBAR_W : 0
+  const bodyW = COL_W - sidebarW
+  const colGapEff = COL_GAP + sidebarW
+  const sidebarInk = contrastText(accentColor)
   const isInvoice = documentType === 'invoice'
   const isCreditNote = documentType === 'credit_note'
   const defaultTitle = isCreditNote ? 'Avoir' : isInvoice ? t.invoice : t.quote
@@ -1011,7 +1017,7 @@ export function A4Sheet({
       clearTimeout(late)
       ro.disconnect()
     }
-  }, [lines.length, effectiveFont])
+  }, [lines.length, effectiveFont, sidebarW])
 
   const tooMuchContent = rawPageCount > 2
   const pageCount = Math.min(rawPageCount, 2)
@@ -1131,6 +1137,65 @@ export function A4Sheet({
       titleText={t.clickToEdit} />
   )
 
+  const ieSide = (v: string, onChange: (s: string) => void, cls?: string, ph?: string) => (
+    <InlineEdit value={v} onChange={onChange} preview={isPreview} accentColor={sidebarInk}
+      inputBg={accentColor} borderDashed={`${sidebarInk}55`} className={cls} placeholder={ph}
+      titleText={t.clickToEdit} />
+  )
+
+  const renderSidebar = () => (
+    <div
+      className="flex h-full min-h-full flex-col px-4 py-7"
+      style={{
+        color: sidebarInk,
+        fontFamily: `'${effectiveFont}', 'Segoe UI', sans-serif`,
+      }}
+    >
+      <div className="mb-5" data-collab-target data-collab-id="logo">
+        {ed ? (
+          <LogoEditor logoUrl={logoUrl} logoBorderRadius={logoBorderRadius} accentColor={accentColor}
+            companyLogoUrl={companyLogoUrl} onLogoChange={onLogoChange} onLogoBorderRadiusChange={onLogoBorderRadiusChange}
+            onLogoUpload={onLogoUpload} T={T} variant="banner" company={company} t={t} />
+        ) : logoUrl ? (
+          <img src={logoUrl} alt="Logo" className="h-12 w-auto max-w-[120px] object-contain" style={{ borderRadius: `${logoBorderRadius}px` }} />
+        ) : (
+          <div className="text-[16px] font-bold">{company?.legalName || t.society}</div>
+        )}
+      </div>
+      {company && (
+        <div className="mb-5" data-collab-id="company">
+          <div className="text-[9px] uppercase tracking-[1px] font-semibold mb-1.5 opacity-70">{t.society}</div>
+          <div className="text-[11px] leading-[1.6]">
+            <div>{ieSide(company.legalName, (v) => onCompanyFieldChange('legalName', v), 'font-bold text-[12px]', t.society)}</div>
+            <div>{ieSide(company.addressLine1 || '', (v) => onCompanyFieldChange('addressLine1', v), 'text-[11px]', t.address)}</div>
+            <div>
+              {ieSide(company.postalCode || '', (v) => onCompanyFieldChange('postalCode', v), 'text-[11px]', t.postalCode)}{' '}
+              {ieSide(company.city || '', (v) => onCompanyFieldChange('city', v), 'text-[11px]', t.city)}
+            </div>
+          </div>
+        </div>
+      )}
+      {company && (ed || company.siren || company.vatNumber) && (
+        <div className="mb-5">
+          <div className="text-[9px] uppercase tracking-[1px] font-semibold mb-1.5 opacity-70">{lang === 'en' ? 'Details' : 'Informations'}</div>
+          <div className="text-[10px] leading-[1.7]">
+            <div>SIREN : {ieSide(company.siren || '', (v) => onCompanyFieldChange('siren', v), 'text-[10px]', '000000000')}</div>
+            <div>{lang === 'en' ? 'VAT No.' : 'N° TVA'} : {ieSide(company.vatNumber || '', (v) => onCompanyFieldChange('vatNumber', v), 'text-[10px]', 'FR00000000000')}</div>
+          </div>
+        </div>
+      )}
+      {company && (ed || company.phone || company.email) && (
+        <div>
+          <div className="text-[9px] uppercase tracking-[1px] font-semibold mb-1.5 opacity-70">Contact</div>
+          <div className="text-[10px] leading-[1.7]">
+            <div>{ieSide(company.phone || '', (v) => onCompanyFieldChange('phone', v), 'text-[10px]', t.phone)}</div>
+            <div>{ieSide(company.email || '', (v) => onCompanyFieldChange('email', v), 'text-[10px]', t.email)}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
   const renderDocumentBody = (
     role: PageRole,
     sliceLines: DocumentLine[],
@@ -1197,7 +1262,35 @@ export function A4Sheet({
                 </div>
               )}
 
-              {T.layout !== 'banner' && (
+              {isLateral && (
+                <div className="flex justify-between items-start mb-5">
+                  <div />
+                  <div className="text-right" data-collab-id="docinfo">
+                    <div
+                      className="inline-block px-5 py-2.5 mb-2"
+                      style={{
+                        background: `${accentColor}12`,
+                        border: `1px solid ${accentColor}33`,
+                        borderRadius: T.borderRadius,
+                      }}
+                    >
+                      <div className="flex items-center gap-2 justify-center">
+                        <FileText className="h-5 w-5" style={{ color: accentColor }} />
+                        <span className="text-[20px] font-bold uppercase tracking-[2px]" style={{ color: accentColor }}>
+                          {documentTitle || defaultTitle}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-[12px] leading-[1.8]" style={{ color: T.text }}>
+                      <div>
+                        {t.quoteNumber} {ie(quoteNumber, onQuoteNumberChange, 'font-semibold', 'D-0001')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {T.layout === 'standard' && (
                 <div className="flex justify-between items-start mb-5">
                   <div className="max-w-[55%]" data-collab-id="company">
                     {ed ? (
@@ -1317,7 +1410,17 @@ export function A4Sheet({
               )}
 
               <div className="flex justify-end mb-5">
-                <div className="relative w-full max-w-[50%] group" data-collab-id="client" data-collab-target>
+                <div
+                  className="relative w-full max-w-[50%] group"
+                  data-collab-id="client"
+                  data-collab-target
+                  style={{
+                    backgroundColor: ed && !client ? T.clientEmptyBg : T.clientBlockBg,
+                    border: `1px ${ed && !client ? 'dashed' : 'solid'} ${ed && !client ? T.clientEmptyBorder : T.clientBlockBorder}`,
+                    borderRadius: T.borderRadius,
+                    padding: '10px 12px',
+                  }}
+                >
                   <div className="text-[12px] leading-[1.5] space-y-[3px]">
                     {ed ? (
                       <div
@@ -1382,7 +1485,7 @@ export function A4Sheet({
                   {ed && client && (
                     <button
                       onClick={(e) => { e.stopPropagation(); onClearClient() }}
-                      className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ color: T.textMuted }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = '#e53935')}
                       onMouseLeave={(e) => (e.currentTarget.style.color = T.textMuted)}
@@ -1854,9 +1957,16 @@ export function A4Sheet({
                     {lang === 'en' ? 'Payment method' : 'Moyen de paiement'}
                   </div>
                   <div className="text-[11px] leading-[1.7]" style={{ color: T.text }}>
-                    <div className="font-semibold">
+                    <span
+                      className="inline-block px-2.5 py-1 text-[10px] font-semibold rounded-md"
+                      style={{
+                        backgroundColor: T.paymentBadgeBg,
+                        border: `1px solid ${T.paymentBadgeBorder}`,
+                        color: T.paymentBadgeText,
+                      }}
+                    >
                       {paymentMethod === 'bank_transfer' ? (lang === 'en' ? 'Bank transfer' : 'Virement') : paymentMethod === 'stripe' ? (lang === 'en' ? 'Credit card (Stripe)' : 'Carte bancaire (Stripe)') : paymentMethod === 'cash' ? (lang === 'en' ? 'Cash' : 'Espèces') : ((paymentMethod === 'custom' || paymentMethod === 'other') && customPaymentMethod ? customPaymentMethod : (lang === 'en' ? 'Other' : 'Autre'))}
-                    </div>
+                    </span>
                     {paymentMethod === 'bank_transfer' && bankAccountInfo && (bankAccountInfo.iban || bankAccountInfo.bic || bankAccountInfo.bankName) && (
                       <div className="mt-1">
                         {bankAccountInfo.bankName && (
@@ -1983,7 +2093,16 @@ export function A4Sheet({
         data-collab-root
         className={cn('absolute inset-0', isPreview ? 'overflow-hidden' : 'overflow-y-auto')}
       >
-        {children}
+        {isLateral ? (
+          <div className="flex min-h-full">
+            <div className="shrink-0" style={{ width: SIDEBAR_W, backgroundColor: accentColor }}>
+              {renderSidebar()}
+            </div>
+            <div className="flex-1 min-w-0">{children}</div>
+          </div>
+        ) : (
+          children
+        )}
       </div>
     </div>
   )
@@ -2016,7 +2135,7 @@ export function A4Sheet({
         aria-hidden
         inert
         className="pointer-events-none"
-        style={{ position: 'absolute', left: -99999, top: 0, width: COL_W }}
+        style={{ position: 'absolute', left: -99999, top: 0, width: bodyW }}
       >
         {renderDocumentBody('single', lines, 0, contentRef, true)}
       </div>
@@ -2032,9 +2151,9 @@ export function A4Sheet({
             width: SPLIT_W,
             height: A4_SHEET_H,
             columnCount: 2,
-            columnGap: COL_GAP,
+            columnGap: colGapEff,
             columnFill: 'auto',
-            paddingLeft: PAGE_PAD_X,
+            paddingLeft: PAGE_PAD_X + sidebarW,
             paddingRight: PAGE_PAD_X,
             paddingTop: PAGE_PAD_Y,
             paddingBottom: PAGE_PAD_Y,
@@ -2081,8 +2200,8 @@ export function A4Sheet({
                   className="absolute overflow-hidden"
                   style={{
                     top: PAGE_PAD_Y,
-                    left: PAGE_PAD_X,
-                    width: COL_W,
+                    left: PAGE_PAD_X + sidebarW,
+                    width: bodyW,
                     height: STACK_TOTAL_H - PAGE_PAD_Y * 2,
                   }}
                 >
@@ -2096,6 +2215,20 @@ export function A4Sheet({
                     pageBreakMargin,
                   )}
                 </div>
+                {isLateral && (
+                  <>
+                    <div
+                      className="absolute left-0 overflow-hidden rounded-l-xl"
+                      style={{ top: 0, width: SIDEBAR_W, height: A4_SHEET_H, backgroundColor: accentColor }}
+                    >
+                      {renderSidebar()}
+                    </div>
+                    <div
+                      className="absolute left-0 overflow-hidden rounded-l-xl"
+                      style={{ top: A4_SHEET_H + SPLIT_GAP, width: SIDEBAR_W, height: A4_SHEET_H, backgroundColor: accentColor }}
+                    />
+                  </>
+                )}
               </motion.div>
             </div>
           ) : (
@@ -2129,9 +2262,9 @@ export function A4Sheet({
                   className="absolute inset-0 overflow-hidden"
                   style={{
                     columnCount: 2,
-                    columnGap: COL_GAP,
+                    columnGap: colGapEff,
                     columnFill: 'auto',
-                    paddingLeft: PAGE_PAD_X,
+                    paddingLeft: PAGE_PAD_X + sidebarW,
                     paddingRight: PAGE_PAD_X,
                     paddingTop: PAGE_PAD_Y,
                     paddingBottom: PAGE_PAD_Y,
@@ -2139,6 +2272,20 @@ export function A4Sheet({
                 >
                   {renderDocumentBody('single', lines, 0, undefined, true)}
                 </div>
+                {isLateral && (
+                  <>
+                    <div
+                      className="absolute top-0 left-0 h-full overflow-hidden rounded-l-xl"
+                      style={{ width: SIDEBAR_W, backgroundColor: accentColor }}
+                    >
+                      {renderSidebar()}
+                    </div>
+                    <div
+                      className="absolute top-0 h-full overflow-hidden rounded-l-xl"
+                      style={{ left: A4_SHEET_W + SPLIT_GAP, width: SIDEBAR_W, backgroundColor: accentColor }}
+                    />
+                  </>
+                )}
               </motion.div>
             </div>
           )}
