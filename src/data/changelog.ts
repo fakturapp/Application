@@ -20,8 +20,8 @@ export interface ChangelogMeta {
 export const CHANGELOG_META: ChangelogMeta = {
   title: 'Mises à jour de Faktur',
   author: "L'équipe Faktur",
-  updatedAtIso: '2026-06-02',
-  updatedAtLabel: '2 juin 2026',
+  updatedAtIso: '2026-06-11',
+  updatedAtLabel: '11 juin 2026',
 }
 
 export const CHANGELOG: ChangelogMonth[] = [
@@ -29,6 +29,76 @@ export const CHANGELOG: ChangelogMonth[] = [
     id: 'juin-2026',
     label: 'Juin 2026',
     entries: [
+      {
+        id: 'collaboration-nouvelle-generation',
+        title: 'Collaboration en temps réel nouvelle génération',
+        body: `La collaboration sur un même document franchit un cap. Les curseurs des collaborateurs sont désormais ancrés aux éléments du document et restent parfaitement en place quel que soit le zoom, la taille d'écran ou la mise en page. La sélection de texte d'un collaborateur est surlignée au caractère près dans sa couleur, avec l'extrait sélectionné affiché sous son nom, et le champ en cours d'édition se teinte de la même couleur. Un indicateur Wifi montre l'état de la connexion en direct, la latence de chaque collaborateur est mesurée, et la présence couvre tout le document, du logo au panneau d'options, sur les factures comme sur les devis et les avoirs.`,
+      },
+      {
+        id: 'moderation-roles-direct',
+        title: 'Rôles, modération et permissions en direct',
+        body: `Le propriétaire d'un document dispose d'outils de modération directement sur les avatars de présence : consulter les informations d'un collaborateur, lui envoyer un signal, l'expulser de la session ou le bannir durablement, chaque action sensible étant confirmée. Les rôles propriétaire, admin, membre et lecteur déterminent ce que chacun peut faire, et une permission se modifie en direct sans que le collaborateur ait à recharger la page. Lorsqu'un rôle change dans l'équipe, le membre concerné en est informé immédiatement par une notification, sans avoir à se reconnecter.`,
+      },
+      {
+        id: 'partage-mode-invite',
+        title: 'Partage repensé et mode invité',
+        body: `La fenêtre de partage fait peau neuve avec deux vues, un panneau principal épuré et une vue dédiée aux réglages du lien. Les liens de partage peuvent désormais autoriser l'accès sans compte : l'invité ouvre le document dans une vue en direct dédiée, avec les curseurs des autres collaborateurs et la possibilité de continuer sans créer de compte. Les invitations par e-mail mènent à une page d'atterrissage dédiée, un courriel prévient la personne avec qui vous partagez, et les documents partagés depuis une autre équipe s'ouvrent en mode invité en direct. Une section « Partagés avec moi » regroupe sur vos listes les documents auxquels on vous a donné accès, et les liens de partage sont liés au plan Team, ils se désactivent si l'équipe ne l'a plus.`,
+      },
+      {
+        id: 'templates-redessines',
+        title: 'Seize modèles de documents redessinés',
+        body: `La bibliothèque de modèles passe à seize. Les neuf modèles historiques ont été entièrement redessinés, et sept nouveaux font leur entrée : Studio, Éditorial, Carbone, Horizon, Prisme, Pastel et Mono. Chaque modèle dispose d'une miniature fidèle à sa mise en page, le PDF généré reproduit exactement le rendu de l'éditeur, et le chargement des polices a été fiabilisé pour que chaque famille s'affiche avec les bonnes graisses. L'aperçu des réglages reflète désormais la police et la disposition du modèle choisi.`,
+      },
+      {
+        id: 'themes-interface',
+        title: "Thèmes d'interface personnels",
+        body: `Un véritable [studio de thème](/dashboard/settings/interface) s'installe dans les paramètres. Choisissez le mode clair, sombre ou système, l'une des huit couleurs d'accent et l'un des seize fonds d'écran, dont des fonds animés à base de halos dérivants, de vagues, de circuits ou de pluie. Huit préréglages composés, de Minuit à Café, permettent d'adopter une ambiance en un clic, avec un aperçu en direct. Le thème est enregistré par utilisateur et vous suit partout, sur le tableau de bord, l'espace compte et le portail développeur. L'application adopte au passage une iconographie pleine et plus affirmée.`,
+      },
+      {
+        id: 'stockage-equipe',
+        title: 'Stockage par équipe',
+        body: `Chaque équipe dispose désormais d'un espace de stockage adapté à sa formule : 10 Mo en Gratuit, 100 Mo en Pro et 20 Go en Team. Une [page de stockage](/dashboard/settings/storage) détaille l'usage par catégorie de documents, affiche la taille de chaque facture à côté de son montant et propose une action d'optimisation ainsi qu'un raccourci d'export des données. Une jauge dans la barre latérale suit la consommation en continu, et lorsque le quota est atteint, une bannière et une fenêtre dédiée expliquent clairement la marche à suivre.`,
+      },
+      {
+        id: 'espace-compte',
+        title: 'Espace compte dédié et connexion unique',
+        body: `Votre compte vit désormais dans un espace dédié, distinct du tableau de bord, qui regroupe le profil, la sécurité et les préférences. La session est partagée entre le tableau de bord, l'espace compte et le portail développeur : une seule connexion suffit pour circuler entre les applications. La page de connexion a été redessinée en carte centrée sur un fond animé, avec un écran de confirmation « Connexion réussie », et le menu de la barre latérale gagne une action pour verrouiller le coffre-fort à la demande.`,
+      },
+      {
+        id: 'deux-fa-enrichie',
+        title: 'Double authentification enrichie et vérification fiabilisée',
+        body: `La double authentification s'ouvre à plusieurs méthodes : application d'authentification, code reçu par e-mail ou code de récupération, à choisir au moment de la connexion. Vous pouvez marquer un appareil comme appareil de confiance pendant trente jours pour ne pas ressaisir de code, et une procédure dédiée prévient les administrateurs en cas de code perdu. La connexion via Google passe elle aussi par la double authentification lorsqu'elle est activée. La vérification d'adresse e-mail est par ailleurs fiabilisée, avec un lien valable vingt-quatre heures, un lien déjà utilisé qui ne provoque plus d'erreur et un renvoi proposé en cas de souci.`,
+      },
+      {
+        id: 'roles-equipe',
+        title: "Rôles d'équipe et collaboration au plan Team",
+        body: `Les rôles d'équipe prennent tout leur sens dans l'application. Les paramètres sont réservés aux administrateurs, les lecteurs consultent sans pouvoir modifier, et la barre latérale s'adapte au rôle de chacun. Les invitations de membres sont désormais liées au plan Team, qui accueille jusqu'à quinze personnes. En cas de rétrogradation, une période de grâce de sept jours s'ouvre, annoncée par une bannière et par e-mail, avant que les membres excédentaires soient désactivés avec un écran explicatif. La page des membres affiche le forfait de l'équipe et son mode de chiffrement, et les membres suspendus y sont clairement listés.`,
+      },
+      {
+        id: 'emails-cycle-vie',
+        title: "E-mails repensés et cycle de vie d'abonnement",
+        body: `Tous les e-mails transactionnels adoptent une mise en page de reçu, sobre et moderne, avec le montant mis en valeur et un bouton d'action pleine largeur. Chaque paiement réussi envoie le lien vers le reçu Stripe au payeur comme au créateur de la facture. L'abonnement est désormais accompagné par e-mail à chaque étape : confirmation de souscription, annulation, rétrogradation programmée, fin d'abonnement, échec de prélèvement avec rappel du délai de grâce, et récupération de paiement.`,
+      },
+      {
+        id: 'recherche-entreprise',
+        title: "Recherche d'entreprise par SIREN et SIRET",
+        body: `Le formulaire d'entreprise se remplit presque tout seul. Saisissez un nom, un SIREN ou un SIRET : une liste de suggestions s'affiche et les informations de l'entreprise sont récupérées puis remplies automatiquement. Un parcours de suppression des informations d'entreprise, protégé par une confirmation, fait également son apparition pour repartir de zéro.`,
+      },
+      {
+        id: 'documents-joints',
+        title: 'Documents joints aux factures',
+        body: `Une section « Documents joints » fait son entrée dans l'éditeur de facture. Attachez des fichiers à une facture, consultez-les, téléchargez-les ou retirez-les à tout moment. Ils sont automatiquement supprimés avec la facture et comptent dans le stockage de l'équipe.`,
+      },
+      {
+        id: 'fonctionnalites-pro',
+        title: 'Fonctionnalités Pro clairement identifiées',
+        body: `Chaque fonctionnalité avancée indique désormais le forfait qui la débloque, avec un badge dédié et un écran de présentation plutôt qu'une option grisée. Sont concernés Faktur AI, la personnalisation de l'apparence des documents, les relances automatiques, la connexion de comptes e-mail, l'envoi de factures par e-mail et les paiements en ligne Stripe et PayPal. En cas de retour au forfait Gratuit, votre personnalisation de documents est conservée dans une sauvegarde Premium puis restaurée automatiquement à la re-souscription, et l'application vous avertit si le forfait ne permet pas le modèle choisi.`,
+      },
+      {
+        id: 'portail-developpeur-forfaits',
+        title: 'Portail développeur au rythme de votre forfait',
+        body: `L'API publique adopte des quotas alignés sur votre forfait, avec des budgets de crédits par session de cinq heures et par semaine glissante, un coût pondéré selon le type de requête et une limite par minute propre à chaque formule. Le nombre de clés d'API et de projets s'adapte également au forfait, et l'explorateur d'API est réservé aux formules Pro et Team. En cas de rétrogradation, les ressources excédentaires bénéficient d'une période de grâce de sept jours, clairement signalée, avant suspension, et tout est restauré à la mise à niveau. Le portail affiche désormais votre forfait, une jauge de stockage et les mêmes bannières que le tableau de bord, et l'explorateur a été redessiné en constructeur de requêtes à onglets, avec des exemples prêts à l'emploi et une copie cURL en un clic.`,
+      },
       {
         id: 'codes-promo',
         title: 'Codes promo',
