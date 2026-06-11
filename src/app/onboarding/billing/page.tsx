@@ -218,6 +218,15 @@ export default function OnboardingBillingPage() {
     )
   }
 
+  const TABS = [
+    { id: 'mode' as const, label: 'Mode', icon: Zap },
+    { id: 'numbering' as const, label: 'Numérotation', icon: Hash },
+    { id: 'payments' as const, label: 'Paiements', icon: Banknote },
+    { id: 'conditions' as const, label: 'Conditions', icon: PenLine },
+  ]
+  type TabId = (typeof TABS)[number]['id']
+  const [tab, setTab] = useState<TabId>('mode')
+
   return (
     <motion.div initial="hidden" animate="visible">
       <Card className="overflow-hidden border-border/50">
@@ -227,255 +236,179 @@ export default function OnboardingBillingPage() {
             custom={0}
             className="mb-6 flex flex-col items-center gap-4 text-center"
           >
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-soft">
-              <Receipt className="h-8 w-8 text-accent" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft">
+              <Receipt className="h-7 w-7 text-accent" />
             </div>
             <div>
               <h1 className="text-2xl font-bold">Votre facturation</h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Définissez vos préférences par défaut. Tout reste modifiable dans les paramètres.
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Définissez vos préférences par défaut.
               </p>
             </div>
           </motion.div>
 
           {error && (
-            <motion.div
-              variants={fadeUp}
-              custom={1}
-              className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-center text-sm text-destructive"
-            >
+            <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-center text-sm text-destructive">
               {error}
-            </motion.div>
+            </div>
           )}
 
-          <motion.div variants={fadeUp} custom={1} className="mb-6">
-            <h2 className="mb-3 text-sm font-semibold text-foreground">Mode de facturation</h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <button
-                onClick={() => setBillingType('quick')}
-                className={`flex flex-col items-center gap-3 rounded-xl border-2 p-5 transition-all ${
-                  billingType === 'quick'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-border/80'
-                }`}
-              >
-                <Zap
-                  className={`h-6 w-6 ${billingType === 'quick' ? 'text-primary' : 'text-muted-foreground'}`}
-                />
-                <div className="text-center">
-                  <p className="text-sm font-medium">Rapide</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Un montant, un client, c&apos;est facturé
-                  </p>
-                </div>
-              </button>
-              <button
-                onClick={() => setBillingType('detailed')}
-                className={`flex flex-col items-center gap-3 rounded-xl border-2 p-5 transition-all ${
-                  billingType === 'detailed'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-border/80'
-                }`}
-              >
-                <ClipboardList
-                  className={`h-6 w-6 ${billingType === 'detailed' ? 'text-primary' : 'text-muted-foreground'}`}
-                />
-                <div className="text-center">
-                  <p className="text-sm font-medium">Détaillé</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Lignes, quantités et TVA par article
-                  </p>
-                </div>
-              </button>
-            </div>
-          </motion.div>
-
-          <motion.div variants={fadeUp} custom={2} className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field>
-              <FieldLabel>Régime de TVA</FieldLabel>
-              <FormSelect
-                value={vat}
-                onChange={(v) => setVat(v === 'exempt' ? 'exempt' : 'subject')}
-                options={VAT_OPTIONS}
-              />
-            </Field>
-            <Field>
-              <FieldLabel>
-                <span className="flex items-center gap-1.5">
-                  <FileText className="h-3.5 w-3.5" /> Langue des documents
-                </span>
-              </FieldLabel>
-              <FormSelect value={language} onChange={setLanguage} options={LANGUAGE_OPTIONS} />
-            </Field>
-          </motion.div>
-
-          <motion.div variants={fadeUp} custom={3} className="mb-6">
-            <h2 className="mb-3 text-sm font-semibold text-foreground">
-              <span className="flex items-center gap-1.5">
-                <Hash className="h-3.5 w-3.5" /> Numérotation
-              </span>
-            </h2>
-            <div className="space-y-4 rounded-xl border border-border p-4">
-              <Field>
-                <FieldLabel>Format des numéros</FieldLabel>
-                <FormSelect
-                  value={numberFormat}
-                  onChange={(v) => setNumberFormat(v as NumberFormat)}
-                  options={NUMBER_FORMATS}
-                />
-              </Field>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="invoicePrefix">Préfixe factures</FieldLabel>
-                  <Input
-                    id="invoicePrefix"
-                    value={invoicePrefix}
-                    onChange={(e) => setInvoicePrefix(e.target.value)}
-                    placeholder="FAC-"
-                  />
-                  <FieldDescription>
-                    Aperçu :{' '}
-                    <span className="font-mono text-foreground/80">
-                      {previewPattern(invoicePrefix, numberFormat)}
-                    </span>
-                  </FieldDescription>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="quotePrefix">Préfixe devis</FieldLabel>
-                  <Input
-                    id="quotePrefix"
-                    value={quotePrefix}
-                    onChange={(e) => setQuotePrefix(e.target.value)}
-                    placeholder="DEV-"
-                  />
-                  <FieldDescription>
-                    Aperçu :{' '}
-                    <span className="font-mono text-foreground/80">
-                      {previewPattern(quotePrefix, numberFormat)}
-                    </span>
-                  </FieldDescription>
-                </Field>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div variants={fadeUp} custom={4} className="mb-6">
-            <h2 className="mb-3 text-sm font-semibold text-foreground">
-              Moyens de paiement acceptés
-            </h2>
-            <div className="space-y-2.5">
-              {PAYMENT_METHODS.map((method) => {
-                const isSelected = paymentMethods.includes(method.id)
-                const Icon = method.icon
+          <motion.div variants={fadeUp} custom={1} className="mb-5">
+            <div className="flex rounded-lg border border-border overflow-hidden">
+              {TABS.map((t) => {
+                const Icon = t.icon
+                const active = tab === t.id
                 return (
-                  <div key={method.id}>
-                    <button
-                      onClick={() => togglePaymentMethod(method.id)}
-                      className={`flex w-full items-center gap-3 rounded-xl border-2 p-3.5 text-left transition-all ${
-                        isSelected
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-border/80'
-                      }`}
-                    >
-                      <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                          isSelected ? 'bg-accent-soft' : 'bg-muted'
-                        }`}
-                      >
-                        <Icon
-                          className={`h-4 w-4 ${isSelected ? 'text-accent' : 'text-muted-foreground'}`}
-                        />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium">{method.label}</span>
-                        <span className="block text-xs text-muted-foreground">
-                          {method.description}
-                        </span>
-                      </span>
-                      <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${
-                          isSelected ? 'border-primary bg-primary' : 'border-muted-foreground/30'
-                        }`}
-                      >
-                        {isSelected && <Check className="h-3 w-3 text-accent-foreground" />}
-                      </span>
-                    </button>
-                    {method.id === 'custom' && isSelected && (
-                      <AnimatePresence>
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden pl-12 pt-2"
-                        >
-                          <Input
-                            placeholder="Ex : Chèque, PayPal…"
-                            value={customPaymentMethod}
-                            onChange={(e) => setCustomPaymentMethod(e.target.value)}
-                          />
-                        </motion.div>
-                      </AnimatePresence>
-                    )}
-                  </div>
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setTab(t.id)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-medium transition-colors border-r last:border-r-0 border-border ${
+                      active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{t.label}</span>
+                  </button>
                 )
               })}
             </div>
           </motion.div>
 
-          <motion.div variants={fadeUp} custom={5} className="mb-6">
-            <Field>
-              <FieldLabel htmlFor="paymentConditions">Conditions de paiement</FieldLabel>
-              <Input
-                id="paymentConditions"
-                value={paymentConditions}
-                onChange={(e) => setPaymentConditions(e.target.value)}
-                placeholder="Paiement à 30 jours"
-                disabled={!hasCompany}
-              />
-              <FieldDescription>
-                {hasCompany
-                  ? 'Ce texte apparaîtra en pied de page de vos factures.'
-                  : 'Disponible après la création de votre entreprise dans les paramètres.'}
-              </FieldDescription>
-            </Field>
-          </motion.div>
+          <AnimatePresence mode="wait">
+            {tab === 'mode' && (
+              <motion.div key="mode" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-5">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <button
+                    onClick={() => setBillingType('quick')}
+                    className={`flex flex-col items-center gap-3 rounded-xl border-2 p-5 transition-all ${
+                      billingType === 'quick' ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
+                    }`}
+                  >
+                    <Zap className={`h-6 w-6 ${billingType === 'quick' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Rapide</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Un montant, un client, c&apos;est facturé</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setBillingType('detailed')}
+                    className={`flex flex-col items-center gap-3 rounded-xl border-2 p-5 transition-all ${
+                      billingType === 'detailed' ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
+                    }`}
+                  >
+                    <ClipboardList className={`h-6 w-6 ${billingType === 'detailed' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Détaillé</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Lignes, quantités et TVA par article</p>
+                    </div>
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel>Régime de TVA</FieldLabel>
+                    <FormSelect value={vat} onChange={(v) => setVat(v === 'exempt' ? 'exempt' : 'subject')} options={VAT_OPTIONS} />
+                  </Field>
+                  <Field>
+                    <FieldLabel>Langue des documents</FieldLabel>
+                    <FormSelect value={language} onChange={setLanguage} options={LANGUAGE_OPTIONS} />
+                  </Field>
+                </div>
+              </motion.div>
+            )}
 
-          <motion.div variants={fadeUp} custom={6} className="flex flex-wrap gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => nav('/onboarding/company')}
-              className="gap-1.5"
-            >
+            {tab === 'numbering' && (
+              <motion.div key="numbering" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-4">
+                <Field>
+                  <FieldLabel>Format des numéros</FieldLabel>
+                  <FormSelect value={numberFormat} onChange={(v) => setNumberFormat(v as NumberFormat)} options={NUMBER_FORMATS} />
+                </Field>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel htmlFor="invoicePrefix">Préfixe factures</FieldLabel>
+                    <Input id="invoicePrefix" value={invoicePrefix} onChange={(e) => setInvoicePrefix(e.target.value)} placeholder="FAC-" />
+                    <FieldDescription>
+                      Aperçu : <span className="font-mono text-foreground/80">{previewPattern(invoicePrefix, numberFormat)}</span>
+                    </FieldDescription>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="quotePrefix">Préfixe devis</FieldLabel>
+                    <Input id="quotePrefix" value={quotePrefix} onChange={(e) => setQuotePrefix(e.target.value)} placeholder="DEV-" />
+                    <FieldDescription>
+                      Aperçu : <span className="font-mono text-foreground/80">{previewPattern(quotePrefix, numberFormat)}</span>
+                    </FieldDescription>
+                  </Field>
+                </div>
+              </motion.div>
+            )}
+
+            {tab === 'payments' && (
+              <motion.div key="payments" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-2.5">
+                {PAYMENT_METHODS.map((method) => {
+                  const isSelected = paymentMethods.includes(method.id)
+                  const Icon = method.icon
+                  return (
+                    <div key={method.id}>
+                      <button
+                        onClick={() => togglePaymentMethod(method.id)}
+                        className={`flex w-full items-center gap-3 rounded-xl border-2 p-3.5 text-left transition-all ${
+                          isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
+                        }`}
+                      >
+                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${isSelected ? 'bg-accent-soft' : 'bg-muted'}`}>
+                          <Icon className={`h-4 w-4 ${isSelected ? 'text-accent' : 'text-muted-foreground'}`} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium">{method.label}</span>
+                          <span className="block text-xs text-muted-foreground">{method.description}</span>
+                        </span>
+                        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${isSelected ? 'border-primary bg-primary' : 'border-muted-foreground/30'}`}>
+                          {isSelected && <Check className="h-3 w-3 text-accent-foreground" />}
+                        </span>
+                      </button>
+                      {method.id === 'custom' && isSelected && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden pl-12 pt-2">
+                          <Input placeholder="Ex : Chèque, PayPal..." value={customPaymentMethod} onChange={(e) => setCustomPaymentMethod(e.target.value)} />
+                        </motion.div>
+                      )}
+                    </div>
+                  )
+                })}
+              </motion.div>
+            )}
+
+            {tab === 'conditions' && (
+              <motion.div key="conditions" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
+                <Field>
+                  <FieldLabel htmlFor="paymentConditions">Conditions de paiement</FieldLabel>
+                  <Input
+                    id="paymentConditions"
+                    value={paymentConditions}
+                    onChange={(e) => setPaymentConditions(e.target.value)}
+                    placeholder="Paiement à 30 jours"
+                    disabled={!hasCompany}
+                  />
+                  <FieldDescription>
+                    {hasCompany
+                      ? 'Ce texte apparaîtra en pied de page de vos factures.'
+                      : 'Disponible après la création de votre entreprise dans les paramètres.'}
+                  </FieldDescription>
+                </Field>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button type="button" variant="ghost" onClick={() => nav('/onboarding/company')} className="gap-1.5">
               <ChevronLeft className="h-4 w-4" /> Précédent
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => nav('/onboarding/interface')}
-              disabled={saving}
-            >
+            <Button type="button" variant="outline" className="flex-1" onClick={() => nav('/onboarding/interface')} disabled={saving}>
               Passer cette étape
             </Button>
             <Button className="flex-1 gap-1.5" onClick={handleSubmit} disabled={saving}>
-              {saving ? (
-                <>
-                  <Spinner /> Enregistrement…
-                </>
-              ) : (
-                <>
-                  Continuer <ChevronRight className="h-4 w-4" />
-                </>
-              )}
+              {saving ? <><Spinner /> Enregistrement...</> : <>Continuer <ChevronRight className="h-4 w-4" /></>}
             </Button>
-          </motion.div>
-
-          <motion.div variants={fadeUp} custom={7} className="mt-4">
-            <p className="text-center text-xs text-muted-foreground">
-              Vous pourrez modifier ces paramètres à tout moment dans les réglages.
-            </p>
-          </motion.div>
+          </div>
         </CardContent>
       </Card>
     </motion.div>
