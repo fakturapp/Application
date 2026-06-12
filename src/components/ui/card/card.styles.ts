@@ -1,7 +1,7 @@
 ﻿import { tv, type VariantProps } from "tailwind-variants";
 
 export const cardVariants = tv({
-  base: "card",
+  base: "card app-surface",
   defaultVariants: {
     size: "md",
     variant: "default",
