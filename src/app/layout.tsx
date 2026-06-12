@@ -7,6 +7,7 @@ import { Agentation } from 'agentation'
 import './globals.css'
 import { Providers } from './providers'
 import { PreprodBanner } from '@/components/layout/preprod-banner'
+import { LiquidGlassDefs } from '@/components/layout/liquid-glass-defs'
 import { IS_PREPROD } from '@/lib/app-env'
 
 
@@ -91,6 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
+        <LiquidGlassDefs />
         <Providers>{children}</Providers>
         <PreprodBanner />
         {process.env.NODE_ENV === 'development' && <Agentation />}
