@@ -2,7 +2,15 @@ import { loadBackgroundSettings, saveBackgroundSettings } from '@/lib/background
 
 export type UiMode = 'light' | 'dark' | 'system'
 
-export interface UiTheme {
+export type SurfaceStyle = 'standard' | 'glass' | 'liquid' | 'opaque'
+
+export interface SurfaceSettings {
+  surface: SurfaceStyle
+  surfaceOpacity: number
+  surfaceBlur: number
+}
+
+export interface UiTheme extends SurfaceSettings {
   mode: UiMode
   accent: string | null
   background: string | null
@@ -26,6 +34,19 @@ export const DEFAULT_CUSTOM_BLUR = 0
 export const MAX_CUSTOM_BLUR = 40
 export const DEFAULT_CUSTOM_DIM = 30
 export const MAX_CUSTOM_DIM = 80
+
+export const SURFACE_STYLES: SurfaceStyle[] = ['standard', 'glass', 'liquid', 'opaque']
+export const DEFAULT_SURFACE: SurfaceStyle = 'standard'
+export const DEFAULT_SURFACE_OPACITY = 30
+export const MIN_SURFACE_OPACITY = 10
+export const MAX_SURFACE_OPACITY = 60
+export const DEFAULT_SURFACE_BLUR = 16
+export const MIN_SURFACE_BLUR = 4
+export const MAX_SURFACE_BLUR = 32
+
+export function parseSurfaceStyle(value: unknown): SurfaceStyle {
+  return SURFACE_STYLES.includes(value as SurfaceStyle) ? (value as SurfaceStyle) : DEFAULT_SURFACE
+}
 
 export const ACCENT_COLORS = [
   { id: 'indigo', name: 'Indigo', color: '#5957e8' },
@@ -54,6 +75,9 @@ function presetTheme(mode: UiMode, accent: string, background: string): UiTheme 
     customBackgroundUrl: null,
     customBlur: DEFAULT_CUSTOM_BLUR,
     customDim: DEFAULT_CUSTOM_DIM,
+    surface: DEFAULT_SURFACE,
+    surfaceOpacity: DEFAULT_SURFACE_OPACITY,
+    surfaceBlur: DEFAULT_SURFACE_BLUR,
   }
 }
 
@@ -128,6 +152,9 @@ export function parseUiTheme(raw: string | null | undefined): UiTheme {
     customBackgroundUrl: null,
     customBlur: DEFAULT_CUSTOM_BLUR,
     customDim: DEFAULT_CUSTOM_DIM,
+    surface: DEFAULT_SURFACE,
+    surfaceOpacity: DEFAULT_SURFACE_OPACITY,
+    surfaceBlur: DEFAULT_SURFACE_BLUR,
   }
   if (!raw) return fallback
   try {
@@ -151,6 +178,19 @@ export function parseUiTheme(raw: string | null | undefined): UiTheme {
           : null,
       customBlur: clampThemeNumber(parsed?.customBlur, 0, MAX_CUSTOM_BLUR, DEFAULT_CUSTOM_BLUR),
       customDim: clampThemeNumber(parsed?.customDim, 0, MAX_CUSTOM_DIM, DEFAULT_CUSTOM_DIM),
+      surface: parseSurfaceStyle(parsed?.surface),
+      surfaceOpacity: clampThemeNumber(
+        parsed?.surfaceOpacity,
+        MIN_SURFACE_OPACITY,
+        MAX_SURFACE_OPACITY,
+        DEFAULT_SURFACE_OPACITY
+      ),
+      surfaceBlur: clampThemeNumber(
+        parsed?.surfaceBlur,
+        MIN_SURFACE_BLUR,
+        MAX_SURFACE_BLUR,
+        DEFAULT_SURFACE_BLUR
+      ),
     }
   } catch {
     return fallback
@@ -198,6 +238,20 @@ export function applyAccent(accent: string | null) {
   } catch {}
 }
 
+export function applySurface(settings: SurfaceSettings) {
+  if (typeof document === 'undefined') return
+  const root = document.documentElement
+  if (settings.surface === 'standard') {
+    delete root.dataset.surface
+    root.style.removeProperty('--surface-alpha')
+    root.style.removeProperty('--surface-blur')
+    return
+  }
+  root.dataset.surface = settings.surface
+  root.style.setProperty('--surface-alpha', `${settings.surfaceOpacity}%`)
+  root.style.setProperty('--surface-blur', `${settings.surfaceBlur}px`)
+}
+
 export function bootCachedAccent() {
   try {
     const cookieTheme = readThemeCookie()
@@ -211,12 +265,14 @@ export function bootCachedAccent() {
         root.style.setProperty('--accent-foreground', '#ffffff')
       }
     }
+    if (cookieTheme) applySurface(cookieTheme)
   } catch {}
 }
 
 export function applyUiTheme(theme: UiTheme, setMode?: (mode: UiMode) => void) {
   writeThemeCookie(theme)
   applyAccent(theme.accent)
+  applySurface(theme)
   const current = loadBackgroundSettings()
   saveBackgroundSettings({
     themeId: theme.background ?? current.themeId,
