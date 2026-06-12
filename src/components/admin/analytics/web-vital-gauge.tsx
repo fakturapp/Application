@@ -51,7 +51,7 @@ export function WebVitalGauge({ name, value, distribution, className }: WebVital
   }
 
   return (
-    <div className={cn('rounded-xl border border-border bg-card p-4', className)}>
+    <div className={cn('app-surface rounded-xl border border-border bg-card p-4', className)}>
       <div className="text-center mb-3">
         <div className="text-xs text-muted-foreground font-medium mb-1">{name}</div>
         <div className={cn('text-2xl font-bold', ratingColors[rating])}>

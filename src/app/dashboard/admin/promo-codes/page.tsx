@@ -112,7 +112,7 @@ export default function AdminPromoCodesPage() {
           <Spinner size="lg" className="text-primary" />
         </div>
       ) : codes.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-10 text-center">
+        <div className="app-surface rounded-xl border border-border bg-card p-10 text-center">
           <Ticket className="mx-auto mb-3 h-9 w-9 text-muted-foreground/30" />
           <p className="text-sm text-muted-foreground">Aucun code promo pour le moment.</p>
         </div>
@@ -125,7 +125,7 @@ export default function AdminPromoCodesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
               className={cn(
-                'flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4',
+                'app-surface flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4',
                 p.active ? 'border-border' : 'border-border opacity-60'
               )}
             >

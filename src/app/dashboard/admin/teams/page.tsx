@@ -240,7 +240,7 @@ export default function AdminTeamsPage() {
           <Spinner size="lg" className="text-primary" />
         </div>
       ) : filteredGroups.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
+        <div className="app-surface rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
             <UsersIcon className="h-7 w-7 text-primary" />
           </div>
@@ -286,7 +286,7 @@ export default function AdminTeamsPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
                         onClick={() => setDetail(team)}
-                        className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:border-primary/40 hover:bg-surface-hover"
+                        className="app-surface group flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:border-primary/40 hover:bg-surface-hover"
                       >
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-xs font-bold text-foreground">
                           {team.iconUrl ? (

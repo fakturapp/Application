@@ -391,7 +391,7 @@ function BentoBlock({
         }
         onDragEnd={editMode ? () => onDragEnd() : undefined}
         className={cn(
-          'group/block relative w-full h-full rounded-xl bg-card shadow-surface overflow-hidden transition-all duration-200 hover:shadow-md hover:bg-surface-hover/50',
+          'app-surface group/block relative w-full h-full rounded-xl bg-card shadow-surface overflow-hidden transition-all duration-200 hover:shadow-md hover:bg-surface-hover/50',
           editMode
             ? 'border border-dashed border-accent/40 cursor-grab active:cursor-grabbing hover:border-accent/70'
             : '',

@@ -86,7 +86,7 @@ export default function AdminOverviewPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0 }}
-              className="rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-yellow-500/30 transition-colors"
+              className="app-surface rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-yellow-500/30 transition-colors"
               onClick={() => router.push('/dashboard/admin/feedbacks')}
             >
               <div className="flex items-center gap-3">
@@ -104,7 +104,7 @@ export default function AdminOverviewPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-primary/30 transition-colors"
+              className="app-surface rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-primary/30 transition-colors"
               onClick={() => router.push('/dashboard/admin/feedbacks')}
             >
               <div className="flex items-center gap-3">
@@ -122,7 +122,7 @@ export default function AdminOverviewPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-destructive/30 transition-colors"
+              className="app-surface rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-destructive/30 transition-colors"
               onClick={() => router.push('/dashboard/admin/bugs')}
             >
               <div className="flex items-center gap-3">
@@ -140,7 +140,7 @@ export default function AdminOverviewPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-indigo-500/30 transition-colors"
+              className="app-surface rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-indigo-500/30 transition-colors"
               onClick={() => router.push('/dashboard/admin/oauth-apps')}
             >
               <div className="flex items-center gap-3">
@@ -163,7 +163,7 @@ export default function AdminOverviewPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-emerald-500/30 transition-colors"
+              className="app-surface rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-emerald-500/30 transition-colors"
               onClick={() => router.push('/dashboard/admin/promo-codes')}
             >
               <div className="flex items-center gap-3">
@@ -190,7 +190,7 @@ export default function AdminOverviewPage() {
               </button>
             </div>
             {feedbacks.length === 0 ? (
-              <div className="rounded-xl border border-border bg-card p-8 text-center">
+              <div className="app-surface rounded-xl border border-border bg-card p-8 text-center">
                 <Star className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">Aucun avis pour le moment</p>
               </div>
@@ -202,7 +202,7 @@ export default function AdminOverviewPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 + i * 0.03 }}
-                    className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4"
+                    className="app-surface rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="flex items-center gap-0.5">
@@ -241,7 +241,7 @@ export default function AdminOverviewPage() {
               </button>
             </div>
             {bugReports.length === 0 ? (
-              <div className="rounded-xl border border-border bg-card p-8 text-center">
+              <div className="app-surface rounded-xl border border-border bg-card p-8 text-center">
                 <Bug className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">Aucun bug signalé</p>
               </div>
@@ -266,7 +266,7 @@ export default function AdminOverviewPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 + i * 0.03 }}
-                      className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4"
+                      className="app-surface rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">{b.subject}</p>

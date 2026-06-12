@@ -17,7 +17,7 @@ export function StatCard({ label, value, trend, trendLabel, icon, className }: S
   const trendDirection = safeTrend && safeTrend > 0 ? 'up' : safeTrend && safeTrend < 0 ? 'down' : 'neutral'
 
   return (
-    <div className={cn('rounded-xl border border-border bg-card p-5', className)}>
+    <div className={cn('app-surface rounded-xl border border-border bg-card p-5', className)}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm text-muted-foreground">{label}</span>
         {icon && <div className="text-muted-foreground">{icon}</div>}

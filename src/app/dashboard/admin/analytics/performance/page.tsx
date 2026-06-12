@@ -103,7 +103,7 @@ export default function AnalyticsPerformancePage() {
           </motion.div>
         ))}
         {sortedVitals.length === 0 && (
-          <div className="col-span-full rounded-xl border border-border bg-card p-12 text-center">
+          <div className="app-surface col-span-full rounded-xl border border-border bg-card p-12 text-center">
             <Gauge className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Aucune donnée de Web Vitals</p>
           </div>
@@ -116,7 +116,7 @@ export default function AnalyticsPerformancePage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="rounded-xl border border-border bg-card overflow-hidden"
+          className="app-surface rounded-xl border border-border bg-card overflow-hidden"
         >
           <div className="px-4 py-3 border-b border-border">
             <h3 className="text-sm font-semibold text-foreground">Pages les plus lentes (LCP)</h3>
@@ -173,7 +173,7 @@ export default function AnalyticsPerformancePage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="rounded-xl border border-border bg-card p-5"
+          className="app-surface rounded-xl border border-border bg-card p-5"
         >
           <h3 className="text-sm font-semibold text-foreground mb-4">Répartition par appareil</h3>
           <div className="space-y-3">

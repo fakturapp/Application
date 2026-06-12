@@ -158,7 +158,7 @@ export default function AnalyticsOverviewPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="rounded-xl border border-border bg-card p-5"
+        className="app-surface rounded-xl border border-border bg-card p-5"
       >
         <h3 className="text-sm font-semibold text-foreground mb-4">Carte de chaleur des connexions</h3>
         <Heatmap data={data.heatmap || []} />
@@ -170,7 +170,7 @@ export default function AnalyticsOverviewPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="rounded-xl border border-border bg-card p-5"
+          className="app-surface rounded-xl border border-border bg-card p-5"
         >
           <h3 className="text-sm font-semibold text-foreground mb-4">Événements par jour</h3>
           <div className="h-64">
@@ -183,7 +183,7 @@ export default function AnalyticsOverviewPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="rounded-xl border border-border bg-card p-5"
+          className="app-surface rounded-xl border border-border bg-card p-5"
         >
           <h3 className="text-sm font-semibold text-foreground mb-4">Top 10 pages</h3>
           <div className="space-y-2">

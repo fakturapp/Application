@@ -147,7 +147,7 @@ export default function AnalyticsUsersPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-border bg-card p-5"
+        className="app-surface rounded-xl border border-border bg-card p-5"
       >
         <h3 className="text-sm font-semibold text-foreground mb-4">Utilisateurs actifs</h3>
         <div className="h-72">
@@ -162,7 +162,7 @@ export default function AnalyticsUsersPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-xl border border-border bg-card p-5"
+          className="app-surface rounded-xl border border-border bg-card p-5"
         >
           <h3 className="text-sm font-semibold text-foreground mb-4">Appareils</h3>
           <div className="h-56">
@@ -186,7 +186,7 @@ export default function AnalyticsUsersPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="rounded-xl border border-border bg-card p-5"
+          className="app-surface rounded-xl border border-border bg-card p-5"
         >
           <h3 className="text-sm font-semibold text-foreground mb-4">Authentifiés vs Anonymes</h3>
           <div className="h-56">
@@ -212,7 +212,7 @@ export default function AnalyticsUsersPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-xl border border-border bg-card p-5"
+          className="app-surface rounded-xl border border-border bg-card p-5"
         >
           <h3 className="text-sm font-semibold text-foreground mb-4">Navigateurs</h3>
           {(data.topBrowsers || []).length > 0 ? (
@@ -231,7 +231,7 @@ export default function AnalyticsUsersPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="rounded-xl border border-border bg-card p-5"
+          className="app-surface rounded-xl border border-border bg-card p-5"
         >
           <h3 className="text-sm font-semibold text-foreground mb-4">Systèmes d&apos;exploitation</h3>
           {(data.topOS || []).length > 0 ? (
@@ -250,7 +250,7 @@ export default function AnalyticsUsersPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="rounded-xl border border-border bg-card p-5"
+          className="app-surface rounded-xl border border-border bg-card p-5"
         >
           <h3 className="text-sm font-semibold text-foreground mb-4">Pays</h3>
           {(data.topCountries || []).length > 0 ? (

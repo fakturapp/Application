@@ -59,7 +59,7 @@ export default function AnalyticsPagesPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-border bg-card overflow-hidden"
+        className="app-surface rounded-xl border border-border bg-card overflow-hidden"
       >
         <div className="overflow-x-auto">
           <table className="w-full">

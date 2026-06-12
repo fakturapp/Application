@@ -129,7 +129,7 @@ export default function AdminBugsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
-              className="rounded-xl border border-border bg-card p-4"
+              className="app-surface rounded-xl border border-border bg-card p-4"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">

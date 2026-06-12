@@ -212,7 +212,7 @@ export default function AdminUsersPage() {
           <Spinner size="lg" className="text-primary" />
         </div>
       ) : users.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
+        <div className="app-surface rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
             <UsersIcon className="h-7 w-7 text-primary" />
           </div>
@@ -233,7 +233,7 @@ export default function AdminUsersPage() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ delay: Math.min(i * 0.015, 0.25) }}
                 onClick={() => openDetail(u)}
-                className="group cursor-pointer rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-surface-hover"
+                className="app-surface group cursor-pointer rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-surface-hover"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative shrink-0">

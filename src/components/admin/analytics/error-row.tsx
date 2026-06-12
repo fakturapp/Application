@@ -43,7 +43,7 @@ export function ErrorRow({
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className={cn('rounded-lg border border-border bg-card', isResolved && 'opacity-60')}>
+    <div className={cn('app-surface rounded-lg border border-border bg-card', isResolved && 'opacity-60')}>
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center gap-3 p-3 text-left"

@@ -249,7 +249,7 @@ export default function AdminOauthAppsPage() {
           <Spinner size="lg" className="text-primary" />
         </div>
       ) : apps.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
+        <div className="app-surface rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
           <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-2xl bg-primary/10 mb-4">
             <ShieldCheck className="h-7 w-7 text-primary" />
           </div>
@@ -419,7 +419,7 @@ function StatBlock({
     violet: 'bg-violet-500/10 text-violet-500',
   }
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className="app-surface rounded-xl border border-border bg-card p-5">
       <div className="flex items-center gap-3">
         <div className={cn('flex h-11 w-11 items-center justify-center rounded-lg', colorMap[color])}>
           <Icon className="h-5 w-5" />
@@ -476,7 +476,7 @@ function AppRow({
       exit={{ opacity: 0, y: -8 }}
       transition={{ delay: index * 0.03 }}
       className={cn(
-        'rounded-2xl border bg-card p-5 relative',
+        'app-surface rounded-2xl border bg-card p-5 relative',
         app.isActive ? 'border-border' : 'border-border/50 opacity-60'
       )}
     >

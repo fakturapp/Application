@@ -88,7 +88,7 @@ export default function AnalyticsErrorsPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-border bg-card p-12 text-center"
+          className="app-surface rounded-xl border border-border bg-card p-12 text-center"
         >
           <AlertTriangle className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">Aucune erreur pour cette période</p>
