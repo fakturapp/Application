@@ -35,11 +35,11 @@ export default function ShareLinkPage() {
       async function probeGuestAccess() {
         const { data } = await publicApi.get<{ allowed: boolean }>(`/share/guest/${token}/check`)
         if (cancelled) return
-        if (data?.allowed) {
-          router.replace(`/share/live/${token}`)
+        if (data && !data.allowed) {
+          setStatus('unauthenticated')
           return
         }
-        setStatus('unauthenticated')
+        router.replace(`/share/live/${token}`)
       }
       probeGuestAccess()
       return () => {
