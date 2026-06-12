@@ -29,7 +29,7 @@ export function ProGate({
         {children}
       </div>
       <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
-        <div className="w-full max-w-sm rounded-2xl border border-border bg-card/95 p-6 text-center shadow-lg backdrop-blur-sm">
+        <div className="app-surface w-full max-w-sm rounded-2xl border border-border bg-card/95 p-6 text-center shadow-lg backdrop-blur-sm">
           <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent">
             <Lock className="h-5 w-5" />
           </div>

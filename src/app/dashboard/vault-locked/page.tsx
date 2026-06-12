@@ -149,7 +149,7 @@ export default function VaultLockedPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-2xl border border-amber-500/30 bg-card shadow-surface p-6 space-y-5"
+          className="app-surface rounded-2xl border border-amber-500/30 bg-card shadow-surface p-6 space-y-5"
         >
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20">
@@ -290,7 +290,7 @@ export default function VaultLockedPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-2xl border border-border bg-card shadow-surface p-6 space-y-4"
+            className="app-surface rounded-2xl border border-border bg-card shadow-surface p-6 space-y-4"
           >
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
@@ -349,7 +349,7 @@ export default function VaultLockedPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="rounded-2xl border border-border bg-card/50 p-5 flex items-start gap-3"
+          className="app-surface rounded-2xl border border-border bg-card/50 p-5 flex items-start gap-3"
         >
           <ShieldAlert className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
           <div className="flex-1">

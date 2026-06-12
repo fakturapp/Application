@@ -406,7 +406,7 @@ export default function TeamPage() {
     return (
       <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
         {/* Team header card */}
-        <div className="rounded-xl shadow-surface overflow-hidden">
+        <div className="app-surface rounded-xl shadow-surface overflow-hidden">
           <div className="p-6 flex items-end justify-between">
             <div className="flex items-end gap-4">
               <Skeleton className="h-16 w-16 rounded-xl" />
@@ -427,7 +427,7 @@ export default function TeamPage() {
             <Skeleton className="h-4 w-4 rounded" />
             <Skeleton className="h-3.5 w-16" />
           </div>
-          <div className="rounded-xl shadow-surface">
+          <div className="app-surface rounded-xl shadow-surface">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-center justify-between px-5 py-4 border-b border-border/50 last:border-b-0">
                 <div className="flex items-center gap-3.5">

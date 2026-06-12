@@ -205,7 +205,7 @@ export default function CompanyInfoPage() {
           <Skeleton className="h-7 w-40" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <div className="rounded-xl bg-surface shadow-surface p-6 space-y-5">
+        <div className="app-surface rounded-xl bg-surface shadow-surface p-6 space-y-5">
           <div className="flex items-start gap-6">
             <Skeleton className="h-24 w-24 rounded-xl shrink-0" />
             <div className="flex-1 space-y-3">

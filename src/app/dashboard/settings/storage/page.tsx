@@ -217,7 +217,7 @@ export default function StoragePage() {
 
       <div
         className={cn(
-          'mb-6 rounded-2xl border p-5 shadow-surface',
+          'app-surface mb-6 rounded-2xl border p-5 shadow-surface',
           danger ? 'border-danger/30 bg-danger/[0.04]' : 'border-border bg-surface'
         )}
       >
@@ -313,7 +313,7 @@ export default function StoragePage() {
                   tabIndex={clickable ? 0 : undefined}
                   onClick={clickable ? () => router.push(meta.href) : undefined}
                   className={cn(
-                    'flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-surface',
+                    'app-surface flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-surface',
                     clickable && 'cursor-pointer transition-colors hover:bg-surface-hover'
                   )}
                 >
@@ -340,7 +340,7 @@ export default function StoragePage() {
       )}
 
       {orphanCount > 0 && (
-        <div className="mb-8 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-surface">
+        <div className="app-surface mb-8 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-surface">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
             <Recycle className="h-5 w-5" />
           </div>
@@ -378,7 +378,7 @@ export default function StoragePage() {
                   {items.map((file) => (
                     <div
                       key={file.id}
-                      className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-surface"
+                      className="app-surface flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-surface"
                     >
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
                         {meta.isImage ? (

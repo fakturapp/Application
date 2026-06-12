@@ -112,7 +112,7 @@ export default function OnboardingPlanPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 + i * 0.06 }}
               className={cn(
-                'relative flex flex-col rounded-3xl border bg-card p-8 shadow-surface',
+                'app-surface relative flex flex-col rounded-3xl border bg-card p-8 shadow-surface',
                 plan.recommended ? `${plan.accentRing} ring-1 ring-primary/30 md:-mt-3 md:mb-3` : 'border-border'
               )}
             >

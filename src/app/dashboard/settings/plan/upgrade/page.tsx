@@ -135,7 +135,7 @@ export default function PlanUpgradePage() {
         </div>
         <div className="grid gap-8 md:grid-cols-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-8 shadow-surface">
+            <div key={i} className="app-surface flex flex-col gap-4 rounded-3xl border border-border bg-card p-8 shadow-surface">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-14 w-14 rounded-2xl" />
                 <Skeleton className="h-6 w-24" />
@@ -221,7 +221,7 @@ export default function PlanUpgradePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}
               className={cn(
-                'relative flex flex-col rounded-3xl border bg-card p-8 shadow-surface',
+                'app-surface relative flex flex-col rounded-3xl border bg-card p-8 shadow-surface',
                 plan.recommended ? `${plan.accentRing} ring-1 ring-primary/30 md:-mt-3 md:mb-3` : 'border-border'
               )}
             >
