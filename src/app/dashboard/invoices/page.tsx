@@ -236,7 +236,7 @@ export default function InvoicesPage() {
 
       {/* Monthly summary */}
       {monthlyStats && (
-        <motion.div variants={fadeUp} custom={0.5} className="rounded-xl bg-surface shadow-surface p-5">
+        <motion.div variants={fadeUp} custom={0.5} className="app-surface rounded-xl bg-surface shadow-surface p-5">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -304,7 +304,7 @@ export default function InvoicesPage() {
       {loading ? (
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4 rounded-lg bg-overlay shadow-surface p-4">
+            <div key={i} className="app-surface flex items-center gap-4 rounded-lg bg-overlay shadow-surface p-4">
               <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
               <div className="flex-1 min-w-0 space-y-1.5">
                 <div className="flex items-center gap-2">
@@ -367,7 +367,7 @@ export default function InvoicesPage() {
                   <motion.div key={invoice.id} variants={fadeUp} custom={2 + gi * 0.2 + (i + 1) * 0.05}>
                     <div
                       onClick={() => setSelectedInvoiceId(invoice.id)}
-                      className="w-full flex items-center gap-4 rounded-lg bg-overlay shadow-surface hover:bg-surface-hover p-4 transition-colors text-left group cursor-pointer"
+                      className="app-surface w-full flex items-center gap-4 rounded-lg bg-overlay shadow-surface hover:bg-surface-hover p-4 transition-colors text-left group cursor-pointer"
                     >
                       {/* Icon */}
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft">

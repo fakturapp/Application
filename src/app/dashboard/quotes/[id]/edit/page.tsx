@@ -558,7 +558,7 @@ function EditQuoteContent() {
                <Skeleton className="h-9 flex-1 rounded-xl bg-muted/30" />
             </div>
             {[...Array(2)].map((_, i) => (
-              <div key={i} className="rounded-3xl border border-border/40 bg-card/40 backdrop-blur-md liquid-glass px-5 py-4 shadow-overlay relative overflow-hidden">
+              <div key={i} className="app-surface rounded-3xl border border-border/40 bg-card/40 backdrop-blur-md liquid-glass px-5 py-4 shadow-overlay relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent skeleton-shimmer" />
                 <div className="flex items-center justify-between mb-4">
                   <Skeleton className="h-5 w-24 bg-muted/40 rounded-lg" />

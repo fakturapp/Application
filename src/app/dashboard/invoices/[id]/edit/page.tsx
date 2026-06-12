@@ -621,7 +621,7 @@ function EditInvoiceContent() {
           </div>
           <div className="w-full xl:w-[300px] xl:shrink-0 space-y-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-xl border border-border bg-card/50 p-4">
+              <div key={i} className="app-surface rounded-xl border border-border bg-card/50 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2"><Skeleton className="h-4 w-4 rounded" /><Skeleton className="h-4 w-20" /></div>
                   <Skeleton className="h-4 w-4 rounded" />

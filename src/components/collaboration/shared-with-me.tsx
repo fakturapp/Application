@@ -73,7 +73,7 @@ export function SharedWithMeSection({ documentType }: SharedWithMeSectionProps) 
             onClick={() =>
               router.push(`/dashboard/${ROUTE_MAP[doc.documentType]}/${doc.documentId}/edit`)
             }
-            className="group flex w-full items-center gap-4 rounded-lg bg-overlay shadow-surface p-4 text-left transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className="app-surface group flex w-full items-center gap-4 rounded-lg bg-overlay shadow-surface p-4 text-left transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
               <Users className="h-5 w-5 text-primary" />

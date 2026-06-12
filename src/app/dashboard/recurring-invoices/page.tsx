@@ -174,7 +174,7 @@ export default function RecurringInvoicesPage() {
 
       {/* Stats */}
       <motion.div variants={fadeUp} custom={1} className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3">
-        <div className="rounded-lg bg-overlay shadow-surface p-4">
+        <div className="app-surface rounded-lg bg-overlay shadow-surface p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
               <RefreshCw className="h-4.5 w-4.5 text-accent" />
@@ -185,7 +185,7 @@ export default function RecurringInvoicesPage() {
             </div>
           </div>
         </div>
-        <div className="rounded-lg bg-overlay shadow-surface p-4">
+        <div className="app-surface rounded-lg bg-overlay shadow-surface p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success-soft">
               <Play className="h-4.5 w-4.5 text-success" />
@@ -196,7 +196,7 @@ export default function RecurringInvoicesPage() {
             </div>
           </div>
         </div>
-        <div className="rounded-lg bg-overlay shadow-surface p-4">
+        <div className="app-surface rounded-lg bg-overlay shadow-surface p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-500/10">
               <Pause className="h-4.5 w-4.5 text-orange-500" />
@@ -245,7 +245,7 @@ export default function RecurringInvoicesPage() {
       {loading ? (
         <div className="space-y-2">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4 rounded-lg bg-overlay shadow-surface p-4">
+            <div key={i} className="app-surface flex items-center gap-4 rounded-lg bg-overlay shadow-surface p-4">
               <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
               <div className="flex-1 min-w-0 space-y-1.5">
                 <Skeleton className="h-4 w-40" />
@@ -279,7 +279,7 @@ export default function RecurringInvoicesPage() {
         <div className="space-y-2">
           {paginatedItems.map((item, i) => (
             <motion.div key={item.id} variants={fadeUp} custom={3 + i * 0.3}>
-              <div className="w-full flex items-center gap-4 rounded-lg bg-overlay shadow-surface hover:bg-surface-hover p-4 transition-colors group">
+              <div className="app-surface w-full flex items-center gap-4 rounded-lg bg-overlay shadow-surface hover:bg-surface-hover p-4 transition-colors group">
                 {/* Icon */}
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
                   item.isActive ? 'bg-success-soft' : 'bg-muted'

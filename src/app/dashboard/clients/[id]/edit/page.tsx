@@ -197,7 +197,7 @@ export default function ClientEditPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-xl border border-border bg-card/50 p-4 flex items-center gap-3">
+            <div key={i} className="app-surface rounded-xl border border-border bg-card/50 p-4 flex items-center gap-3">
               <Skeleton className="h-4 w-4 rounded shrink-0" />
               <div className="space-y-1.5">
                 <Skeleton className="h-5 w-16" />
@@ -260,21 +260,21 @@ export default function ClientEditPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="rounded-xl border border-border bg-card/50 p-4 flex items-center gap-3">
+        <div className="app-surface rounded-xl border border-border bg-card/50 p-4 flex items-center gap-3">
           <FileText className="h-4 w-4 text-muted-foreground" />
           <div>
             <p className="text-lg font-bold text-foreground">{client.invoiceCount}</p>
             <p className="text-xs text-muted-foreground">Factures</p>
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-card/50 p-4 flex items-center gap-3">
+        <div className="app-surface rounded-xl border border-border bg-card/50 p-4 flex items-center gap-3">
           <Receipt className="h-4 w-4 text-muted-foreground" />
           <div>
             <p className="text-lg font-bold text-foreground">{client.quoteCount}</p>
             <p className="text-xs text-muted-foreground">Devis</p>
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-card/50 p-4">
+        <div className="app-surface rounded-xl border border-border bg-card/50 p-4">
           <p className="text-lg font-bold text-foreground">{formatCurrency(client.totalRevenue)}</p>
           <p className="text-xs text-muted-foreground">CA total</p>
         </div>
