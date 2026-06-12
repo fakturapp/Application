@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { FormSelect } from '@/components/ui/dropdown'
 import { useToast } from '@/components/ui/toast'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/cn'
 import {
   Link2, Copy, Check, X, UserPlus, Users,
@@ -110,6 +111,8 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function ShareModal({ open, onClose, documentType, documentId }: ShareModalProps) {
   const { toast } = useToast()
+  const { user } = useAuth()
+  const isPrivateTeam = user?.currentTeamEncryptionMode === 'private'
 
   const [view, setView] = useState<'main' | 'settings'>('main')
   const [shares, setShares] = useState<ShareEntry[]>([])
@@ -595,9 +598,10 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                   </CheckboxRoot>
 
                   <CheckboxRoot
-                    isSelected={settingsAnonymous}
+                    isSelected={settingsAnonymous && !isPrivateTeam}
                     onChange={changeLinkAnonymous}
-                    className="flex items-start gap-2.5"
+                    isDisabled={isPrivateTeam}
+                    className={cn('flex items-start gap-2.5', isPrivateTeam && 'opacity-55')}
                   >
                     <CheckboxControl>
                       <CheckboxIndicator />
@@ -605,7 +609,9 @@ export function ShareModal({ open, onClose, documentType, documentId }: ShareMod
                     <CheckboxContent>
                       <p className="text-sm text-foreground">Accès sans compte</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        Accessible sans compte Faktur, en lecture seule, affiché comme Invité
+                        {isPrivateTeam
+                          ? 'Indisponible : votre équipe est en Mode Privé, les documents ne peuvent pas être déchiffrés sans votre coffre-fort.'
+                          : 'Accessible sans compte Faktur, en lecture seule, affiché comme Invité'}
                       </p>
                     </CheckboxContent>
                   </CheckboxRoot>
