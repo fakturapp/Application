@@ -37,6 +37,8 @@ import {
   MAX_SURFACE_OPACITY,
   MIN_SURFACE_BLUR,
   MAX_SURFACE_BLUR,
+  MIN_SURFACE_TINT,
+  MAX_SURFACE_TINT,
   applyAccent,
   applySurface,
   type SurfaceStyle,
@@ -56,6 +58,7 @@ export interface ThemeDraft {
   surface: SurfaceStyle
   surfaceOpacity: number
   surfaceBlur: number
+  surfaceTint: number
 }
 
 export const UI_MODES: { id: UiMode; label: string; icon: typeof Sun }[] = [
@@ -516,6 +519,8 @@ function SurfaceTile({
   onSelect: () => void
 }) {
   const glassLike = option.id === 'glass' || option.id === 'liquid'
+  const tintFactor = selected ? draft.surfaceTint / 100 : 0
+  const baseOpacity = option.id === 'liquid' ? 0.12 : 0.05
   return (
     <motion.button type="button" whileTap={{ scale: 0.97 }} onClick={onSelect} className="text-left">
       <div
@@ -542,8 +547,8 @@ function SurfaceTile({
               borderRadius={10}
               blur={option.id === 'liquid' ? 14 : 11}
               saturation={option.id === 'liquid' ? 1.6 : 1}
-              backgroundOpacity={option.id === 'liquid' ? 0.12 : 0.05}
-              brightness={isDark ? 55 : 60}
+              backgroundOpacity={baseOpacity + tintFactor * 0.5}
+              brightness={Math.max(20, (isDark ? 55 : 60) - tintFactor * 35)}
               opacity={option.id === 'liquid' ? 0.9 : 0.93}
             />
           ) : (
@@ -653,6 +658,7 @@ export function ThemeStudioModal({
       surface: preset.theme.surface,
       surfaceOpacity: preset.theme.surfaceOpacity,
       surfaceBlur: preset.theme.surfaceBlur,
+      surfaceTint: preset.theme.surfaceTint,
     })
   }
 
@@ -938,7 +944,7 @@ export function ThemeStudioModal({
                   {(draft.surface === 'glass' || draft.surface === 'liquid') && (
                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
                       <RangeField
-                        label="Transparence"
+                        label="Intensité"
                         value={draft.surfaceOpacity}
                         unit="%"
                         min={MIN_SURFACE_OPACITY}
@@ -958,6 +964,17 @@ export function ThemeStudioModal({
                         minLabel="Léger"
                         maxLabel="Marqué"
                         onChange={(surfaceBlur) => update({ surfaceBlur })}
+                      />
+                      <RangeField
+                        label="Teinte"
+                        value={draft.surfaceTint}
+                        unit="%"
+                        min={MIN_SURFACE_TINT}
+                        max={MAX_SURFACE_TINT}
+                        step={5}
+                        minLabel="Clair"
+                        maxLabel="Sombre et dense"
+                        onChange={(surfaceTint) => update({ surfaceTint })}
                       />
                     </div>
                   )}

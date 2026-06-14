@@ -8,6 +8,7 @@ export interface SurfaceSettings {
   surface: SurfaceStyle
   surfaceOpacity: number
   surfaceBlur: number
+  surfaceTint: number
 }
 
 export interface UiTheme extends SurfaceSettings {
@@ -43,6 +44,9 @@ export const MAX_SURFACE_OPACITY = 60
 export const DEFAULT_SURFACE_BLUR = 16
 export const MIN_SURFACE_BLUR = 4
 export const MAX_SURFACE_BLUR = 32
+export const DEFAULT_SURFACE_TINT = 0
+export const MIN_SURFACE_TINT = 0
+export const MAX_SURFACE_TINT = 80
 
 export function parseSurfaceStyle(value: unknown): SurfaceStyle {
   return SURFACE_STYLES.includes(value as SurfaceStyle) ? (value as SurfaceStyle) : DEFAULT_SURFACE
@@ -78,6 +82,7 @@ function presetTheme(mode: UiMode, accent: string, background: string): UiTheme 
     surface: DEFAULT_SURFACE,
     surfaceOpacity: DEFAULT_SURFACE_OPACITY,
     surfaceBlur: DEFAULT_SURFACE_BLUR,
+    surfaceTint: DEFAULT_SURFACE_TINT,
   }
 }
 
@@ -155,6 +160,7 @@ export function parseUiTheme(raw: string | null | undefined): UiTheme {
     surface: DEFAULT_SURFACE,
     surfaceOpacity: DEFAULT_SURFACE_OPACITY,
     surfaceBlur: DEFAULT_SURFACE_BLUR,
+    surfaceTint: DEFAULT_SURFACE_TINT,
   }
   if (!raw) return fallback
   try {
@@ -190,6 +196,12 @@ export function parseUiTheme(raw: string | null | undefined): UiTheme {
         MIN_SURFACE_BLUR,
         MAX_SURFACE_BLUR,
         DEFAULT_SURFACE_BLUR
+      ),
+      surfaceTint: clampThemeNumber(
+        parsed?.surfaceTint,
+        MIN_SURFACE_TINT,
+        MAX_SURFACE_TINT,
+        DEFAULT_SURFACE_TINT
       ),
     }
   } catch {
@@ -245,11 +257,13 @@ export function applySurface(settings: SurfaceSettings) {
     delete root.dataset.surface
     root.style.removeProperty('--surface-alpha')
     root.style.removeProperty('--surface-blur')
+    root.style.removeProperty('--surface-tint')
     return
   }
   root.dataset.surface = settings.surface
   root.style.setProperty('--surface-alpha', `${settings.surfaceOpacity}%`)
   root.style.setProperty('--surface-blur', `${settings.surfaceBlur}px`)
+  root.style.setProperty('--surface-tint', `${settings.surfaceTint}%`)
 }
 
 export function bootCachedAccent() {
