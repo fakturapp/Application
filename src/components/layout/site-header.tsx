@@ -68,7 +68,7 @@ export function SiteHeader({ onToggleSidebar, collapsed }: SiteHeaderProps) {
   return (
     <header
       className={cn(
-        'app-surface fixed inset-x-0 top-0 z-30 flex h-(--header-height) items-center gap-2 bg-transparent transition-[padding] duration-300 ease-out will-change-[padding]',
+        'app-surface fixed inset-x-0 top-0 z-30 flex h-(--header-height) items-center gap-2 bg-transparent transition-[padding] duration-300 ease-out',
         collapsed ? 'pl-16' : 'pl-(--sidebar-width)'
       )}
     >
