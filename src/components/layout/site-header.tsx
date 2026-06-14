@@ -86,7 +86,7 @@ export function SiteHeader({ onToggleSidebar }: SiteHeaderProps) {
             <div className="absolute left-1/2 -translate-x-1/2">
               <button
                 onClick={() => setSettingsSearchOpen(true)}
-                className="flex items-center gap-2.5 rounded-full border border-border/50 bg-muted/40 px-4 py-1.5 text-sm text-muted-foreground hover:bg-muted/60 hover:border-border hover:text-foreground transition-all duration-200 shadow-sm"
+                className="flex items-center gap-2.5 rounded-full border border-border/40 bg-foreground/[0.04] px-4 py-1.5 text-sm text-muted-foreground hover:bg-foreground/[0.07] hover:border-border hover:text-foreground transition-all duration-200"
               >
                 <Search className="h-3.5 w-3.5 shrink-0" />
                 <span className="hidden sm:inline text-xs">Rechercher dans les paramètres...</span>
