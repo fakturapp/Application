@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { SettingsSearchModal } from '@/components/settings/settings-search-modal'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -37,9 +38,10 @@ const routeTitles: Record<string, string> = {
 
 interface SiteHeaderProps {
   onToggleSidebar?: () => void
+  collapsed?: boolean
 }
 
-export function SiteHeader({ onToggleSidebar }: SiteHeaderProps) {
+export function SiteHeader({ onToggleSidebar, collapsed }: SiteHeaderProps) {
   const pathname = usePathname()
   const [settingsSearchOpen, setSettingsSearchOpen] = useState(false)
   const isSettings = pathname.startsWith('/dashboard/settings')
@@ -64,7 +66,12 @@ export function SiteHeader({ onToggleSidebar }: SiteHeaderProps) {
   }, '/dashboard')
 
   return (
-    <header className="app-surface relative z-20 flex h-(--header-height) shrink-0 items-center gap-2 bg-transparent transition-[width,height] ease-linear">
+    <header
+      className={cn(
+        'app-surface fixed inset-x-0 top-0 z-30 flex h-(--header-height) items-center gap-2 bg-transparent transition-[padding] duration-300 ease-out will-change-[padding]',
+        collapsed ? 'pl-16' : 'pl-(--sidebar-width)'
+      )}
+    >
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         {onToggleSidebar && (
           <Tooltip content="Afficher / masquer la barre latérale">

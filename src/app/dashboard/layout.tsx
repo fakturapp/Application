@@ -306,8 +306,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </div>
         {}
-        <div className="h-screen flex flex-col overflow-hidden bg-background pl-(--sidebar-width)">
-          <div className="h-(--header-height) shrink-0 border-b border-border" />
+        <div className="app-surface fixed inset-x-0 top-0 z-30 h-(--header-height) pl-(--sidebar-width)" />
+        {}
+        <div className="h-screen flex flex-col overflow-hidden bg-background pl-(--sidebar-width) pt-(--header-height)">
           <div className="flex-1 p-6 space-y-6">
             <div className="grid gap-4 grid-cols-4">
               {[...Array(4)].map((_, i) => (
@@ -387,9 +388,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         storage={storage}
       />
 
+      <SiteHeader onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} collapsed={sidebarCollapsed} />
+
       <div
         className={cn(
-          'relative flex min-w-0 min-h-0 h-screen flex-col transition-[padding] duration-300 ease-out overflow-hidden bg-transparent will-change-[padding]',
+          'relative flex min-w-0 min-h-0 h-screen flex-col transition-[padding] duration-300 ease-out overflow-hidden bg-transparent will-change-[padding] pt-(--header-height)',
           sidebarCollapsed ? 'pl-16' : 'pl-(--sidebar-width)',
           switching && 'blur-sm pointer-events-none'
         )}
@@ -398,7 +401,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SubscriptionBanner />
         <CollaborationGraceBanner />
         <TeamEncryptionBanner />
-        <SiteHeader onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} />
         <RouteProgressBar />
 
         <main className="relative flex-1 overflow-y-auto" data-tutorial="main-content">
