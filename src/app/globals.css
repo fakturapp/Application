@@ -722,6 +722,8 @@ html[data-surface='liquid'] {
   --surface-frost: color-mix(in srgb, var(--overlay), var(--surface-tint-color) var(--surface-tint, 0%));
   --surface-frost-hover: color-mix(in srgb, var(--surface-hover), var(--surface-tint-color) var(--surface-tint, 0%));
   --overlay-frost-alpha: max(var(--surface-alpha, 30%), 62%);
+  --surface-glass-hover: color-mix(in srgb, var(--surface-hover) 20%, transparent);
+  --surface-glass-active: color-mix(in srgb, var(--surface-hover) 28%, transparent);
 }
 
 html.dark[data-surface='glass'],
@@ -796,9 +798,17 @@ html.dark[data-surface='liquid']:not([data-liquid-ready='1']) .app-surface {
 }
 
 @media (hover: hover) {
+  html[data-surface='glass'] .app-surface.card--interactive,
+  html[data-surface='liquid'] .app-surface.card--interactive {
+    transition:
+      background-image 150ms var(--ease-smooth),
+      transform 250ms var(--ease-link),
+      box-shadow 150ms var(--ease-link);
+  }
+
   html[data-surface='glass'] .app-surface.card--interactive:hover,
   html[data-surface='liquid'] .app-surface.card--interactive:hover {
-    background-color: color-mix(in srgb, var(--surface-frost-hover) var(--surface-alpha, 30%), transparent);
+    background-image: linear-gradient(var(--surface-glass-hover), var(--surface-glass-hover));
   }
 }
 
@@ -881,13 +891,18 @@ html[data-surface='liquid'] .app-scrim {
 @media (hover: hover) {
   html[data-surface='glass'] .menu-item:hover,
   html[data-surface='glass'] .menu-item[data-hovered='true'],
+  html[data-surface='glass'] .menu-item[data-highlighted],
   html[data-surface='liquid'] .menu-item:hover,
   html[data-surface='liquid'] .menu-item[data-hovered='true'],
+  html[data-surface='liquid'] .menu-item[data-highlighted],
   html[data-surface='glass'] .list-box-item:hover,
   html[data-surface='glass'] .list-box-item[data-hovered='true'],
+  html[data-surface='glass'] .list-box-item[data-highlighted],
   html[data-surface='liquid'] .list-box-item:hover,
-  html[data-surface='liquid'] .list-box-item[data-hovered='true'] {
-    background-color: color-mix(in srgb, var(--surface-hover) 22%, transparent);
+  html[data-surface='liquid'] .list-box-item[data-hovered='true'],
+  html[data-surface='liquid'] .list-box-item[data-highlighted] {
+    background-color: var(--surface-glass-hover);
+    transition: background-color 150ms var(--ease-smooth);
   }
 }
 
@@ -899,24 +914,27 @@ html[data-surface='glass'] .list-box-item[data-focused='true'],
 html[data-surface='liquid'] .list-box-item[data-focused='true'],
 html[data-surface='glass'] .list-box-item[aria-selected='true'],
 html[data-surface='liquid'] .list-box-item[aria-selected='true'] {
-  background-color: color-mix(in srgb, var(--surface-hover) 26%, transparent);
+  background-color: var(--surface-glass-active);
+  transition: background-color 150ms var(--ease-smooth);
 }
 
 html[data-surface='glass'] .menu-item--danger:hover,
 html[data-surface='liquid'] .menu-item--danger:hover,
 html[data-surface='glass'] .menu-item--danger[data-hovered='true'],
 html[data-surface='liquid'] .menu-item--danger[data-hovered='true'],
+html[data-surface='glass'] .menu-item--danger[data-highlighted],
+html[data-surface='liquid'] .menu-item--danger[data-highlighted],
 html[data-surface='glass'] .menu-item--danger[data-focused='true']:not([data-disabled='true']),
 html[data-surface='liquid'] .menu-item--danger[data-focused='true']:not([data-disabled='true']) {
-  background-color: color-mix(in srgb, var(--color-danger) 16%, transparent);
+  background-color: color-mix(in srgb, var(--color-danger) 14%, transparent);
 }
 
 html[data-surface='glass'] .button--ghost,
 html[data-surface='liquid'] .button--ghost,
 html[data-surface='glass'] .button--outline,
 html[data-surface='liquid'] .button--outline {
-  --button-bg-hover: color-mix(in srgb, var(--surface-hover) 24%, transparent);
-  --button-bg-pressed: color-mix(in srgb, var(--surface-hover) 34%, transparent);
+  --button-bg-hover: var(--surface-glass-hover);
+  --button-bg-pressed: var(--surface-glass-active);
 }
 
 /* ============================================================
