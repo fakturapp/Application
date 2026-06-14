@@ -2,7 +2,7 @@
 
 export const popoverVariants = tv({
   slots: {
-    base: "popover",
+    base: "popover app-overlay-surface",
     dialog: "popover__dialog",
     heading: "popover__heading",
     trigger: "popover__trigger",

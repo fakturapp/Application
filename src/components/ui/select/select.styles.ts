@@ -4,7 +4,7 @@ export const selectVariants = tv({
   slots: {
     base: "select",
     indicator: "select__indicator",
-    popover: "select__popover",
+    popover: "select__popover app-overlay-surface",
     trigger: "select__trigger",
     value: "select__value",
   },

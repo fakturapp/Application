@@ -133,11 +133,11 @@ export function DatePicker({
       {open && (
         <motion.div
           ref={popupRef}
-          initial={{ opacity: 0, y: -4, scale: 0.97 }}
+          initial={{ opacity: 0, y: -6, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -4, scale: 0.97 }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="fixed z-[9999] bg-overlay rounded-xl shadow-overlay p-3 w-[280px] select-none"
+          exit={{ opacity: 0, y: -6, scale: 0.96 }}
+          transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+          className="app-overlay-surface fixed z-[9999] bg-overlay rounded-xl shadow-overlay p-3 w-[280px] select-none"
           style={{ top: pos.top, left: pos.left, fontFamily: 'inherit' }}
         >
           {/* Header */}

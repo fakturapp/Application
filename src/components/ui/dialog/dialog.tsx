@@ -37,16 +37,17 @@ export function Dialog({ open, onClose, children, className, dismissible = true,
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-backdrop backdrop-blur-sm"
+            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+            className="app-scrim absolute inset-0 bg-backdrop backdrop-blur-sm"
             onClick={dismissible ? onClose : undefined}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+            initial={{ opacity: 0, scale: 0.96, y: 8, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 0.96, y: 8, filter: 'blur(4px)' }}
+            transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.9 }}
             className={cn(
-              'relative w-full max-w-md bg-overlay shadow-overlay rounded-[30px] p-6',
+              'app-overlay-surface relative w-full max-w-md bg-overlay shadow-overlay rounded-[30px] p-6',
               className
             )}
           >

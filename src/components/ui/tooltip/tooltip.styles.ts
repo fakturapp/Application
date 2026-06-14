@@ -2,7 +2,7 @@
 
 export const tooltipVariants = tv({
   slots: {
-    base: "tooltip",
+    base: "tooltip app-overlay-surface app-overlay-surface--tooltip",
     trigger: "tooltip__trigger",
   },
 });

@@ -706,10 +706,31 @@ body {
 
 /* ============================================================
  * Surface effects (per-user card rendering, html[data-surface])
+ *
+ * --surface-alpha : visibility of the frost (set by applySurface)
+ * --surface-blur  : blur radius (set by applySurface)
+ * --surface-tint  : density / dark tint of the frost (set by applySurface)
+ * --surface-tint-color : color the frost is mixed toward when tinted
+ * --surface-frost : the resulting tinted frost color (before alpha)
+ * --surface-frost-hover : tinted frost color for hover states
+ * --overlay-frost-alpha : elevated frost floor for overlays (never goes black)
  * ============================================================ */
 
+html[data-surface='glass'],
+html[data-surface='liquid'] {
+  --surface-tint-color: #1c1c1c;
+  --surface-frost: color-mix(in srgb, var(--overlay), var(--surface-tint-color) var(--surface-tint, 0%));
+  --surface-frost-hover: color-mix(in srgb, var(--surface-hover), var(--surface-tint-color) var(--surface-tint, 0%));
+  --overlay-frost-alpha: max(var(--surface-alpha, 30%), 62%);
+}
+
+html.dark[data-surface='glass'],
+html.dark[data-surface='liquid'] {
+  --surface-tint-color: #000000;
+}
+
 html[data-surface='glass'] .app-surface {
-  background-color: color-mix(in srgb, var(--overlay) var(--surface-alpha, 30%), transparent);
+  background-color: color-mix(in srgb, var(--surface-frost) var(--surface-alpha, 30%), transparent);
   box-shadow:
     0 0 0 1px rgb(255 255 255 / 0.35),
     inset 0 1px 0 rgb(255 255 255 / 0.4),
@@ -730,7 +751,7 @@ html.dark[data-surface='glass'] .app-surface {
 }
 
 html[data-surface='liquid'][data-liquid-ready='1'] .app-surface {
-  background-color: color-mix(in srgb, var(--overlay) max(var(--surface-alpha, 30%), 25%), transparent);
+  background-color: color-mix(in srgb, var(--surface-frost) max(var(--surface-alpha, 30%), 25%), transparent);
   border-color: transparent;
   box-shadow:
     0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset,
@@ -758,7 +779,7 @@ html.dark[data-surface='liquid'][data-liquid-ready='1'] .app-surface {
 }
 
 html[data-surface='liquid']:not([data-liquid-ready='1']) .app-surface {
-  background-color: color-mix(in srgb, var(--overlay) max(var(--surface-alpha, 30%), 25%), transparent);
+  background-color: color-mix(in srgb, var(--surface-frost) max(var(--surface-alpha, 30%), 25%), transparent);
   box-shadow:
     inset 0 1px 0 0 rgb(255 255 255 / 0.55),
     inset 0 0 10px 4px rgb(255 255 255 / 0.25);
@@ -777,10 +798,171 @@ html.dark[data-surface='liquid']:not([data-liquid-ready='1']) .app-surface {
 @media (hover: hover) {
   html[data-surface='glass'] .app-surface.card--interactive:hover,
   html[data-surface='liquid'] .app-surface.card--interactive:hover {
-    background-color: color-mix(in srgb, var(--surface-hover) var(--surface-alpha, 30%), transparent);
+    background-color: color-mix(in srgb, var(--surface-frost-hover) var(--surface-alpha, 30%), transparent);
   }
 }
 
 html[data-surface='opaque'] .app-surface {
   background-color: var(--overlay);
 }
+
+/* ============================================================
+ * Overlay surfaces (Dialog / Dropdown / Popover / Tooltip /
+ * Select / Sheet panels carry .app-overlay-surface)
+ *
+ * Same glass language as .app-surface but with an elevated frost
+ * floor so the content stays readable above the dimmed scrim and
+ * never collapses to a flat black panel.
+ * ============================================================ */
+
+html[data-surface='glass'] .app-overlay-surface:not(.app-overlay-surface--tooltip),
+html[data-surface='liquid'] .app-overlay-surface:not(.app-overlay-surface--tooltip) {
+  background-color: color-mix(in srgb, var(--surface-frost) var(--overlay-frost-alpha), transparent);
+  -webkit-backdrop-filter: blur(var(--surface-blur, 16px)) saturate(1.8) brightness(1.08);
+  backdrop-filter: blur(var(--surface-blur, 16px)) saturate(1.8) brightness(1.08);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.28),
+    inset 0 1px 0 rgb(255 255 255 / 0.3),
+    var(--shadow-overlay);
+}
+
+html.dark[data-surface='glass'] .app-overlay-surface:not(.app-overlay-surface--tooltip),
+html.dark[data-surface='liquid'] .app-overlay-surface:not(.app-overlay-surface--tooltip) {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.08),
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    var(--shadow-overlay);
+}
+
+html[data-surface='liquid'][data-liquid-ready='1'] .app-overlay-surface:not(.app-overlay-surface--tooltip) {
+  -webkit-backdrop-filter: url(#faktur-liquid-glass) saturate(1.4);
+  backdrop-filter: url(#faktur-liquid-glass) saturate(1.4);
+}
+
+html[data-surface='glass'] .app-overlay-surface .app-overlay-surface,
+html[data-surface='liquid'] .app-overlay-surface .app-overlay-surface {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Tooltip keeps its inverse (dark on light) reading, as a frosted
+ * dark glass that stays legible with light text on top. */
+html[data-surface='glass'] .app-overlay-surface--tooltip,
+html[data-surface='liquid'] .app-overlay-surface--tooltip {
+  background-color: color-mix(in srgb, var(--color-foreground) 82%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.6);
+  backdrop-filter: blur(10px) saturate(1.6);
+}
+
+/* ============================================================
+ * Scrim relief — a frosted overlay over a dimmed scrim reads
+ * as black, so soften the dialog backdrop while an effect is on.
+ * ============================================================ */
+
+html[data-surface='glass'] .modal__backdrop--opaque,
+html[data-surface='liquid'] .modal__backdrop--opaque,
+html[data-surface='glass'] .modal__backdrop--blur,
+html[data-surface='liquid'] .modal__backdrop--blur {
+  background-color: color-mix(in srgb, var(--backdrop), transparent 45%);
+}
+
+html[data-surface='glass'] .app-scrim,
+html[data-surface='liquid'] .app-scrim {
+  background-color: color-mix(in srgb, var(--backdrop), transparent 45%);
+}
+
+/* ============================================================
+ * Glass-aware hover / active states for interactive items
+ * (menu items, list-box items, dropdown items, ghost buttons).
+ * A solid surface-hover reads as a black block on glass, so make
+ * these states a translucent tinted frost instead.
+ * ============================================================ */
+
+@media (hover: hover) {
+  html[data-surface='glass'] .menu-item:hover,
+  html[data-surface='glass'] .menu-item[data-hovered='true'],
+  html[data-surface='liquid'] .menu-item:hover,
+  html[data-surface='liquid'] .menu-item[data-hovered='true'],
+  html[data-surface='glass'] .list-box-item:hover,
+  html[data-surface='glass'] .list-box-item[data-hovered='true'],
+  html[data-surface='liquid'] .list-box-item:hover,
+  html[data-surface='liquid'] .list-box-item[data-hovered='true'] {
+    background-color: color-mix(in srgb, var(--surface-hover) 22%, transparent);
+  }
+}
+
+html[data-surface='glass'] .menu-item[data-focused='true']:not([data-disabled='true']),
+html[data-surface='liquid'] .menu-item[data-focused='true']:not([data-disabled='true']),
+html[data-surface='glass'] .menu-item[aria-selected='true'],
+html[data-surface='liquid'] .menu-item[aria-selected='true'],
+html[data-surface='glass'] .list-box-item[data-focused='true'],
+html[data-surface='liquid'] .list-box-item[data-focused='true'],
+html[data-surface='glass'] .list-box-item[aria-selected='true'],
+html[data-surface='liquid'] .list-box-item[aria-selected='true'] {
+  background-color: color-mix(in srgb, var(--surface-hover) 26%, transparent);
+}
+
+html[data-surface='glass'] .menu-item--danger:hover,
+html[data-surface='liquid'] .menu-item--danger:hover,
+html[data-surface='glass'] .menu-item--danger[data-hovered='true'],
+html[data-surface='liquid'] .menu-item--danger[data-hovered='true'],
+html[data-surface='glass'] .menu-item--danger[data-focused='true']:not([data-disabled='true']),
+html[data-surface='liquid'] .menu-item--danger[data-focused='true']:not([data-disabled='true']) {
+  background-color: color-mix(in srgb, var(--color-danger) 16%, transparent);
+}
+
+html[data-surface='glass'] .button--ghost,
+html[data-surface='liquid'] .button--ghost,
+html[data-surface='glass'] .button--outline,
+html[data-surface='liquid'] .button--outline {
+  --button-bg-hover: color-mix(in srgb, var(--surface-hover) 24%, transparent);
+  --button-bg-pressed: color-mix(in srgb, var(--surface-hover) 34%, transparent);
+}
+
+/* ============================================================
+ * Fields (Input / Textarea / Select trigger) on glass — a solid
+ * field reads as black; give them a translucent tinted frost.
+ * Focus ring and invalid states are left untouched.
+ * ============================================================ */
+
+html[data-surface='glass'] .input:not(:focus):not([data-focused='true']):not([data-invalid='true']),
+html[data-surface='liquid'] .input:not(:focus):not([data-focused='true']):not([data-invalid='true']),
+html[data-surface='glass'] .select__trigger:not([data-focus-visible='true']):not([data-invalid='true']),
+html[data-surface='liquid'] .select__trigger:not([data-focus-visible='true']):not([data-invalid='true']) {
+  background-color: color-mix(in srgb, var(--color-field) 40%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
+}
+
+@media (hover: hover) {
+  html[data-surface='glass'] .input:hover:not(:focus):not([data-focused='true']):not([data-invalid='true']),
+  html[data-surface='liquid'] .input:hover:not(:focus):not([data-focused='true']):not([data-invalid='true']),
+  html[data-surface='glass'] .select__trigger:hover:not([data-focus-visible='true']):not([data-invalid='true']),
+  html[data-surface='liquid'] .select__trigger:hover:not([data-focus-visible='true']):not([data-invalid='true']) {
+    background-color: color-mix(in srgb, var(--color-field-hover) 48%, transparent);
+  }
+}
+
+html[data-surface='glass'] .checkbox:not([aria-checked='true']):not([data-selected='true']):not([data-indeterminate='true']) .checkbox__control,
+html[data-surface='liquid'] .checkbox:not([aria-checked='true']):not([data-selected='true']):not([data-indeterminate='true']) .checkbox__control {
+  background-color: color-mix(in srgb, var(--color-field) 40%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* ============================================================
+ * Skeleton on glass — keep the shimmer, drop the solid dark fill.
+ * ============================================================ */
+
+html[data-surface='glass'] .skeleton,
+html[data-surface='liquid'] .skeleton {
+  background-color: color-mix(in srgb, var(--surface-secondary) 38%, transparent);
+  -webkit-backdrop-filter: blur(8px) saturate(1.4);
+  backdrop-filter: blur(8px) saturate(1.4);
+}
+
+/* ============================================================
+ * Apple-style entrance / exit for the custom framer Dialog is
+ * handled in JS. For react-aria overlays (modal / popover /
+ * select / tooltip) the soft spring curve lives in their CSS.
+ * ============================================================ */

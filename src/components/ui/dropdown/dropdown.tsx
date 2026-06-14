@@ -75,12 +75,12 @@ export function Dropdown({ trigger, children, align = 'right', position = 'below
       {open && (
         <motion.div
           ref={popupRef}
-          initial={{ opacity: 0, y: position === 'above' ? 4 : -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: position === 'above' ? 4 : -4 }}
-          transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+          initial={{ opacity: 0, y: position === 'above' ? 6 : -6, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: position === 'above' ? 6 : -6, scale: 0.96 }}
+          transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
           className={cn(
-            'fixed z-[9999] min-w-[220px] rounded-xl bg-overlay shadow-overlay overflow-hidden border border-border/10',
+            'app-overlay-surface fixed z-[9999] min-w-[220px] rounded-xl bg-overlay shadow-overlay overflow-hidden border border-border/10',
             className
           )}
           style={{
@@ -169,12 +169,12 @@ export function DropdownSub({ trigger, children, className }: DropdownSubProps) 
       {open && (
         <motion.div
           ref={flyoutRef}
-          initial={{ opacity: 0, x: -4 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -4 }}
-          transition={{ duration: 0.12, ease: [0.25, 0.46, 0.45, 0.94] }}
+          initial={{ opacity: 0, x: -6, scale: 0.96 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: -6, scale: 0.96 }}
+          transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
           className={cn(
-            'fixed z-[10000] min-w-[200px] rounded-xl bg-overlay shadow-overlay overflow-hidden border border-border/10',
+            'app-overlay-surface fixed z-[10000] min-w-[200px] rounded-xl bg-overlay shadow-overlay overflow-hidden border border-border/10',
             className
           )}
           style={{ top: flyoutPos.top, left: flyoutPos.left }}
@@ -343,11 +343,11 @@ export function FormSelect({
       {open && (
         <motion.div
           ref={popupRef}
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="fixed z-[9999] rounded-xl bg-overlay shadow-overlay overflow-hidden border border-border/10"
+          initial={{ opacity: 0, y: -6, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -6, scale: 0.96 }}
+          transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+          className="app-overlay-surface fixed z-[9999] rounded-xl bg-overlay shadow-overlay overflow-hidden border border-border/10"
           style={{ top: pos.top, left: pos.left, minWidth: pos.width }}
         >
           <div className="p-1.5 max-h-[280px] overflow-y-auto">

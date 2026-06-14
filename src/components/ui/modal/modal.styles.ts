@@ -6,7 +6,7 @@ export const modalVariants = tv({
     body: "modal__body",
     closeTrigger: "modal__close-trigger",
     container: "modal__container",
-    dialog: "modal__dialog",
+    dialog: "modal__dialog app-overlay-surface",
     footer: "modal__footer",
     header: "modal__header",
     heading: "modal__heading",
