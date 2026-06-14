@@ -493,7 +493,7 @@ function LatestInvoiceBlock({
           {t('dashboard.latestInvoice')}
         </span>
         <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface [html[data-surface=glass]_&]:bg-surface/40 [html[data-surface=liquid]_&]:bg-surface/40">
             <FileText className="h-5 w-5 text-muted-foreground" />
           </div>
           <p className="text-xs text-muted-foreground">{t('dashboard.noInvoiceYet')}</p>
@@ -597,7 +597,7 @@ function QuickActionsBlock({ t }: { t: (key: string) => string }) {
             <Link
               key={action.href}
               href={action.href}
-              className="flex flex-col items-center justify-center gap-2 rounded-lg bg-surface shadow-surface hover:bg-surface-hover transition-all p-3 group/action"
+              className="flex flex-col items-center justify-center gap-2 rounded-lg bg-surface shadow-surface hover:bg-surface-hover transition-all p-3 group/action [html[data-surface=glass]_&]:bg-surface/40 [html[data-surface=glass]_&]:shadow-none [html[data-surface=glass]_&]:hover:bg-surface-hover/30 [html[data-surface=liquid]_&]:bg-surface/40 [html[data-surface=liquid]_&]:shadow-none [html[data-surface=liquid]_&]:hover:bg-surface-hover/30"
             >
               <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg transition-transform group-hover/action:scale-110', action.color)}>
                 <Icon className="h-4 w-4" />
@@ -740,7 +740,7 @@ function ShortcutsBlock() {
             <Link
               key={s.href}
               href={s.href}
-              className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-surface shadow-surface hover:bg-surface-hover transition-all p-2 group/sc"
+              className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-surface shadow-surface hover:bg-surface-hover transition-all p-2 group/sc [html[data-surface=glass]_&]:bg-surface/40 [html[data-surface=glass]_&]:shadow-none [html[data-surface=glass]_&]:hover:bg-surface-hover/30 [html[data-surface=liquid]_&]:bg-surface/40 [html[data-surface=liquid]_&]:shadow-none [html[data-surface=liquid]_&]:hover:bg-surface-hover/30"
             >
               <Icon className="h-4 w-4 text-muted-foreground group-hover/sc:text-primary transition-colors" />
               <span className="text-[10px] font-medium text-foreground leading-tight text-center">{s.label}</span>
@@ -771,7 +771,7 @@ function RecentActivityBlock({
       </div>
       {items.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface [html[data-surface=glass]_&]:bg-surface/40 [html[data-surface=liquid]_&]:bg-surface/40">
             <Clock className="h-5 w-5 text-muted-foreground" />
           </div>
           <p className="text-xs text-muted-foreground">{t('dashboard.recentActivity.empty')}</p>
@@ -786,7 +786,7 @@ function RecentActivityBlock({
                 href={`/dashboard/${item.type === 'invoice' ? 'invoices' : 'quotes'}/${item.id}`}
                 className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-surface transition-colors"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface text-muted-foreground">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface text-muted-foreground [html[data-surface=glass]_&]:bg-surface/40 [html[data-surface=liquid]_&]:bg-surface/40">
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
