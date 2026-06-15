@@ -938,6 +938,36 @@ html[data-surface='liquid'] .button--outline {
 }
 
 /* ============================================================
+ * Header / nav controls (toggle, route pills, search) — one
+ * discreet translucent veil that stays soft on standard, glass
+ * and liquid, in both light and dark, instead of a flat aplat.
+ * ============================================================ */
+
+.app-nav-hover {
+  --nav-hover-bg: color-mix(in srgb, var(--color-foreground) 6%, transparent);
+  --nav-active-bg: color-mix(in srgb, var(--color-foreground) 9%, transparent);
+  transition:
+    background-color 150ms var(--ease-smooth),
+    color 150ms var(--ease-smooth);
+}
+
+@media (hover: hover) {
+  .app-nav-hover:hover {
+    background-color: var(--nav-hover-bg);
+  }
+}
+
+.app-nav-hover:active {
+  background-color: var(--nav-active-bg);
+}
+
+html[data-surface='glass'] .app-nav-hover,
+html[data-surface='liquid'] .app-nav-hover {
+  --nav-hover-bg: var(--surface-glass-hover);
+  --nav-active-bg: var(--surface-glass-active);
+}
+
+/* ============================================================
  * Fields (Input / Textarea / Select trigger) on glass — a solid
  * field reads as black; give them a translucent tinted frost.
  * Focus ring and invalid states are left untouched.

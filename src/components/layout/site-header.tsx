@@ -68,17 +68,24 @@ export function SiteHeader({ onToggleSidebar, collapsed }: SiteHeaderProps) {
   return (
     <header
       className={cn(
-        'app-surface fixed inset-x-0 top-0 z-30 flex h-(--header-height) items-center gap-2 bg-transparent transition-[padding] duration-300 ease-out',
+        'fixed inset-x-0 top-0 z-30 flex h-(--header-height) items-center gap-2 bg-transparent transition-[padding] duration-300 ease-out',
         collapsed ? 'pl-16' : 'pl-(--sidebar-width)'
       )}
     >
-      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+      <div
+        aria-hidden="true"
+        className={cn(
+          'app-surface pointer-events-none absolute inset-y-0 right-0 rounded-tl-[2rem] transition-[left] duration-300 ease-out',
+          collapsed ? 'left-[calc(4rem-2rem)]' : 'left-[calc(var(--sidebar-width)-2rem)]'
+        )}
+      />
+      <div className="relative flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         {onToggleSidebar && (
           <Tooltip content="Afficher / masquer la barre latérale">
             <button
               onClick={onToggleSidebar}
               aria-label="Basculer la barre latérale"
-              className="-ml-1 flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground transition-all duration-200"
+              className="app-nav-hover -ml-1 flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground"
             >
               <PanelLeft className="h-3.5 w-3.5" />
             </button>
@@ -93,7 +100,7 @@ export function SiteHeader({ onToggleSidebar, collapsed }: SiteHeaderProps) {
             <div className="absolute left-1/2 -translate-x-1/2">
               <button
                 onClick={() => setSettingsSearchOpen(true)}
-                className="flex items-center gap-2.5 rounded-full border border-border/40 bg-foreground/[0.04] px-4 py-1.5 text-sm text-muted-foreground hover:bg-foreground/[0.07] hover:border-border hover:text-foreground transition-all duration-200"
+                className="app-nav-hover flex items-center gap-2.5 rounded-full border border-border/40 bg-foreground/[0.04] px-4 py-1.5 text-sm text-muted-foreground hover:border-border hover:text-foreground"
               >
                 <Search className="h-3.5 w-3.5 shrink-0" />
                 <span className="hidden sm:inline text-xs">Rechercher dans les paramètres...</span>

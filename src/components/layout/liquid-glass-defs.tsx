@@ -8,16 +8,16 @@ const MAP_HEIGHT = 320
 const MAP_RADIUS = 20
 const MAP_BORDER = 0.07
 const MAP_BRIGHTNESS = 50
-const MAP_OPACITY = 0.93
-const MAP_BLUR = 11
-const DISTORTION_SCALE = -180
+const MAP_OPACITY = 0.9
+const MAP_BLUR = 14
+const DISTORTION_SCALE = -150
 const RED_OFFSET = 0
-const GREEN_OFFSET = 10
-const BLUE_OFFSET = 20
+const GREEN_OFFSET = 8
+const BLUE_OFFSET = 16
 
 function buildDisplacementMap(): string {
   const edge = Math.min(MAP_WIDTH, MAP_HEIGHT) * (MAP_BORDER * 0.5)
-  const svgContent = `<svg viewBox="0 0 ${MAP_WIDTH} ${MAP_HEIGHT}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="flg-red" x1="100%" y1="0%" x2="0%" y2="0%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="red"/></linearGradient><linearGradient id="flg-blue" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="blue"/></linearGradient></defs><rect x="0" y="0" width="${MAP_WIDTH}" height="${MAP_HEIGHT}" fill="black"></rect><rect x="0" y="0" width="${MAP_WIDTH}" height="${MAP_HEIGHT}" rx="${MAP_RADIUS}" fill="url(#flg-red)" /><rect x="0" y="0" width="${MAP_WIDTH}" height="${MAP_HEIGHT}" rx="${MAP_RADIUS}" fill="url(#flg-blue)" style="mix-blend-mode: difference" /><rect x="${edge}" y="${edge}" width="${MAP_WIDTH - edge * 2}" height="${MAP_HEIGHT - edge * 2}" rx="${MAP_RADIUS}" fill="hsl(0 0% ${MAP_BRIGHTNESS}% / ${MAP_OPACITY})" style="filter:blur(${MAP_BLUR}px)" /></svg>`
+  const svgContent = `<svg viewBox="0 0 ${MAP_WIDTH} ${MAP_HEIGHT}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="flg-red" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="red"/><stop offset="50%" stop-color="#0000"/><stop offset="100%" stop-color="red"/></linearGradient><linearGradient id="flg-green" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="lime"/><stop offset="50%" stop-color="#0000"/><stop offset="100%" stop-color="lime"/></linearGradient><radialGradient id="flg-core" cx="50%" cy="50%" r="62%"><stop offset="0%" stop-color="hsl(0 0% ${MAP_BRIGHTNESS}% / ${MAP_OPACITY})"/><stop offset="62%" stop-color="hsl(0 0% ${MAP_BRIGHTNESS}% / ${MAP_OPACITY})"/><stop offset="100%" stop-color="hsl(0 0% ${MAP_BRIGHTNESS}% / 0)"/></radialGradient></defs><rect x="0" y="0" width="${MAP_WIDTH}" height="${MAP_HEIGHT}" fill="black"></rect><rect x="0" y="0" width="${MAP_WIDTH}" height="${MAP_HEIGHT}" rx="${MAP_RADIUS}" fill="url(#flg-red)" /><rect x="0" y="0" width="${MAP_WIDTH}" height="${MAP_HEIGHT}" rx="${MAP_RADIUS}" fill="url(#flg-green)" style="mix-blend-mode: screen" /><rect x="${edge}" y="${edge}" width="${MAP_WIDTH - edge * 2}" height="${MAP_HEIGHT - edge * 2}" rx="${MAP_RADIUS}" fill="url(#flg-core)" style="filter:blur(${MAP_BLUR}px)" /></svg>`
   return `data:image/svg+xml,${encodeURIComponent(svgContent)}`
 }
 
