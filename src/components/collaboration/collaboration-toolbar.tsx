@@ -96,9 +96,10 @@ export function CollaborationToolbar({
 }
 
 
-export function CollaborationReadOnlyBanner() {
+export function CollaborationReadOnlyBanner({ readOnly }: { readOnly?: boolean }) {
   const collab = useCollaborationContext()
-  if (!collab || collab.myPermission !== 'viewer') return null
+  const isReadOnly = readOnly ?? collab?.myPermission === 'viewer'
+  if (!isReadOnly) return null
   return <ReadOnlyBanner />
 }
 
@@ -106,6 +107,7 @@ export function CollaborationReadOnlyBanner() {
 interface CollaborationEditorProps {
   editorRef: React.RefObject<HTMLDivElement | null>
   panelRef?: React.RefObject<HTMLElement | null>
+  readOnly?: boolean
   children: React.ReactNode
 }
 
@@ -116,6 +118,7 @@ const CURSOR_THROTTLE_MS = 33
 export function CollaborationEditor({
   editorRef,
   panelRef,
+  readOnly,
   children,
 }: CollaborationEditorProps) {
   const collab = useCollaborationContext()
@@ -290,7 +293,7 @@ export function CollaborationEditor({
     }
   }, [editorRef, panelRef, isConnected, sendFieldFocus, sendFieldBlur])
 
-  const isReadOnly = myPermission === 'viewer'
+  const isReadOnly = readOnly ?? myPermission === 'viewer'
 
   return (
     <div className="relative" ref={editorRef as React.RefObject<HTMLDivElement>}>

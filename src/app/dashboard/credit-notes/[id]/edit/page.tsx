@@ -103,6 +103,10 @@ function EditCreditNoteContent() {
   const canShareDocument = sharedAccess
     ? !!sharedAccess.canShare
     : teamRole === 'admin' || teamRole === 'super_admin'
+  const canEditDocument = sharedAccess
+    ? sharedAccess.permission === 'editor'
+    : teamRole !== 'viewer'
+  const readOnly = !canEditDocument
   const { showModal, confirmNavigation, cancelNavigation, requestNavigation } = useUnsavedChanges(isDirty && !sharedAccess)
 
   useEffect(() => {
@@ -502,7 +506,7 @@ function EditCreditNoteContent() {
       }}
     >
     <motion.div initial="hidden" animate="visible" className="space-y-5 px-4 lg:px-6 py-4 md:py-5">
-      {collabActive && <CollaborationReadOnlyBanner />}
+      {collabActive && <CollaborationReadOnlyBanner readOnly={readOnly} />}
       {collabActive && <SyncBroadcaster
         notes={notes}
         accentColor={accentColor}
@@ -563,7 +567,7 @@ function EditCreditNoteContent() {
       {/* Main content */}
       <div className="flex flex-col xl:flex-row gap-5">
         <motion.div variants={fadeUp} custom={1} className="flex-1 min-w-0 order-1">
-          <CollaborationEditor editorRef={editorAreaRef} panelRef={optionsPanelRef}>
+          <CollaborationEditor editorRef={editorAreaRef} panelRef={optionsPanelRef} readOnly={readOnly}>
           <div ref={a4SheetRef} className="rounded-xl relative">
             <button onClick={() => setShowOptions(!showOptions)} className="absolute top-3 right-3 z-10 p-1.5 rounded-lg border border-border bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground transition-colors" title={showOptions ? 'Masquer les options' : 'Afficher les options'}>
               <SlidersHorizontal className="h-4 w-4" />
@@ -693,7 +697,7 @@ function EditCreditNoteContent() {
           <div className="text-sm text-muted-foreground">
             Total : <span className="font-bold text-foreground">{total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
           </div>
-          {sharedAccess ? (
+          {sharedAccess || readOnly ? (
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground" title="Vos modifications sont visibles en direct par le propriétaire, qui peut les enregistrer.">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />

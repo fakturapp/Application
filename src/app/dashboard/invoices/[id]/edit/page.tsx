@@ -86,6 +86,10 @@ function EditInvoiceContent() {
   const canShareDocument = sharedAccess
     ? !!sharedAccess.canShare
     : teamRole === 'admin' || teamRole === 'super_admin'
+  const canEditDocument = sharedAccess
+    ? sharedAccess.permission === 'editor'
+    : teamRole !== 'viewer'
+  const readOnly = !canEditDocument
   const [paymentMethod, setPaymentMethod] = useState<string>('')
   const [bankAccountId, setBankAccountId] = useState<string>('')
   const [bankAccounts, setBankAccounts] = useState<{ id: string; label: string; bankName: string | null; isDefault: boolean }[]>([])
@@ -677,7 +681,7 @@ function EditInvoiceContent() {
       }}
     >
     <motion.div initial="hidden" animate="visible" className="space-y-5 px-4 lg:px-6 py-4 md:py-5">
-      {collabActive && <CollaborationReadOnlyBanner />}
+      {collabActive && <CollaborationReadOnlyBanner readOnly={readOnly} />}
       {collabActive && <SyncBroadcaster
         notes={notes}
         accentColor={accentColor}
@@ -764,7 +768,7 @@ function EditInvoiceContent() {
                 <SlidersHorizontal className="h-4 w-4" />
               </button>
             </div>
-            <CollaborationEditor editorRef={editorAreaRef} panelRef={optionsPanelRef}>
+            <CollaborationEditor editorRef={editorAreaRef} panelRef={optionsPanelRef} readOnly={readOnly}>
             <div ref={a4SheetRef} className="relative" style={{ transform: `scale(${docZoom / 100})`, transformOrigin: 'top center', ...zoomSpacing }}>
             <AiSheetOverlay open={aiProcessing} />
             <A4Sheet
@@ -962,7 +966,7 @@ function EditInvoiceContent() {
           <div className="text-sm text-muted-foreground">
             Total : <span className="font-bold text-foreground">{total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
           </div>
-          {sharedAccess ? (
+          {sharedAccess || readOnly ? (
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground" title="Vos modifications sont visibles en direct par le propriétaire, qui peut les enregistrer.">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
