@@ -66,7 +66,11 @@ function applyInlineFormat(h: string): string {
   h = h.replace(/\{size:sm\}(.+?)\{\/size\}/g, '<span style="font-size:0.85em">$1</span>')
   h = h.replace(/\{size:lg\}(.+?)\{\/size\}/g, '<span style="font-size:1.3em">$1</span>')
   h = h.replace(/\{font:([^}]+)\}(.+?)\{\/font\}/g, '<span style="font-family:$1">$2</span>')
-  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:inherit;text-decoration:underline">$1</a>')
+  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
+    const safe = url.trim()
+    if (!/^(https?:\/\/|mailto:|\/)/i.test(safe)) return label
+    return `<a href="${safe}" style="color:inherit;text-decoration:underline">${label}</a>`
+  })
   return h
 }
 

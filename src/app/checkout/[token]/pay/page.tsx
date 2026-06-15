@@ -213,7 +213,7 @@ export default function CheckoutPayPage({ params }: { params: Promise<{ token: s
   async function dl() {
     setDling(true)
     try {
-      const { blob } = await publicApi.downloadBlob(`/checkout/${token}/pdf`)
+      const { blob } = await publicApi.downloadBlob(`/checkout/${token}/pdf`, sess ? { headers: { 'X-Checkout-Session': sess } } : undefined)
       const r = { ok: !!blob, blob: async () => blob as Blob }
       if (r.ok) { const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `${d?.invoiceNumber || 'facture'}.pdf`; a.click(); URL.revokeObjectURL(u) }
     } catch { /* */ }
