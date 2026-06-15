@@ -332,6 +332,7 @@ export function CreditNoteDetailOverlay({ creditNoteId, onClose, onStatusChange,
                   showFreeField={!!creditNote.freeField}
                   footerMode={invoiceSettings.footerMode}
                   documentFont={invoiceSettings.documentFont}
+                  customBackgroundUrl={invoiceSettings.customBackgroundUrl}
                   vatExemptReason={creditNote.vatExemptReason || 'none'}
                 />
                 <div className="flex justify-center gap-2 mt-3">

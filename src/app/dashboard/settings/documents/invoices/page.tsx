@@ -18,6 +18,7 @@ import { useAuth } from '@/lib/auth'
 import { ProGate } from '@/components/billing/pro-gate'
 import {
   ImagePlus,
+  ImageIcon,
   Palette,
   Check,
   Trash2,
@@ -54,12 +55,15 @@ const accentColors = [
 
 export default function InvoiceAppearancePage() {
   const { toast } = useToast()
-  const { settings, companyLogoUrl, loading, updateSettings, updateAndSave, uploadLogo, refreshCompanyLogo } = useInvoiceSettings()
+  const { settings, companyLogoUrl, loading, updateSettings, updateAndSave, uploadLogo, uploadCustomBackground, removeCustomBackground, refreshCompanyLogo } = useInvoiceSettings()
   const { user } = useAuth()
   const locked = !(user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team')
   const [uploading, setUploading] = useState(false)
+  const [uploadingBackground, setUploadingBackground] = useState(false)
+  const [removingBackground, setRemovingBackground] = useState(false)
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const backgroundInputRef = useRef<HTMLInputElement>(null)
 
   const currentTemplate = getTemplate(settings.template, settings.darkMode)
   const effectiveLogoUrl = settings.logoSource === 'company' ? companyLogoUrl : settings.logoUrl
@@ -79,6 +83,36 @@ export default function InvoiceAppearancePage() {
 
   function handleRemoveLogo() {
     updateSettings({ logoUrl: null })
+  }
+
+  async function handleBackgroundUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 8 * 1024 * 1024) {
+      toast('Image trop lourde, 8 Mo maximum', 'error')
+      e.target.value = ''
+      return
+    }
+    setUploadingBackground(true)
+    try {
+      await uploadCustomBackground(file)
+      toast('Fond personnalisé enregistré', 'success')
+    } catch {
+      toast('Erreur lors de l\'envoi du fond', 'error')
+    }
+    setUploadingBackground(false)
+    e.target.value = ''
+  }
+
+  async function handleRemoveBackground() {
+    setRemovingBackground(true)
+    try {
+      await removeCustomBackground()
+      toast('Fond personnalisé supprimé', 'success')
+    } catch {
+      toast('Erreur lors de la suppression du fond', 'error')
+    }
+    setRemovingBackground(false)
   }
 
   if (loading) {
@@ -340,6 +374,63 @@ export default function InvoiceAppearancePage() {
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* Custom document background */}
+          <ProGate locked={locked}>
+          <motion.div variants={fadeUp} custom={2}>
+            <Card className="overflow-hidden border-border/50">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
+                    <ImageIcon className="h-4.5 w-4.5 text-accent" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold text-foreground">Fond du document</h2>
+                    <p className="text-xs text-muted-foreground">Une image de fond appliquée à vos factures et devis</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-6">
+                  <div className="relative w-20 shrink-0">
+                    <TemplateThumbnail tpl={currentTemplate} accentColor={settings.accentColor} selected={false} size="sm" />
+                    {settings.customBackgroundUrl && (
+                      <div
+                        className="pointer-events-none absolute inset-0 rounded-lg"
+                        style={{
+                          backgroundImage: `url('${settings.customBackgroundUrl}')`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Format recommandé : JPG, PNG ou WebP, ratio A4 (210x297), 8 Mo maximum. Le fond prime sur la couleur du modèle.
+                    </p>
+                    <input
+                      ref={backgroundInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      onChange={handleBackgroundUpload}
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => backgroundInputRef.current?.click()} disabled={uploadingBackground}>
+                        {uploadingBackground ? <><Spinner /> Envoi...</> : settings.customBackgroundUrl ? 'Remplacer le fond' : 'Télécharger un fond'}
+                      </Button>
+                      {settings.customBackgroundUrl && (
+                        <Button variant="ghost" size="sm" onClick={handleRemoveBackground} disabled={removingBackground} className="text-destructive hover:text-destructive">
+                          {removingBackground ? <Spinner /> : <Trash2 className="h-3.5 w-3.5" />}
+                          <span className="ml-1.5">Supprimer</span>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          </ProGate>
 
           {/* Accent Color */}
           <ProGate locked={locked}>

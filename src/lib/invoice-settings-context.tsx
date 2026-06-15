@@ -47,6 +47,7 @@ export interface InvoiceSettings {
   nextInvoiceNumber: string | null
   footerMode: 'company_info' | 'custom'
   logoBorderRadius: number
+  customBackgroundUrl: string | null
   collaborationEnabled: boolean
   aiEnabled: boolean
   aiProvider: 'gemini'
@@ -65,6 +66,8 @@ interface InvoiceSettingsContextType {
   save: () => Promise<void>
   resetChanges: () => void
   uploadLogo: (file: File) => Promise<void>
+  uploadCustomBackground: (file: File) => Promise<void>
+  removeCustomBackground: () => Promise<void>
   refreshCompanyLogo: () => Promise<void>
   refreshSettings: () => Promise<void>
 }
@@ -107,6 +110,7 @@ const defaultSettings: InvoiceSettings = {
   nextInvoiceNumber: null,
   footerMode: 'company_info',
   logoBorderRadius: 0,
+  customBackgroundUrl: null,
   collaborationEnabled: false,
   aiEnabled: false,
   aiProvider: 'gemini',
@@ -125,6 +129,8 @@ const InvoiceSettingsContext = createContext<InvoiceSettingsContextType>({
   save: async () => {},
   resetChanges: () => {},
   uploadLogo: async () => {},
+  uploadCustomBackground: async () => {},
+  removeCustomBackground: async () => {},
   refreshCompanyLogo: async () => {},
   refreshSettings: async () => {},
 })
@@ -151,7 +157,11 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
       '/settings/invoices'
     )
     if (data?.settings) {
-      const resolved = { ...data.settings, logoUrl: resolveLogoUrl(data.settings.logoUrl) }
+      const resolved = {
+        ...data.settings,
+        logoUrl: resolveLogoUrl(data.settings.logoUrl),
+        customBackgroundUrl: resolveLogoUrl(data.settings.customBackgroundUrl),
+      }
       setSettings(resolved)
       setSavedSettings(resolved)
     }
@@ -176,7 +186,11 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
     if (error) {
       setSaveError(error)
     } else if (data?.settings) {
-      const resolved = { ...data.settings, logoUrl: resolveLogoUrl(data.settings.logoUrl) }
+      const resolved = {
+        ...data.settings,
+        logoUrl: resolveLogoUrl(data.settings.logoUrl),
+        customBackgroundUrl: resolveLogoUrl(data.settings.customBackgroundUrl),
+      }
       setSettings(resolved)
       setSavedSettings(resolved)
     } else {
@@ -209,7 +223,11 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
       return null
     }
     if (data?.settings) {
-      const resolved = { ...data.settings, logoUrl: resolveLogoUrl(data.settings.logoUrl) }
+      const resolved = {
+        ...data.settings,
+        logoUrl: resolveLogoUrl(data.settings.logoUrl),
+        customBackgroundUrl: resolveLogoUrl(data.settings.customBackgroundUrl),
+      }
       setSettings(resolved)
       setSavedSettings(resolved)
       return resolved
@@ -225,6 +243,31 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
     if (data?.logoUrl) {
       setSettings((prev) => ({ ...prev, logoUrl: resolveLogoUrl(data.logoUrl) }))
     }
+  }, [])
+
+  const uploadCustomBackground = useCallback(async (file: File) => {
+    const formData = new FormData()
+    formData.append('background', file)
+    const { data } = await api.upload<{ customBackgroundUrl: string }>(
+      '/settings/invoices/background',
+      formData
+    )
+    if (data?.customBackgroundUrl) {
+      setSettings((prev) => ({
+        ...prev,
+        customBackgroundUrl: resolveLogoUrl(data.customBackgroundUrl),
+      }))
+      setSavedSettings((prev) => ({
+        ...prev,
+        customBackgroundUrl: resolveLogoUrl(data.customBackgroundUrl),
+      }))
+    }
+  }, [])
+
+  const removeCustomBackground = useCallback(async () => {
+    await api.delete('/settings/invoices/background')
+    setSettings((prev) => ({ ...prev, customBackgroundUrl: null }))
+    setSavedSettings((prev) => ({ ...prev, customBackgroundUrl: null }))
   }, [])
 
   const refreshCompanyLogo = useCallback(async () => {
@@ -250,6 +293,8 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
         save,
         resetChanges,
         uploadLogo,
+        uploadCustomBackground,
+        removeCustomBackground,
         refreshCompanyLogo,
         refreshSettings: loadSettings,
       }}

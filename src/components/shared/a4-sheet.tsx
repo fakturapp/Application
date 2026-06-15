@@ -920,6 +920,7 @@ interface A4SheetProps {
   showUnitPriceColumn?: boolean
   showVatColumn?: boolean
   paginate?: boolean
+  customBackgroundUrl?: string | null
 }
 
 export function A4Sheet({
@@ -946,6 +947,7 @@ export function A4Sheet({
   showUnitPriceColumn = true,
   showVatColumn = true,
   paginate = false,
+  customBackgroundUrl = null,
 }: A4SheetProps) {
   const isPreview = mode === 'preview'
   const ed = !isPreview
@@ -1267,9 +1269,9 @@ export function A4Sheet({
                   <div />
                   <div className="text-right" data-collab-id="docinfo">
                     <div
-                      className="inline-block px-5 py-2.5 mb-2"
+                      className="inline-block px-5 py-2.5 mb-2 relative z-[2]"
                       style={{
-                        background: `${accentColor}12`,
+                        background: hasCustomBackground ? T.docBg : `${accentColor}12`,
                         border: `1px solid ${accentColor}33`,
                         borderRadius: T.borderRadius,
                       }}
@@ -1325,7 +1327,15 @@ export function A4Sheet({
                   <div className="text-right" data-collab-id="docinfo">
                     {isClassique ? (
                       <>
-                        <div className="text-[14px] font-semibold mb-1" style={{ color: T.text }}>
+                        <div
+                          className="text-[14px] font-semibold mb-1 relative z-[2]"
+                          style={{
+                            color: T.text,
+                            ...(hasCustomBackground
+                              ? { display: 'inline-block', background: T.docBg, padding: '2px 8px', borderRadius: T.borderRadius }
+                              : {}),
+                          }}
+                        >
                           {documentTitle || defaultTitle}
                         </div>
                         <div className="text-[12px] leading-[1.8]" style={{ color: T.text }}>
@@ -1335,9 +1345,9 @@ export function A4Sheet({
                     ) : (
                       <>
                         <div
-                          className="inline-block px-5 py-2.5 mb-2"
+                          className="inline-block px-5 py-2.5 mb-2 relative z-[2]"
                           style={{
-                            background: `${accentColor}12`,
+                            background: hasCustomBackground ? T.docBg : `${accentColor}12`,
                             border: `1px solid ${accentColor}33`,
                             borderRadius: T.borderRadius,
                           }}
@@ -1499,7 +1509,14 @@ export function A4Sheet({
               {(issueDate || validityDate || ed) && (
                 isClassique ? (
                   <div className="flex items-end gap-3 mb-4">
-                    <div className="flex-1 text-[14px] font-semibold" style={{ color: T.text, padding: '8px' }}>
+                    <div
+                      className="flex-1 text-[14px] font-semibold relative z-[2]"
+                      style={{
+                        color: T.text,
+                        padding: '8px',
+                        ...(hasCustomBackground ? { background: T.docBg, borderRadius: T.borderRadius } : {}),
+                      }}
+                    >
                       {documentTitle || defaultTitle}
                     </div>
                     <div className="flex flex-col">
@@ -2066,12 +2083,21 @@ export function A4Sheet({
     )
   }
 
+  const hasCustomBackground = !!customBackgroundUrl
   const sheetSurface = {
     background: isClassique
       ? darkMode
         ? `linear-gradient(270deg, ${T.docBg}, #161618 23.44%, #161618 77.6%, ${T.docBg})`
         : 'linear-gradient(270deg, #fafafa, #fff 23.44%, #fff 77.6%, #fafafa)'
       : T.docBg,
+    ...(hasCustomBackground
+      ? {
+          backgroundImage: `url('${customBackgroundUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }
+      : {}),
     boxShadow: isClassique
       ? 'rgba(71,99,136,0.1) 0px 20px 40px -5px'
       : '0 4px 24px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.08)',

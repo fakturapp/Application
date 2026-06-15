@@ -61,6 +61,14 @@ export function InvoicePreview() {
                 aspectRatio: '210 / 270',
                 maxHeight: '420px',
                 backgroundColor: currentTemplate.docBg,
+                ...(settings.customBackgroundUrl
+                  ? {
+                      backgroundImage: `url('${settings.customBackgroundUrl}')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    }
+                  : {}),
                 border: settings.darkMode ? '1px solid #3f3f46' : '1px solid #e5e7eb',
               }}
             >
@@ -146,7 +154,15 @@ export function InvoicePreview() {
                     </div>
                     )}
                     <div className="space-y-1 text-right">
-                      <p className="text-sm font-bold tracking-wide" style={{ color: settings.accentColor }}>
+                      <p
+                        className="text-sm font-bold tracking-wide relative z-[2]"
+                        style={{
+                          color: settings.accentColor,
+                          ...(settings.customBackgroundUrl
+                            ? { display: 'inline-block', background: currentTemplate.docBg, padding: '1px 6px', borderRadius: currentTemplate.borderRadius }
+                            : {}),
+                        }}
+                      >
                         FACTURE
                       </p>
                       <p className="text-[10px] font-medium" style={{ color: currentTemplate.textMuted }}>

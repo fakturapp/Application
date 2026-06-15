@@ -375,6 +375,7 @@ export function QuoteDetailOverlay({ quoteId, onClose, onStatusChange, onDelete 
                   showVatColumn={quote.showVatColumn !== false}
                   footerMode={invoiceSettings.footerMode}
                   documentFont={invoiceSettings.documentFont}
+                  customBackgroundUrl={invoiceSettings.customBackgroundUrl}
                   vatExemptReason={quote.vatExemptReason || 'none'}
                 />
                 {/* Download & Print buttons */}

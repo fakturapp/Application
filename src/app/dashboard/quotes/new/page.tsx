@@ -745,6 +745,7 @@ export default function NewQuotePage() {
             onIssueDateChange={(d) => handleOptionsChange({ issueDate: d })}
             onValidityDateChange={(d) => handleOptionsChange({ validityDate: d })}
             logoBorderRadius={invoiceSettings.logoBorderRadius}
+            customBackgroundUrl={invoiceSettings.customBackgroundUrl}
             companyLogoUrl={companyLogoUrl}
             onLogoChange={handleLogoChange}
             onLogoBorderRadiusChange={handleLogoBorderRadiusChange}
