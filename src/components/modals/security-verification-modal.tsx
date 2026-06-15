@@ -1,14 +1,15 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Dialog, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { OtpInput } from '@/components/ui/otp-input'
 import { Button } from '@/components/ui/button'
 import { FieldDescription } from '@/components/ui/field'
 import { api } from '@/lib/api'
 import { Spinner } from '@/components/ui/spinner'
-import { Shield, Mail, Smartphone, Key } from '@/components/ui/icons'
+import { Shield, Mail, Smartphone, Key, ShieldCheck } from '@/components/ui/icons'
+import { AppSecurityWaiting } from '@/components/auth/app-security-waiting'
 
 interface SecurityVerificationModalProps {
   open: boolean
@@ -17,7 +18,7 @@ interface SecurityVerificationModalProps {
   twoFactorEnabled?: boolean
 }
 
-type VerifyMethod = 'email' | 'totp' | 'recovery'
+type VerifyMethod = 'email' | 'totp' | 'recovery' | 'app'
 
 export function SecurityVerificationModal({
   open,
@@ -55,6 +56,7 @@ export function SecurityVerificationModal({
   }, [cooldown])
 
   useEffect(() => {
+    setMethod('email')
     if (open) {
       setCodeSent(false)
       setSentEmail(false)
@@ -107,20 +109,21 @@ export function SecurityVerificationModal({
     }
 
     if (data?.verified) {
-      setCode('')
-      setCodeSent(false)
-      setSentEmail(false)
-      setExpiresAt(null)
-      setError(null)
+      resetState()
       onVerified()
     }
   }
 
-  function handleClose() {
+  function resetState() {
     setCode('')
     setCodeSent(false)
     setSentEmail(false)
+    setExpiresAt(null)
     setError(null)
+  }
+
+  function handleClose() {
+    resetState()
     onClose()
   }
 
@@ -130,7 +133,23 @@ export function SecurityVerificationModal({
     setError(null)
   }
 
+  function handleAppVerified() {
+    resetState()
+    onVerified()
+  }
+
   const isExpired = expiresAt ? new Date() > expiresAt : false
+
+  const methods: { key: VerifyMethod; label: string; icon: typeof Mail }[] = [
+    { key: 'email', label: 'Email', icon: Mail },
+    { key: 'app', label: 'Application', icon: ShieldCheck },
+    ...(twoFactorEnabled
+      ? ([
+          { key: 'totp', label: '2FA', icon: Smartphone },
+          { key: 'recovery', label: 'Récup.', icon: Key },
+        ] as const)
+      : []),
+  ]
 
   return (
     <Dialog open={open} onClose={handleClose} zIndex="z-[10000]">
@@ -146,42 +165,35 @@ export function SecurityVerificationModal({
         </div>
       </div>
 
-      {}
-      {twoFactorEnabled && (
-        <div className="flex gap-2 mb-4">
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {methods.map(({ key, label, icon: Icon }) => (
           <button
-            onClick={() => switchMethod('email')}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors border ${
-              method === 'email'
+            key={key}
+            type="button"
+            onClick={() => switchMethod(key)}
+            className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors border ${
+              method === key
                 ? 'border-primary bg-primary/10 text-primary'
                 : 'border-border text-muted-foreground hover:bg-muted'
             }`}
           >
-            <Mail className="h-4 w-4" /> Email
+            <Icon className="h-4 w-4" /> {label}
           </button>
-          <button
-            onClick={() => switchMethod('totp')}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors border ${
-              method === 'totp'
-                ? 'border-primary bg-primary/10 text-primary'
-                : 'border-border text-muted-foreground hover:bg-muted'
-            }`}
-          >
-            <Smartphone className="h-4 w-4" /> 2FA
-          </button>
-          <button
-            onClick={() => switchMethod('recovery')}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors border ${
-              method === 'recovery'
-                ? 'border-primary bg-primary/10 text-primary'
-                : 'border-border text-muted-foreground hover:bg-muted'
-            }`}
-          >
-            <Key className="h-4 w-4" /> Recovery
-          </button>
+        ))}
+      </div>
+
+      {method === 'app' && (
+        <div>
+          <AppSecurityWaiting onVerified={handleAppVerified} onNoDevice={() => switchMethod('email')} />
+          <DialogFooter className="mt-2">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Annuler
+            </Button>
+          </DialogFooter>
         </div>
       )}
 
+      {method !== 'app' && (
       <form onSubmit={handleVerify}>
         {method === 'email' && (
           <>
@@ -284,6 +296,7 @@ export function SecurityVerificationModal({
           </Button>
         </DialogFooter>
       </form>
+      )}
     </Dialog>
   )
 }

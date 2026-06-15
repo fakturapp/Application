@@ -722,7 +722,26 @@ function PlatformCard({
           </span>
         </Button>
       )}
-      {isSoon && (
+      {isSoon && platform.name === 'iOS' && (
+        <div
+          aria-disabled="true"
+          className="mt-auto flex w-full cursor-default items-center justify-center gap-2.5 rounded-xl bg-black px-4 py-2.5 text-white opacity-80 select-none dark:border dark:border-white/15"
+        >
+          <img
+            src="https://cdn.simpleicons.org/apple/FFFFFF"
+            alt=""
+            aria-hidden
+            width={20}
+            height={20}
+            className="h-5 w-5 object-contain"
+          />
+          <span className="flex flex-col items-start leading-none">
+            <span className="text-[9px] font-medium uppercase tracking-wide text-white/70">Bientôt disponible</span>
+            <span className="text-sm font-semibold">sur l&apos;App Store</span>
+          </span>
+        </div>
+      )}
+      {isSoon && platform.name !== 'iOS' && (
         <Button size="sm" variant="outline" disabled className="gap-2 w-full mt-auto opacity-60 cursor-default">
           <Bell className="h-3.5 w-3.5" />
           Me prévenir

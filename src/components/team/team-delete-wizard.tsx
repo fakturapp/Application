@@ -11,6 +11,8 @@ import { ArrowLeft, ArrowRight, Check, Trash2, X, AlertTriangle, Eye, EyeOff, Lo
 import { HiddenUsername } from '@/components/auth/hidden-username'
 import { TeamIdentityCard } from '@/components/team/team-identity-card'
 import { DashboardBackground } from '@/components/layout/dashboard-background'
+import { SecurityVerificationModal } from '@/components/modals/security-verification-modal'
+import { useAuth } from '@/lib/auth'
 
 interface Props {
   team: {
@@ -28,7 +30,9 @@ interface Props {
 const steps = ['Avertissement', 'Nom équipe', 'Mot de passe', 'Suppression']
 
 export function TeamDeleteWizard({ team, onClose, onSuccess }: Props) {
+  const { user } = useAuth()
   const [step, setStep] = useState(0)
+  const [securityOpen, setSecurityOpen] = useState(false)
   const [direction, setDirection] = useState(1)
   const [confirmName, setConfirmName] = useState('')
   const [password, setPassword] = useState('')
@@ -53,11 +57,15 @@ export function TeamDeleteWizard({ team, onClose, onSuccess }: Props) {
     if (confirmName !== team.name || !password) return
     setSubmitting(true)
     setError(null)
-    const { data, error: err } = await api.delete<{ switchedToTeamId: string | null }>('/team', {
+    const { data, error: err, errorCode } = await api.delete<{ switchedToTeamId: string | null }>('/team', {
       teamName: confirmName,
       password,
     })
     setSubmitting(false)
+    if (errorCode === 'SECURITY_VERIFICATION_REQUIRED') {
+      setSecurityOpen(true)
+      return
+    }
     if (err) {
       setError(err)
       return
@@ -318,6 +326,13 @@ export function TeamDeleteWizard({ team, onClose, onSuccess }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SecurityVerificationModal
+        open={securityOpen}
+        onClose={() => setSecurityOpen(false)}
+        onVerified={() => { setSecurityOpen(false); void handleSubmit() }}
+        twoFactorEnabled={user?.twoFactorEnabled}
+      />
     </div>
   )
 }

@@ -13,6 +13,8 @@ import { ArrowLeft, ArrowRight, Check, Crown, UserCheck, Lock, AlertTriangle, X 
 import { HiddenUsername } from '@/components/auth/hidden-username'
 import { TeamIdentityCard } from '@/components/team/team-identity-card'
 import { DashboardBackground } from '@/components/layout/dashboard-background'
+import { SecurityVerificationModal } from '@/components/modals/security-verification-modal'
+import { useAuth } from '@/lib/auth'
 
 interface MemberOption {
   id: string
@@ -38,7 +40,9 @@ interface Props {
 const steps = ['Nouveau propriétaire', 'Mot de passe', 'Nom de l\'équipe', 'Confirmation']
 
 export function TeamTransferWizard({ team, candidates, onClose, onSuccess }: Props) {
+  const { user } = useAuth()
   const [step, setStep] = useState(0)
+  const [securityOpen, setSecurityOpen] = useState(false)
   const [direction, setDirection] = useState(1)
   const [targetId, setTargetId] = useState<string>('')
   const [password, setPassword] = useState('')
@@ -66,11 +70,15 @@ export function TeamTransferWizard({ team, candidates, onClose, onSuccess }: Pro
     if (!target || !password || confirmName !== team.name) return
     setSubmitting(true)
     setError(null)
-    const { error: err } = await api.post('/team/transfer-ownership', {
+    const { error: err, errorCode } = await api.post('/team/transfer-ownership', {
       memberId: target.id,
       password,
     })
     setSubmitting(false)
+    if (errorCode === 'SECURITY_VERIFICATION_REQUIRED') {
+      setSecurityOpen(true)
+      return
+    }
     if (err) {
       setError(err)
       return
@@ -321,6 +329,13 @@ export function TeamTransferWizard({ team, candidates, onClose, onSuccess }: Pro
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SecurityVerificationModal
+        open={securityOpen}
+        onClose={() => setSecurityOpen(false)}
+        onVerified={() => { setSecurityOpen(false); void handleSubmit() }}
+        twoFactorEnabled={user?.twoFactorEnabled}
+      />
     </div>
   )
 }

@@ -21,6 +21,7 @@ import { accountUrl } from '@/lib/account-redirect'
 import { Spinner } from '@/components/ui/spinner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { RecoveryKeyModal } from '@/components/modals/recovery-key-modal'
+import { SecurityVerificationModal } from '@/components/modals/security-verification-modal'
 import {
   Users,
   UserPlus,
@@ -159,6 +160,25 @@ export default function TeamPage() {
   const [deleting, setDeleting] = useState(false)
 
   const [encryptionMigrationOpen, setEncryptionMigrationOpen] = useState(false)
+
+  const [securityOpen, setSecurityOpen] = useState(false)
+  const pendingActionRef = useRef<(() => void | Promise<void>) | null>(null)
+
+  function isSecurityStepUp(errorCode?: string): boolean {
+    return errorCode === 'SECURITY_VERIFICATION_REQUIRED'
+  }
+
+  function requestSecurity(retry: () => void | Promise<void>) {
+    pendingActionRef.current = retry
+    setSecurityOpen(true)
+  }
+
+  function handleSecurityVerified() {
+    setSecurityOpen(false)
+    const retry = pendingActionRef.current
+    pendingActionRef.current = null
+    if (retry) void retry()
+  }
 
   const searchParams = useSearchParams()
   const wizardAction = searchParams.get('action') as 'delete-team' | 'transfer' | 'leave' | null
@@ -316,8 +336,9 @@ export default function TeamPage() {
   async function handleChangeRole() {
     if (!roleTarget) return
     setRoleChanging(true)
-    const { error } = await api.put(`/team/members/${roleTarget.id}/role`, { role: newRole })
+    const { error, errorCode } = await api.put(`/team/members/${roleTarget.id}/role`, { role: newRole })
     setRoleChanging(false)
+    if (isSecurityStepUp(errorCode)) return requestSecurity(handleChangeRole)
     if (error) return toast(error, 'error')
     toast('Rôle modifié', 'success')
     setRoleDialogOpen(false)
@@ -327,11 +348,12 @@ export default function TeamPage() {
   async function handleTransferOwnership() {
     if (!transferTarget || !transferPassword) return
     setTransferring(true)
-    const { error } = await api.post('/team/transfer-ownership', {
+    const { error, errorCode } = await api.post('/team/transfer-ownership', {
       memberId: transferTarget.id,
       password: transferPassword,
     })
     setTransferring(false)
+    if (isSecurityStepUp(errorCode)) return requestSecurity(handleTransferOwnership)
     if (error) return toast(error, 'error')
     t.success('Propriété transférée', {
       description: `${transferTarget.user?.fullName || transferTarget.user?.email || 'Le membre'} est désormais propriétaire de l'équipe.`,
@@ -344,8 +366,9 @@ export default function TeamPage() {
   async function handleRemoveMember() {
     if (!removeTarget) return
     setRemoving(true)
-    const { error } = await api.delete(`/team/members/${removeTarget.id}`)
+    const { error, errorCode } = await api.delete(`/team/members/${removeTarget.id}`)
     setRemoving(false)
+    if (isSecurityStepUp(errorCode)) return requestSecurity(handleRemoveMember)
     if (error) return toast(error, 'error')
     toast('Membre retiré', 'success')
     setRemoveOpen(false)
@@ -378,11 +401,12 @@ export default function TeamPage() {
 
   async function handleDeleteTeam() {
     setDeleting(true)
-    const { data, error } = await api.delete<{ switchedToTeamId: string | null }>('/team', {
+    const { data, error, errorCode } = await api.delete<{ switchedToTeamId: string | null }>('/team', {
       teamName: deleteTeamName,
       password: deletePassword,
     })
     setDeleting(false)
+    if (isSecurityStepUp(errorCode)) return requestSecurity(handleDeleteTeam)
     if (error) return toast(error, 'error')
     t.success('Équipe supprimée', {
       description: 'Toutes les données associées ont été définitivement effacées.',
@@ -1483,6 +1507,13 @@ export default function TeamPage() {
           }}
         />
       )}
+
+      <SecurityVerificationModal
+        open={securityOpen}
+        onClose={() => { setSecurityOpen(false); pendingActionRef.current = null }}
+        onVerified={handleSecurityVerified}
+        twoFactorEnabled={user?.twoFactorEnabled}
+      />
 
       {team && wizardOpen === 'leave' && currentMember && (
         <TeamLeaveWizard
