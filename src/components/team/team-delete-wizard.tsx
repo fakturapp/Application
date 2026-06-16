@@ -62,7 +62,7 @@ export function TeamDeleteWizard({ team, onClose, onSuccess }: Props) {
       password,
     })
     setSubmitting(false)
-    if (errorCode === 'SECURITY_VERIFICATION_REQUIRED') {
+    if (errorCode === 'security_verification_required') {
       setSecurityOpen(true)
       return
     }

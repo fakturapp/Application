@@ -75,7 +75,7 @@ export function TeamTransferWizard({ team, candidates, onClose, onSuccess }: Pro
       password,
     })
     setSubmitting(false)
-    if (errorCode === 'SECURITY_VERIFICATION_REQUIRED') {
+    if (errorCode === 'security_verification_required') {
       setSecurityOpen(true)
       return
     }

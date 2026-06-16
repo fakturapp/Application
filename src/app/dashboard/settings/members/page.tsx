@@ -165,7 +165,7 @@ export default function TeamPage() {
   const pendingActionRef = useRef<(() => void | Promise<void>) | null>(null)
 
   function isSecurityStepUp(errorCode?: string): boolean {
-    return errorCode === 'SECURITY_VERIFICATION_REQUIRED'
+    return errorCode === 'security_verification_required'
   }
 
   function requestSecurity(retry: () => void | Promise<void>) {
