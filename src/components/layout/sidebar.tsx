@@ -300,7 +300,7 @@ function NavLink({ item, pathname, badges, persistKey, collapsed, onConfirmRedir
     collapsed ? 'justify-center h-10 w-10 mx-auto' : 'justify-start gap-3 px-3 py-[10px] w-full',
     'text-[15px] font-medium',
     isActive
-      ? 'bg-accent/15 text-accent ring-1 ring-inset ring-accent/20'
+      ? 'bg-accent/10 text-accent'
       : 'text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground'
   )
 
@@ -400,7 +400,7 @@ function NavLink({ item, pathname, badges, persistKey, collapsed, onConfirmRedir
                     className={cn(
                       'flex items-center justify-between rounded-md px-2.5 py-[7px] text-[13.5px] transition-all duration-200',
                       childActive
-                        ? 'bg-accent/15 text-accent font-medium ring-1 ring-inset ring-accent/20'
+                        ? 'bg-accent/10 text-accent font-medium'
                         : 'text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground'
                     )}
                   >
