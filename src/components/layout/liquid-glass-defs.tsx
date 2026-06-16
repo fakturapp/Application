@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
+
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
 const FILTER_ID = 'faktur-liquid-glass'
 const MAP_WIDTH = 480
@@ -24,7 +26,7 @@ function buildDisplacementMap(): string {
 const DISPLACEMENT_MAP = buildDisplacementMap()
 
 export function LiquidGlassDefs() {
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     const root = document.documentElement
     const ua = navigator.userAgent
     const isWebkit = /Safari/.test(ua) && !/Chrome/.test(ua)
