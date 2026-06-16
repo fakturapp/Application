@@ -13,10 +13,17 @@ export function PreprodBanner() {
   const [dismissed, setDismissed] = useState(true)
 
   useEffect(() => {
+    let isDismissed = false
     try {
-      setDismissed(window.localStorage.getItem(DISMISS_KEY) === '1')
+      isDismissed = window.localStorage.getItem(DISMISS_KEY) === '1'
     } catch {
-      setDismissed(false)
+      isDismissed = false
+    }
+    setDismissed(isDismissed)
+    if (IS_PREPROD && !isDismissed) {
+      document.documentElement.classList.add('preprod')
+    } else {
+      document.documentElement.classList.remove('preprod')
     }
   }, [])
 
@@ -26,6 +33,7 @@ export function PreprodBanner() {
     } catch {}
     setDismissed(true)
     setOpen(false)
+    document.documentElement.classList.remove('preprod')
   }
 
   if (!IS_PREPROD || dismissed) return null
