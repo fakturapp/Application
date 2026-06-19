@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { motion, type Variants } from 'framer-motion'
-import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { getTemplate } from '@/lib/invoice-templates'
@@ -16,6 +15,7 @@ import { useToast } from '@/components/ui/toast'
 import { FormSelect } from '@/components/ui/dropdown'
 import { useAuth } from '@/lib/auth'
 import { ProGate } from '@/components/billing/pro-gate'
+import { SettingsPage, SettingsHero, SettingsSection, SettingsRow } from '@/components/settings/settings-shell'
 import {
   ImagePlus,
   ImageIcon,
@@ -28,17 +28,7 @@ import {
   Type,
   LayoutTemplate,
   Building2,
-  Eye,
 } from '@/components/ui/icons'
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.06, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
-  }),
-} satisfies Variants
 
 const accentColors = [
   { name: 'Indigo', value: '#6366f1' },
@@ -76,7 +66,7 @@ export default function InvoiceAppearancePage() {
       await uploadLogo(file)
       toast('Logo mis à jour', 'success')
     } catch {
-      toast('Erreur lors de l\'envoi du logo', 'error')
+      toast("Erreur lors de l'envoi du logo", 'error')
     }
     setUploading(false)
   }
@@ -98,7 +88,7 @@ export default function InvoiceAppearancePage() {
       await uploadCustomBackground(file)
       toast('Fond personnalisé enregistré', 'success')
     } catch {
-      toast('Erreur lors de l\'envoi du fond', 'error')
+      toast("Erreur lors de l'envoi du fond", 'error')
     }
     setUploadingBackground(false)
     e.target.value = ''
@@ -117,424 +107,258 @@ export default function InvoiceAppearancePage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-        {}
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-32" />
-          <Skeleton className="h-4 w-64" />
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="flex items-start gap-4 pb-2">
+          <Skeleton className="h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-4 w-72" />
+          </div>
         </div>
-        {}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            {}
-            <div className="rounded-xl border border-border/50 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Skeleton className="h-9 w-9 rounded-lg" />
-                <div className="space-y-1.5">
-                  <Skeleton className="h-4 w-36" />
-                  <Skeleton className="h-3 w-56" />
-                </div>
-              </div>
-              <div className="flex items-center gap-4 rounded-xl border border-border p-4">
-                <Skeleton className="w-16 rounded" style={{ aspectRatio: '210/297' }} />
-                <div className="flex-1 space-y-1.5">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-3 w-40" />
-                </div>
-                <Skeleton className="h-5 w-5 rounded" />
-              </div>
-            </div>
-            {}
-            <div className="rounded-xl border border-border/50 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Skeleton className="h-9 w-9 rounded-lg" />
-                <div className="space-y-1.5">
-                  <Skeleton className="h-4 w-12" />
-                  <Skeleton className="h-3 w-44" />
-                </div>
-              </div>
-              <div className="flex items-start gap-6">
-                <Skeleton className="h-24 w-24 rounded-xl shrink-0" />
-                <div className="flex-1 space-y-3">
-                  <Skeleton className="h-3.5 w-full max-w-xs" />
-                  <Skeleton className="h-8 w-32 rounded-lg" />
-                </div>
-              </div>
-            </div>
-            {}
-            <div className="rounded-xl border border-border/50 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Skeleton className="h-9 w-9 rounded-lg" />
-                <div className="space-y-1.5">
-                  <Skeleton className="h-4 w-44" />
-                  <Skeleton className="h-3 w-52" />
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2.5">
-                {[...Array(10)].map((_, i) => (
-                  <Skeleton key={i} className="h-9 w-9 rounded-lg" />
-                ))}
-              </div>
-            </div>
-          </div>
-          {}
-          <div className="rounded-xl border border-border/50 overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4 rounded" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-              <Skeleton className="h-3 w-28" />
-            </div>
-            <div className="p-4 bg-surface">
-              <Skeleton className="w-full rounded-lg" style={{ aspectRatio: '210/270' }} />
-            </div>
-          </div>
+        <div className="mt-6 space-y-7">
+          <Skeleton className="h-80 w-full rounded-2xl" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
         </div>
       </div>
     )
   }
 
   return (
-    <motion.div initial="hidden" animate="visible" className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-      {}
-      <motion.div variants={fadeUp} custom={0}>
-        <h1 className="text-2xl font-bold text-foreground">Apparence</h1>
-        <p className="text-muted-foreground mt-1">Personnalisez l&apos;apparence de vos factures et devis</p>
-      </motion.div>
+    <SettingsPage>
+      <SettingsHero
+        icon={<Palette className="h-6 w-6" />}
+        title="Apparence"
+        tagline="L’identité visuelle de vos factures et devis."
+        description="Modèle, logo, couleur et police — l’aperçu se met à jour en direct."
+      />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {}
-        <div className="space-y-6">
-          {}
-          <ProGate locked={locked}>
-          <motion.div variants={fadeUp} custom={1}>
-            <Card className="overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
-                    <LayoutTemplate className="h-4.5 w-4.5 text-accent" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-foreground">Modele de document</h2>
-                    <p className="text-xs text-muted-foreground">Choisissez l&apos;apparence de vos factures et devis</p>
-                  </div>
-                </div>
-                <button onClick={() => setTemplateModalOpen(true)}
-                  className="w-full flex items-center gap-4 rounded-xl border-2 border-border p-4 text-left transition-all hover:border-primary/40 hover:bg-primary/5 group">
-                  <div className="w-16 shrink-0">
-                    <TemplateThumbnail tpl={currentTemplate} accentColor={settings.accentColor} selected={false} size="sm" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{currentTemplate.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{currentTemplate.description}</p>
-                    <p className="text-xs text-accent mt-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      Changer de modèle <ChevronRight className="h-3 w-3" />
-                    </p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
-                </button>
-                <button onClick={() => updateSettings({ darkMode: !settings.darkMode })}
-                  className={`mt-3 w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
-                    settings.darkMode ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                  }`}>
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${settings.darkMode ? 'bg-accent-soft' : 'bg-muted'}`}>
-                    {settings.darkMode ? <Moon className="h-4 w-4 text-accent" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground">Mode sombre</p>
-                    <p className="text-xs text-muted-foreground">Appliquer le thème sombre au document</p>
-                  </div>
-                  <div className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors ${settings.darkMode ? 'border-primary bg-primary' : 'border-muted-foreground/30'}`}>
-                    {settings.darkMode && <Check className="h-3 w-3 text-accent-foreground" />}
-                  </div>
-                </button>
-              </CardContent>
-            </Card>
-          </motion.div>
-          </ProGate>
-
-          {/* Logo */}
-          <motion.div variants={fadeUp} custom={2}>
-            <Card className="overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
-                    <ImagePlus className="h-4.5 w-4.5 text-accent" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-foreground">Logo</h2>
-                    <p className="text-xs text-muted-foreground">Apparait sur vos factures et devis</p>
-                  </div>
-                </div>
-
-                {/* Logo source selector */}
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  <button onClick={() => updateSettings({ logoSource: 'custom' })}
-                    className={`flex items-center gap-2.5 rounded-xl border-2 p-3 text-left transition-all ${
-                      settings.logoSource === 'custom' ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                    }`}>
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg shrink-0 ${settings.logoSource === 'custom' ? 'bg-accent-soft' : 'bg-muted'}`}>
-                      <ImagePlus className={`h-4 w-4 ${settings.logoSource === 'custom' ? 'text-accent' : 'text-muted-foreground'}`} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-foreground">Logo personnalisé</p>
-                      <p className="text-[10px] text-muted-foreground">Importer votre propre logo</p>
-                    </div>
-                    {settings.logoSource === 'custom' && (
-                      <div className="h-4 w-4 rounded-md border-2 border-primary bg-primary flex items-center justify-center shrink-0 ml-auto">
-                        <Check className="h-2.5 w-2.5 text-accent-foreground" />
-                      </div>
-                    )}
-                  </button>
-                  <button onClick={() => { updateSettings({ logoSource: 'company' }); refreshCompanyLogo() }}
-                    className={`flex items-center gap-2.5 rounded-xl border-2 p-3 text-left transition-all ${
-                      settings.logoSource === 'company' ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                    }`}>
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg shrink-0 ${settings.logoSource === 'company' ? 'bg-accent-soft' : 'bg-muted'}`}>
-                      <Building2 className={`h-4 w-4 ${settings.logoSource === 'company' ? 'text-accent' : 'text-muted-foreground'}`} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-foreground">Logo entreprise</p>
-                      <p className="text-[10px] text-muted-foreground">Utiliser celui de l&apos;entreprise</p>
-                    </div>
-                    {settings.logoSource === 'company' && (
-                      <div className="h-4 w-4 rounded-md border-2 border-primary bg-primary flex items-center justify-center shrink-0 ml-auto">
-                        <Check className="h-2.5 w-2.5 text-accent-foreground" />
-                      </div>
-                    )}
-                  </button>
-                </div>
-
-                {settings.logoSource === 'custom' ? (
-                  <div className="flex items-start gap-6">
-                    <div className="relative group">
-                      <div className="h-24 w-24 border-2 border-dashed border-border bg-surface flex items-center justify-center overflow-hidden" style={{ borderRadius: `${settings.logoBorderRadius}px` }}>
-                        {settings.logoUrl ? (
-                          <img src={settings.logoUrl} alt="Logo" className="h-full w-full object-contain p-2" style={{ borderRadius: `${settings.logoBorderRadius}px` }} />
-                        ) : (
-                          <ImagePlus className="h-8 w-8 text-muted-secondary" />
-                        )}
-                      </div>
-                      {settings.logoUrl && (
-                        <button onClick={handleRemoveLogo}
-                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-3">
-                      <p className="text-sm text-muted-foreground">Format recommandé : PNG ou SVG, fond transparent, 500x500px minimum</p>
-                      <input ref={fileInputRef} type="file" accept="image/png,image/svg+xml,image/jpeg" className="hidden" onChange={handleLogoUpload} />
-                      <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                        {uploading ? <><Spinner /> Envoi...</> : 'Télécharger un logo'}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-4 rounded-xl border border-border p-4">
-                    <div className="h-16 w-16 bg-surface flex items-center justify-center overflow-hidden shrink-0" style={{ borderRadius: `${settings.logoBorderRadius}px` }}>
-                      {companyLogoUrl ? (
-                        <img src={companyLogoUrl} alt="Logo entreprise" className="h-full w-full object-contain p-2" style={{ borderRadius: `${settings.logoBorderRadius}px` }} />
-                      ) : (
-                        <Building2 className="h-6 w-6 text-muted-secondary" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      {companyLogoUrl ? (
-                        <p className="text-sm text-muted-foreground">Le logo de votre entreprise sera utilisé sur vos documents.</p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Aucun logo d&apos;entreprise configuré. Ajoutez-en un dans la page <a href="/dashboard/company" className="text-accent underline underline-offset-2">Entreprise</a>.</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Border Radius Slider */}
-                {effectiveLogoUrl && (
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-medium text-muted-foreground">Arrondi du logo</label>
-                      <span className="text-xs text-muted-foreground tabular-nums">{settings.logoBorderRadius}px</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={50}
-                      value={settings.logoBorderRadius}
-                      onChange={(e) => updateSettings({ logoBorderRadius: Number(e.target.value) })}
-                      className="w-full h-1.5 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
-                    />
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span>Carré</span>
-                      <span>Arrondi</span>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Custom document background */}
-          <ProGate locked={locked}>
-          <motion.div variants={fadeUp} custom={2}>
-            <Card className="overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
-                    <ImageIcon className="h-4.5 w-4.5 text-accent" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-foreground">Fond du document</h2>
-                    <p className="text-xs text-muted-foreground">Une image de fond appliquée à vos factures et devis</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-6">
-                  <div className="relative w-20 shrink-0">
-                    <TemplateThumbnail tpl={currentTemplate} accentColor={settings.accentColor} selected={false} size="sm" />
-                    {settings.customBackgroundUrl && (
-                      <div
-                        className="pointer-events-none absolute inset-0 rounded-lg"
-                        style={{
-                          backgroundImage: `url('${settings.customBackgroundUrl}')`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      Format recommandé : JPG, PNG ou WebP, ratio A4 (210x297), 8 Mo maximum. Le fond prime sur la couleur du modèle.
-                    </p>
-                    <input
-                      ref={backgroundInputRef}
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      className="hidden"
-                      onChange={handleBackgroundUpload}
-                    />
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => backgroundInputRef.current?.click()} disabled={uploadingBackground}>
-                        {uploadingBackground ? <><Spinner /> Envoi...</> : settings.customBackgroundUrl ? 'Remplacer le fond' : 'Télécharger un fond'}
-                      </Button>
-                      {settings.customBackgroundUrl && (
-                        <Button variant="ghost" size="sm" onClick={handleRemoveBackground} disabled={removingBackground} className="text-destructive hover:text-destructive">
-                          {removingBackground ? <Spinner /> : <Trash2 className="h-3.5 w-3.5" />}
-                          <span className="ml-1.5">Supprimer</span>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          </ProGate>
-
-          {/* Accent Color */}
-          <ProGate locked={locked}>
-          <motion.div variants={fadeUp} custom={3}>
-            <Card className="overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
-                    <Palette className="h-4.5 w-4.5 text-accent" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-foreground">Couleur des factures et devis</h2>
-                    <p className="text-xs text-muted-foreground">Couleur d&apos;accent utilisee dans vos documents</p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2.5">
-                    {accentColors.map((color) => (
-                      <button key={color.value} onClick={() => updateSettings({ accentColor: color.value })} className="group relative" title={color.name}>
-                        <div className={`h-9 w-9 rounded-lg transition-all ${
-                          settings.accentColor === color.value ? 'ring-2 ring-offset-2 ring-offset-card scale-110' : 'hover:scale-105'
-                        }`} style={{ backgroundColor: color.value, ...(settings.accentColor === color.value ? { '--tw-ring-color': color.value } as React.CSSProperties : {}) }} />
-                        {settings.accentColor === color.value && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Check className="h-4 w-4 text-white drop-shadow-md" />
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg border border-border shrink-0" style={{ backgroundColor: settings.accentColor }} />
-                    <Input value={settings.accentColor} onChange={(e) => updateSettings({ accentColor: e.target.value })} placeholder="#6366f1" className="font-mono text-sm max-w-[140px]" />
-                    <p className="text-xs text-muted-foreground">Code hexadecimal</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          </ProGate>
-
-          {/* Document Font */}
-          <ProGate locked={locked}>
-          <motion.div variants={fadeUp} custom={4}>
-            <Card className="overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
-                    <Type className="h-4.5 w-4.5 text-accent" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-foreground">Police des documents</h2>
-                    <p className="text-xs text-muted-foreground">Police utilisee sur les factures, devis et PDF</p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div
-                    className="rounded-xl border border-border bg-muted/30 p-5"
-                    style={{ fontFamily: `'${settings.documentFont}', sans-serif` }}
-                  >
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">
-                      Aperçu
-                    </p>
-                    <p className="text-[34px] font-bold text-foreground leading-tight tracking-tight">
-                      Aa Bb Cc
-                    </p>
-                    <p className="text-[20px] text-foreground/80 leading-tight mt-0.5">
-                      abcdefghijklmnopqrstuvwxyz
-                    </p>
-                    <p className="text-[20px] text-foreground/80 leading-tight">
-                      ABCDEFGHIJKLMNOPQRSTUVWXYZ
-                    </p>
-                    <p className="text-[20px] text-foreground/80 leading-tight tabular-nums">
-                      0123456789 — €$£¥&amp;@#%
-                    </p>
-                  </div>
-                  <FormSelect
-                    value={settings.documentFont}
-                    onChange={(v) => updateSettings({ documentFont: v })}
-                    options={[
-                      { value: 'Lexend', label: 'Lexend (par défaut)' },
-                      { value: 'Inter', label: 'Inter (géométrique)' },
-                      { value: 'Poppins', label: 'Poppins (moderne)' },
-                      { value: 'Roboto', label: 'Roboto (classique)' },
-                      { value: 'Open Sans', label: 'Open Sans (lisible)' },
-                      { value: 'Lato', label: 'Lato (élégante)' },
-                      { value: 'Montserrat', label: 'Montserrat (professionnel)' },
-                      { value: 'Nunito', label: 'Nunito (arrondie)' },
-                    ]}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          </ProGate>
-        </div>
-
-        {/* Preview Column */}
-        <motion.div variants={fadeUp} custom={2}>
+      <div className="mt-6">
+        <SettingsSection index={1}>
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Aperçu en direct
+          </p>
           <InvoicePreview />
-        </motion.div>
+        </SettingsSection>
+
+        <ProGate locked={locked}>
+          <SettingsSection index={2} title="Modèle de document" desc="L’apparence générale de vos factures et devis.">
+            <button
+              onClick={() => setTemplateModalOpen(true)}
+              className="group mt-3 flex w-full items-center gap-4 rounded-xl border-2 border-border p-4 text-left transition-all hover:border-accent/40 hover:bg-accent-soft/30"
+            >
+              <div className="w-16 shrink-0">
+                <TemplateThumbnail tpl={currentTemplate} accentColor={settings.accentColor} selected={false} size="sm" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">{currentTemplate.name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{currentTemplate.description}</p>
+                <p className="mt-1 flex items-center gap-1 text-xs text-accent opacity-0 transition-opacity group-hover:opacity-100">
+                  Changer de modèle <ChevronRight className="h-3 w-3" />
+                </p>
+              </div>
+              <LayoutTemplate className="h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-accent" />
+            </button>
+            <div className="mt-1">
+              <SettingsRow
+                icon={settings.darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                title="Mode sombre"
+                desc="Appliquer le thème sombre au document."
+                control={<Switch checked={settings.darkMode} onChange={(v) => updateSettings({ darkMode: v })} />}
+              />
+            </div>
+          </SettingsSection>
+        </ProGate>
+
+        <SettingsSection index={3} title="Logo" desc="Apparaît en en-tête de vos factures et devis.">
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              onClick={() => updateSettings({ logoSource: 'custom' })}
+              className={`flex items-center gap-2.5 rounded-xl border-2 p-3 text-left transition-all ${
+                settings.logoSource === 'custom' ? 'border-accent bg-accent-soft/50' : 'border-border hover:border-muted-foreground/30'
+              }`}
+            >
+              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${settings.logoSource === 'custom' ? 'bg-accent-soft' : 'bg-muted'}`}>
+                <ImagePlus className={`h-4 w-4 ${settings.logoSource === 'custom' ? 'text-accent' : 'text-muted-foreground'}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-foreground">Logo personnalisé</p>
+                <p className="text-[10px] text-muted-foreground">Importer votre propre logo</p>
+              </div>
+            </button>
+            <button
+              onClick={() => { updateSettings({ logoSource: 'company' }); refreshCompanyLogo() }}
+              className={`flex items-center gap-2.5 rounded-xl border-2 p-3 text-left transition-all ${
+                settings.logoSource === 'company' ? 'border-accent bg-accent-soft/50' : 'border-border hover:border-muted-foreground/30'
+              }`}
+            >
+              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${settings.logoSource === 'company' ? 'bg-accent-soft' : 'bg-muted'}`}>
+                <Building2 className={`h-4 w-4 ${settings.logoSource === 'company' ? 'text-accent' : 'text-muted-foreground'}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-foreground">Logo entreprise</p>
+                <p className="text-[10px] text-muted-foreground">Utiliser celui de l’entreprise</p>
+              </div>
+            </button>
+          </div>
+
+          {settings.logoSource === 'custom' ? (
+            <div className="mt-4 flex items-start gap-6">
+              <div className="group relative">
+                <div className="flex h-24 w-24 items-center justify-center overflow-hidden border-2 border-dashed border-border bg-surface" style={{ borderRadius: `${settings.logoBorderRadius}px` }}>
+                  {settings.logoUrl ? (
+                    <img src={settings.logoUrl} alt="Logo" className="h-full w-full object-contain p-2" style={{ borderRadius: `${settings.logoBorderRadius}px` }} />
+                  ) : (
+                    <ImagePlus className="h-8 w-8 text-muted-foreground/60" />
+                  )}
+                </div>
+                {settings.logoUrl && (
+                  <button
+                    onClick={handleRemoveLogo}
+                    className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+              <div className="flex-1 space-y-3">
+                <p className="text-sm text-muted-foreground">Format recommandé : PNG ou SVG, fond transparent, 500x500px minimum.</p>
+                <input ref={fileInputRef} type="file" accept="image/png,image/svg+xml,image/jpeg" className="hidden" onChange={handleLogoUpload} />
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                  {uploading ? <><Spinner /> Envoi…</> : 'Télécharger un logo'}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 flex items-center gap-4 rounded-xl border border-border p-4">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden bg-surface" style={{ borderRadius: `${settings.logoBorderRadius}px` }}>
+                {companyLogoUrl ? (
+                  <img src={companyLogoUrl} alt="Logo entreprise" className="h-full w-full object-contain p-2" style={{ borderRadius: `${settings.logoBorderRadius}px` }} />
+                ) : (
+                  <Building2 className="h-6 w-6 text-muted-foreground/60" />
+                )}
+              </div>
+              <div className="flex-1">
+                {companyLogoUrl ? (
+                  <p className="text-sm text-muted-foreground">Le logo de votre entreprise sera utilisé sur vos documents.</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Aucun logo d’entreprise configuré. Ajoutez-en un dans la page{' '}
+                    <a href="/dashboard/settings/company" className="text-accent underline underline-offset-2">Entreprise</a>.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {effectiveLogoUrl && (
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-muted-foreground">Arrondi du logo</label>
+                <span className="text-xs tabular-nums text-muted-foreground">{settings.logoBorderRadius}px</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={50}
+                value={settings.logoBorderRadius}
+                onChange={(e) => updateSettings({ logoBorderRadius: Number(e.target.value) })}
+                className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-accent"
+              />
+            </div>
+          )}
+        </SettingsSection>
+
+        <ProGate locked={locked}>
+          <SettingsSection index={4} title="Fond du document" desc="Une image de fond appliquée à vos factures et devis.">
+            <div className="mt-3 flex items-start gap-6">
+              <div className="relative w-20 shrink-0">
+                <TemplateThumbnail tpl={currentTemplate} accentColor={settings.accentColor} selected={false} size="sm" />
+                {settings.customBackgroundUrl && (
+                  <div
+                    className="pointer-events-none absolute inset-0 rounded-lg"
+                    style={{ backgroundImage: `url('${settings.customBackgroundUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                  />
+                )}
+              </div>
+              <div className="flex-1 space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Format recommandé : JPG, PNG ou WebP, ratio A4 (210x297), 8 Mo maximum. Le fond prime sur la couleur du modèle.
+                </p>
+                <input ref={backgroundInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleBackgroundUpload} />
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => backgroundInputRef.current?.click()} disabled={uploadingBackground}>
+                    {uploadingBackground ? <><Spinner /> Envoi…</> : settings.customBackgroundUrl ? 'Remplacer le fond' : 'Télécharger un fond'}
+                  </Button>
+                  {settings.customBackgroundUrl && (
+                    <Button variant="ghost" size="sm" onClick={handleRemoveBackground} disabled={removingBackground} className="text-destructive hover:text-destructive">
+                      {removingBackground ? <Spinner /> : <Trash2 className="h-3.5 w-3.5" />}
+                      <span className="ml-1.5">Supprimer</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </SettingsSection>
+        </ProGate>
+
+        <ProGate locked={locked}>
+          <SettingsSection index={5} title="Couleur des documents" desc="Couleur d’accent utilisée dans vos factures et devis.">
+            <div className="mt-3 space-y-4">
+              <div className="flex flex-wrap gap-2.5">
+                {accentColors.map((color) => (
+                  <button key={color.value} onClick={() => updateSettings({ accentColor: color.value })} className="group relative" title={color.name}>
+                    <div
+                      className={`h-9 w-9 rounded-lg transition-all ${
+                        settings.accentColor === color.value ? 'scale-110 ring-2 ring-offset-2 ring-offset-background' : 'hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: color.value, ...(settings.accentColor === color.value ? ({ '--tw-ring-color': color.value } as React.CSSProperties) : {}) }}
+                    />
+                    {settings.accentColor === color.value && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Check className="h-4 w-4 text-white drop-shadow-md" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 shrink-0 rounded-lg border border-border" style={{ backgroundColor: settings.accentColor }} />
+                <Input value={settings.accentColor} onChange={(e) => updateSettings({ accentColor: e.target.value })} placeholder="#6366f1" className="max-w-[140px] font-mono text-sm" />
+                <p className="text-xs text-muted-foreground">Code hexadécimal</p>
+              </div>
+            </div>
+          </SettingsSection>
+        </ProGate>
+
+        <ProGate locked={locked}>
+          <SettingsSection index={6} title="Police des documents" desc="Police utilisée sur les factures, devis et PDF.">
+            <div className="mt-3 space-y-3">
+              <div className="rounded-xl border border-border bg-muted/30 p-5" style={{ fontFamily: `'${settings.documentFont}', sans-serif` }}>
+                <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Aperçu</p>
+                <p className="text-[34px] font-bold leading-tight tracking-tight text-foreground">Aa Bb Cc</p>
+                <p className="mt-0.5 text-[20px] leading-tight text-foreground/80">abcdefghijklmnopqrstuvwxyz</p>
+                <p className="text-[20px] leading-tight text-foreground/80">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+                <p className="text-[20px] leading-tight tabular-nums text-foreground/80">0123456789 — €$£¥&amp;@#%</p>
+              </div>
+              <FormSelect
+                value={settings.documentFont}
+                onChange={(v) => updateSettings({ documentFont: v })}
+                options={[
+                  { value: 'Lexend', label: 'Lexend (par défaut)' },
+                  { value: 'Inter', label: 'Inter (géométrique)' },
+                  { value: 'Poppins', label: 'Poppins (moderne)' },
+                  { value: 'Roboto', label: 'Roboto (classique)' },
+                  { value: 'Open Sans', label: 'Open Sans (lisible)' },
+                  { value: 'Lato', label: 'Lato (élégante)' },
+                  { value: 'Montserrat', label: 'Montserrat (professionnel)' },
+                  { value: 'Nunito', label: 'Nunito (arrondie)' },
+                ]}
+              />
+            </div>
+          </SettingsSection>
+        </ProGate>
       </div>
 
-      {/* Template Modal */}
       <TemplateModal
         open={templateModalOpen}
         onClose={() => setTemplateModalOpen(false)}
@@ -547,6 +371,6 @@ export default function InvoiceAppearancePage() {
           }
         }}
       />
-    </motion.div>
+    </SettingsPage>
   )
 }
