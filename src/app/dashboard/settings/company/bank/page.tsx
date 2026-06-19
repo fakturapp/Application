@@ -14,8 +14,9 @@ import { Badge } from '@/components/ui/badge'
 import { IbanInput } from '@/components/ui/iban-input'
 import { useCompanySettings, type BankAccountItem, type BankAccountForm } from '@/lib/company-settings-context'
 import { api } from '@/lib/api'
-import { CreditCard, Banknote, Plus, Shield, Star, Pencil, Trash2 } from '@/components/ui/icons'
+import { CreditCard, Banknote, Plus, Shield, Pencil, Trash2 } from '@/components/ui/icons'
 import { CheckboxRoot, CheckboxControl, CheckboxIndicator, CheckboxContent } from '@/components/ui/checkbox'
+import { SettingsPage, SettingsHero } from '@/components/settings/settings-shell'
 
 const BANK_DOMAINS: Record<string, string> = {
   'bnp paribas': 'bnpparibas.com', 'bnp': 'bnpparibas.com',
@@ -111,14 +112,17 @@ export default function BankPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-40" />
-          <Skeleton className="h-4 w-64" />
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="flex items-start gap-4 pb-2">
+          <Skeleton className="h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-64" />
+          </div>
         </div>
-        <div className="app-surface rounded-xl bg-surface shadow-surface p-6 space-y-4">
+        <div className="mt-6 space-y-3">
           {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+            <Skeleton key={i} className="h-20 w-full rounded-2xl" />
           ))}
         </div>
       </div>
@@ -126,40 +130,36 @@ export default function BankPage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Banque</h1>
-        <p className="text-muted-foreground text-sm mt-1">Gérez vos comptes bancaires pour les factures.</p>
-      </div>
+    <SettingsPage>
+      <SettingsHero
+        icon={<CreditCard className="h-6 w-6" />}
+        title="Banque"
+        tagline="Vos comptes bancaires pour les factures."
+        description="Affichés sur vos factures pour faciliter le règlement par virement."
+        action={
+          !noCompany && (
+            <Button size="sm" onClick={() => openBankDialog()}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" /> Ajouter
+            </Button>
+          )
+        }
+      />
 
-      <Card>
-        <CardContent className="p-6">
+      <div className="mt-6">
           {noCompany ? (
-            <div className="flex flex-col items-center py-8 text-center">
-              <CreditCard className="h-8 w-8 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">
-                Créez d&apos;abord votre entreprise dans la page Informations.
-              </p>
+            <div className="flex flex-col items-center rounded-2xl border border-dashed border-border py-14 text-center">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent"><CreditCard className="h-6 w-6" /></div>
+              <p className="text-sm text-muted-foreground">Créez d&apos;abord votre entreprise dans la page Informations.</p>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-foreground">Coordonnées bancaires</h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">Gérez vos comptes bancaires pour les factures.</p>
-                </div>
-                <Button size="sm" onClick={() => openBankDialog()}>
-                  <Plus className="h-3.5 w-3.5 mr-1.5" /> Ajouter
-                </Button>
-              </div>
-
               {bankLoading ? (
-                <div className="flex justify-center py-8"><Spinner /></div>
+                <div className="flex justify-center py-16"><Spinner /></div>
               ) : bankAccounts.length === 0 ? (
-                <div className="flex flex-col items-center py-10 text-center">
-                  <CreditCard className="h-8 w-8 text-muted-foreground mb-3" />
-                  <p className="text-sm text-muted-foreground">Aucun compte bancaire enregistré.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Ajoutez un compte pour l&apos;afficher sur vos factures.</p>
+                <div className="flex flex-col items-center rounded-2xl border border-dashed border-border py-14 text-center">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent"><CreditCard className="h-6 w-6" /></div>
+                  <p className="text-sm font-medium text-foreground">Aucun compte bancaire</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Ajoutez un compte pour l&apos;afficher sur vos factures.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -202,8 +202,7 @@ export default function BankPage() {
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Bank account add/edit dialog */}
       <Dialog open={bankDialogOpen} onClose={() => setBankDialogOpen(false)} className="max-w-md">
@@ -255,7 +254,7 @@ export default function BankPage() {
                 <CheckboxIndicator />
               </CheckboxControl>
               <CheckboxContent>
-                <span className="text-sm font-medium text-foreground flex items-center gap-1.5"><Star className="h-3.5 w-3.5" /> Compte par défaut</span>
+                <span className="text-sm font-medium text-foreground">Compte par défaut</span>
                 <span className="text-xs text-muted-foreground mt-[1px] block">Ce compte sera sélectionné par défaut sur les nouvelles factures.</span>
               </CheckboxContent>
             </CheckboxRoot>
@@ -268,6 +267,6 @@ export default function BankPage() {
           </Button>
         </DialogFooter>
       </Dialog>
-    </motion.div>
+    </SettingsPage>
   )
 }
