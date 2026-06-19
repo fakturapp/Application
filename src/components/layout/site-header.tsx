@@ -72,13 +72,6 @@ export function SiteHeader({ onToggleSidebar, collapsed }: SiteHeaderProps) {
         collapsed ? 'pl-16' : 'pl-(--sidebar-width)'
       )}
     >
-      <div
-        aria-hidden="true"
-        className={cn(
-          'app-surface pointer-events-none absolute inset-y-0 right-0 rounded-tl-[2rem] transition-[left] duration-300 ease-out',
-          collapsed ? 'left-[calc(4rem-2rem)]' : 'left-[calc(var(--sidebar-width)-2rem)]'
-        )}
-      />
       <div className="relative flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         {onToggleSidebar && (
           <Tooltip content="Afficher / masquer la barre latérale">
