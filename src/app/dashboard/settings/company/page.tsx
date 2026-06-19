@@ -251,72 +251,82 @@ export default function CompanyInfoPage() {
         </div>
       ) : (
         <div className="mt-6">
-          <motion.div variants={settingsFade} custom={0} className="flex items-center gap-4 pb-2">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface ring-1 ring-inset ring-border">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="h-full w-full object-contain p-2" />
-              ) : (
-                <Building2 className="h-7 w-7 text-muted-foreground" />
-              )}
+          <motion.div
+            variants={settingsFade}
+            custom={0}
+            className="overflow-hidden rounded-3xl border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_40px_-12px_rgba(0,0,0,0.12)]"
+          >
+            <div className="relative px-6 pt-6 pb-5">
+              <div className="pointer-events-none absolute inset-0 opacity-80 [background:radial-gradient(120%_140%_at_0%_-20%,var(--color-accent-soft),transparent_55%)]" />
+              <div className="relative flex items-center gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-card ring-1 ring-inset ring-border shadow-sm">
+                  {logoUrl ? (
+                    <img src={logoUrl} alt="Logo" className="h-full w-full object-contain p-2" />
+                  ) : (
+                    <Building2 className="h-7 w-7 text-accent" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-bold text-foreground">{form.legalName || 'Mon entreprise'}</h2>
+                  {form.tradeName && <p className="text-sm text-muted-foreground">{form.tradeName}</p>}
+                  {form.legalForm && <p className="text-xs text-muted-foreground">{form.legalForm}</p>}
+                </div>
+              </div>
             </div>
-            <div className="min-w-0">
-              <h2 className="truncate text-lg font-bold text-foreground">{form.legalName || 'Mon entreprise'}</h2>
-              {form.tradeName && <p className="text-sm text-muted-foreground">{form.tradeName}</p>}
-              {form.legalForm && <p className="text-xs text-muted-foreground">{form.legalForm}</p>}
+
+            <div className="border-t border-border px-6 py-5">
+              <h3 className="text-[13px] font-bold text-foreground">Identité légale</h3>
+              <div className="mt-3 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+                {infoItems.map((item) => (
+                  <div key={item.label}>
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{item.label}</span>
+                    <p className="mt-0.5 text-sm text-foreground">
+                      {item.value || <span className="italic text-muted-foreground/60">Non renseigné</span>}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-border px-6 py-5">
+              <h3 className="text-[13px] font-bold text-foreground">Adresse</h3>
+              <div className="mt-3 flex items-start gap-3">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <p className="text-sm text-foreground">
+                  {form.addressLine1 || form.city ? (
+                    <>{form.addressLine1}{form.addressLine2 ? `, ${form.addressLine2}` : ''}<br />{form.postalCode} {form.city}</>
+                  ) : (
+                    <span className="italic text-muted-foreground/60">Non renseignée</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-border px-6 py-5">
+              <h3 className="text-[13px] font-bold text-foreground">Contact</h3>
+              <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {[
+                  { icon: <Phone className="h-4 w-4" />, label: 'Téléphone', value: form.phone },
+                  { icon: <Building2 className="h-4 w-4" />, label: 'Email', value: form.email },
+                  { icon: <Globe className="h-4 w-4" />, label: 'Site web', value: form.website },
+                ].map((c) => (
+                  <div key={c.label} className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">{c.icon}</div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{c.label}</span>
+                      <p className="mt-0.5 truncate text-sm text-foreground">{c.value || <span className="italic text-muted-foreground/60">—</span>}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
 
-          <SettingsSection index={1} title="Identité légale">
-            <div className="mt-3 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
-              {infoItems.map((item) => (
-                <div key={item.label}>
-                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{item.label}</span>
-                  <p className="mt-0.5 text-sm text-foreground">
-                    {item.value || <span className="italic text-muted-foreground/60">Non renseigné</span>}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </SettingsSection>
-
-          <SettingsSection index={2} title="Adresse">
-            <div className="mt-3 flex items-start gap-3">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-              <p className="text-sm text-foreground">
-                {form.addressLine1 || form.city ? (
-                  <>{form.addressLine1}{form.addressLine2 ? `, ${form.addressLine2}` : ''}<br />{form.postalCode} {form.city}</>
-                ) : (
-                  <span className="italic text-muted-foreground/60">Non renseignée</span>
-                )}
-              </p>
-            </div>
-          </SettingsSection>
-
-          <SettingsSection index={3} title="Contact">
-            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {[
-                { icon: <Phone className="h-4 w-4" />, label: 'Téléphone', value: form.phone },
-                { icon: <Building2 className="h-4 w-4" />, label: 'Email', value: form.email },
-                { icon: <Globe className="h-4 w-4" />, label: 'Site web', value: form.website },
-              ].map((c) => (
-                <div key={c.label} className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">{c.icon}</div>
-                  <div className="min-w-0">
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{c.label}</span>
-                    <p className="mt-0.5 truncate text-sm text-foreground">{c.value || <span className="italic text-muted-foreground/60">—</span>}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </SettingsSection>
-
-          <SettingsSection index={4}>
-            <div className="flex justify-end">
-              <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteOpen(true)} className="text-destructive hover:text-destructive">
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Supprimer les informations
-              </Button>
-            </div>
-          </SettingsSection>
+          <div className="mt-4 flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteOpen(true)} className="text-destructive hover:text-destructive">
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Supprimer les informations
+            </Button>
+          </div>
         </div>
       )}
 
