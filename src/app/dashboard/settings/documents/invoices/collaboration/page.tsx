@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
-import { Users, Crown, MousePointer2, Eye } from '@/components/ui/icons'
+import { Users, Crown } from '@/components/ui/icons'
 import { LiveCollaborationPreview } from '@/components/settings/live-collaboration-preview'
-import { SettingsPage, SettingsHero, SettingsSection, SettingsRow } from '@/components/settings/settings-shell'
+import { SettingsPage, SettingsHero, SettingsSection } from '@/components/settings/settings-shell'
 
 export default function CollaborationSettingsPage() {
   const router = useRouter()
@@ -56,17 +56,6 @@ export default function CollaborationSettingsPage() {
       <SettingsHero
         icon={<Users className="h-6 w-6" />}
         title="Collaboration"
-        badges={
-          enabled && hasTeamPlan ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Active
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-              <Crown className="h-3 w-3" /> Team
-            </span>
-          )
-        }
         tagline="Éditez vos documents à plusieurs, en temps réel."
         description="Chaque membre dispose de son propre curseur nommé, comme sur Canva ou Figma."
       />
@@ -94,28 +83,8 @@ export default function CollaborationSettingsPage() {
           }
         />
 
-        <SettingsSection index={3} title="Ce que vous obtenez">
-          <div className="mt-2 divide-y divide-border">
-            <SettingsRow
-              icon={<MousePointer2 className="h-4 w-4" />}
-              title="Curseurs nommés"
-              desc="Voyez en direct où travaille chaque membre de l’équipe."
-            />
-            <SettingsRow
-              icon={<Eye className="h-4 w-4" />}
-              title="Modifications instantanées"
-              desc="Chaque champ se met à jour pour tout le monde, sans rechargement."
-            />
-            <SettingsRow
-              icon={<Users className="h-4 w-4" />}
-              title="Invités externes"
-              desc="Partagez un document avec un client ou un comptable, en lecture ou édition."
-            />
-          </div>
-        </SettingsSection>
-
         {!planLoading && !hasTeamPlan && (
-          <SettingsSection index={4}>
+          <SettingsSection index={3}>
             <div className="flex items-center justify-between gap-4 rounded-2xl border border-accent/20 bg-accent-soft/40 p-5">
               <div className="flex items-start gap-3">
                 <Crown className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
