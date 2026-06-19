@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, type Variants } from 'framer-motion'
-import { Card, CardContent } from '@/components/ui/card'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,15 +16,7 @@ import { useAuth } from '@/lib/auth'
 import { ProGate } from '@/components/billing/pro-gate'
 import { api } from '@/lib/api'
 import { Bell, Save, Info } from '@/components/ui/icons'
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.08, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
-  }),
-} satisfies Variants
+import { SettingsPage, SettingsHero, SettingsSection, SettingsRow } from '@/components/settings/settings-shell'
 
 interface ReminderSettings {
   enabled: boolean
@@ -36,6 +27,52 @@ interface ReminderSettings {
   emailBodyTemplate: string | null
   autoSend: boolean
   emailAccountId: string | null
+}
+
+function ReminderTimeline({
+  before,
+  after,
+  repeat,
+}: {
+  before: string
+  after: string
+  repeat: string
+}) {
+  const reduce = useReducedMotion()
+  const steps = [
+    before ? { label: `J−${before}`, sub: 'Rappel préventif', tone: 'muted' as const } : null,
+    { label: 'Échéance', sub: 'Date limite', tone: 'accent' as const },
+    after ? { label: `J+${after}`, sub: '1ʳᵉ relance', tone: 'solid' as const } : null,
+    repeat ? { label: `tous les ${repeat}j`, sub: 'Répétition', tone: 'muted' as const } : null,
+  ].filter(Boolean) as { label: string; sub: string; tone: 'muted' | 'accent' | 'solid' }[]
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6">
+      <div className="pointer-events-none absolute inset-0 opacity-[0.4] [background:radial-gradient(120%_120%_at_50%_-10%,var(--color-accent-soft),transparent_60%)]" />
+      <div className="relative">
+        <div className="absolute left-4 right-4 top-3 h-px bg-border" />
+        <div className="relative flex justify-between">
+          {steps.map((s, i) => (
+            <motion.div
+              key={s.label + i}
+              initial={reduce ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.12, duration: 0.4 }}
+              className="flex flex-1 flex-col items-center text-center"
+            >
+              <span
+                className={`mb-2 h-3 w-3 rounded-full ring-4 ring-surface ${
+                  s.tone === 'accent' ? 'bg-accent' : s.tone === 'solid' ? 'bg-foreground' : 'bg-muted-foreground/40'
+                }`}
+              />
+              <span className="text-[11px] font-semibold text-foreground">{s.label}</span>
+              <span className="text-[10px] text-muted-foreground">{s.sub}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function ReminderSettingsPage() {
@@ -50,11 +87,9 @@ export default function ReminderSettingsPage() {
   const [daysBeforeDue, setDaysBeforeDue] = useState('')
   const [daysAfterDue, setDaysAfterDue] = useState('7')
   const [repeatIntervalDays, setRepeatIntervalDays] = useState('')
-  const [emailSubjectTemplate, setEmailSubjectTemplate] = useState(
-    'Rappel : Facture {numero} en attente de paiement'
-  )
+  const [emailSubjectTemplate, setEmailSubjectTemplate] = useState('Rappel : Facture {numero} en attente de paiement')
   const [emailBodyTemplate, setEmailBodyTemplate] = useState(
-    "Bonjour,\n\nNous vous rappelons que la facture {numero} d'un montant de {montant} est arrivee a echeance le {date_echeance}.\n\nMerci de bien vouloir proceder au reglement.\n\nCordialement"
+    "Bonjour,\n\nNous vous rappelons que la facture {numero} d'un montant de {montant} est arrivée à échéance le {date_echeance}.\n\nMerci de bien vouloir procéder au règlement.\n\nCordialement"
   )
   const [autoSend, setAutoSend] = useState(false)
   const [emailAccountId, setEmailAccountId] = useState('')
@@ -95,196 +130,124 @@ export default function ReminderSettingsPage() {
       toast(error, 'error')
       return
     }
-    toast('Parametres de relance mis a jour')
+    toast('Paramètres de relance mis à jour', 'success')
   }
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-        <div>
-          <Skeleton className="h-7 w-48" />
-          <Skeleton className="h-4 w-72 mt-2" />
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="flex items-start gap-4 pb-2">
+          <Skeleton className="h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-52" />
+            <Skeleton className="h-4 w-72" />
+          </div>
         </div>
-        {[...Array(3)].map((_, i) => (
-          <Skeleton key={i} className="h-32 w-full rounded-xl" />
-        ))}
+        <div className="mt-6 space-y-7">
+          <Skeleton className="h-20 w-full rounded-2xl" />
+          <Skeleton className="h-40 w-full rounded-2xl" />
+        </div>
       </div>
     )
   }
 
   return (
-    <motion.div initial="hidden" animate="visible" className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-      {}
-      <motion.div variants={fadeUp} custom={0}>
-        <h1 className="text-2xl font-bold text-foreground">Relances automatiques</h1>
-        <p className="text-muted-foreground mt-1">
-          Configurez les rappels de paiement pour vos factures en retard
-        </p>
-      </motion.div>
+    <SettingsPage>
+      <SettingsHero
+        icon={<Bell className="h-6 w-6" />}
+        title="Relances automatiques"
+        tagline="Les rappels de paiement de vos factures en retard."
+        description="Définissez le calendrier et le message — Faktur s’occupe de l’envoi."
+        action={
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? <><Spinner /> Enregistrement…</> : <><Save className="mr-1.5 h-4 w-4" /> Enregistrer</>}
+          </Button>
+        }
+      />
 
-      {}
-      <ProGate locked={locked} description="Passez à Pro pour activer les relances automatiques.">
-      <motion.div variants={fadeUp} custom={1}>
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft">
-                  <Bell className="h-5 w-5 text-accent" />
+      <div className="mt-6">
+        <ProGate locked={locked} description="Passez à Pro pour activer les relances automatiques.">
+          <SettingsSection index={1}>
+            <SettingsRow
+              icon={<Bell className="h-4 w-4" />}
+              title="Activer les relances"
+              desc="Disponibles pour les factures envoyées et en retard."
+              control={<Switch checked={enabled} onChange={setEnabled} />}
+            />
+          </SettingsSection>
+        </ProGate>
+
+        {enabled && (
+          <>
+            <SettingsSection index={2}>
+              <ReminderTimeline before={daysBeforeDue} after={daysAfterDue} repeat={repeatIntervalDays} />
+            </SettingsSection>
+
+            <SettingsSection index={3} title="Calendrier des relances" desc="Quand les rappels sont envoyés.">
+              <FieldGroup className="mt-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Field>
+                    <FieldLabel htmlFor="daysBefore">Jours avant échéance</FieldLabel>
+                    <Input id="daysBefore" type="number" min="1" max="90" value={daysBeforeDue} onChange={(e) => setDaysBeforeDue(e.target.value)} placeholder="Ex : 3" />
+                    <FieldDescription>Rappel préventif</FieldDescription>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="daysAfter">Jours après échéance</FieldLabel>
+                    <Input id="daysAfter" type="number" min="1" max="90" value={daysAfterDue} onChange={(e) => setDaysAfterDue(e.target.value)} placeholder="Ex : 7" />
+                    <FieldDescription>Première relance</FieldDescription>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="repeatInterval">Répéter tous les (jours)</FieldLabel>
+                    <Input id="repeatInterval" type="number" min="1" max="90" value={repeatIntervalDays} onChange={(e) => setRepeatIntervalDays(e.target.value)} placeholder="Ex : 7" />
+                    <FieldDescription>Après la 1ʳᵉ relance</FieldDescription>
+                  </Field>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Activer les relances</p>
-                  <p className="text-xs text-muted-foreground">
-                    Les relances seront disponibles pour les factures envoyees et en retard
+              </FieldGroup>
+            </SettingsSection>
+
+            <SettingsSection index={4} title="Compte email" desc="Le compte utilisé pour envoyer les relances.">
+              <Field className="mt-3">
+                <FormSelect
+                  id="emailAccount"
+                  value={emailAccountId}
+                  onChange={setEmailAccountId}
+                  placeholder="Sélectionner un compte"
+                  options={[
+                    { value: '', label: 'Sélectionner un compte' },
+                    ...accounts.map((a) => ({ value: a.id, label: `${a.email} (${a.provider})` })),
+                  ]}
+                />
+                {accounts.length === 0 && !accountsLoading && (
+                  <p className="mt-1 text-xs text-amber-500">
+                    Aucun compte email configuré. Ajoutez-en un dans Paramètres &gt; Email.
                   </p>
-                </div>
+                )}
+              </Field>
+            </SettingsSection>
+
+            <SettingsSection index={5} title="Modèle d’email" desc="Le contenu envoyé à vos clients.">
+              <div className="mt-3 flex items-start gap-2 rounded-xl border border-accent/20 bg-accent-soft/40 p-3">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <p className="text-xs text-muted-foreground">
+                  Variables : <code className="text-accent">{'{numero}'}</code>, <code className="text-accent">{'{montant}'}</code>,{' '}
+                  <code className="text-accent">{'{date_echeance}'}</code>, <code className="text-accent">{'{date_emission}'}</code>,{' '}
+                  <code className="text-accent">{'{client}'}</code>
+                </p>
               </div>
-              <Switch checked={enabled} onChange={setEnabled} />
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-      </ProGate>
-
-      {enabled && (
-        <>
-          {}
-          <motion.div variants={fadeUp} custom={2}>
-            <Card>
-              <CardContent className="p-5 space-y-4">
-                <h3 className="text-sm font-semibold text-foreground">Calendrier des relances</h3>
-
-                <FieldGroup>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Field>
-                      <FieldLabel htmlFor="daysBefore">Jours avant echeance</FieldLabel>
-                      <Input
-                        id="daysBefore"
-                        type="number"
-                        min="1"
-                        max="90"
-                        value={daysBeforeDue}
-                        onChange={(e) => setDaysBeforeDue(e.target.value)}
-                        placeholder="Ex: 3"
-                      />
-                      <FieldDescription>Rappel preventif</FieldDescription>
-                    </Field>
-
-                    <Field>
-                      <FieldLabel htmlFor="daysAfter">Jours apres echeance</FieldLabel>
-                      <Input
-                        id="daysAfter"
-                        type="number"
-                        min="1"
-                        max="90"
-                        value={daysAfterDue}
-                        onChange={(e) => setDaysAfterDue(e.target.value)}
-                        placeholder="Ex: 7"
-                      />
-                      <FieldDescription>Premiere relance</FieldDescription>
-                    </Field>
-
-                    <Field>
-                      <FieldLabel htmlFor="repeatInterval">Repeter tous les (jours)</FieldLabel>
-                      <Input
-                        id="repeatInterval"
-                        type="number"
-                        min="1"
-                        max="90"
-                        value={repeatIntervalDays}
-                        onChange={(e) => setRepeatIntervalDays(e.target.value)}
-                        placeholder="Ex: 7"
-                      />
-                      <FieldDescription>Apres la 1ere relance</FieldDescription>
-                    </Field>
-                  </div>
-                </FieldGroup>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {}
-          <motion.div variants={fadeUp} custom={3}>
-            <Card>
-              <CardContent className="p-5 space-y-4">
-                <h3 className="text-sm font-semibold text-foreground">Compte email</h3>
+              <FieldGroup className="mt-4">
                 <Field>
-                  <FieldLabel htmlFor="emailAccount">Compte utilise pour les relances</FieldLabel>
-                  <FormSelect
-                    id="emailAccount"
-                    value={emailAccountId}
-                    onChange={setEmailAccountId}
-                    placeholder="Selectionner un compte"
-                    options={[
-                      { value: '', label: 'Selectionner un compte' },
-                      ...accounts.map((a) => ({ value: a.id, label: `${a.email} (${a.provider})` })),
-                    ]}
-                  />
-                  {accounts.length === 0 && !accountsLoading && (
-                    <p className="text-xs text-orange-500 mt-1">
-                      Aucun compte email configure. Ajoutez-en un dans Parametres &gt; Email.
-                    </p>
-                  )}
+                  <FieldLabel htmlFor="subjectTemplate">Objet de l’email</FieldLabel>
+                  <Input id="subjectTemplate" value={emailSubjectTemplate} onChange={(e) => setEmailSubjectTemplate(e.target.value)} placeholder="Rappel : Facture {numero}" />
                 </Field>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {}
-          <motion.div variants={fadeUp} custom={4}>
-            <Card>
-              <CardContent className="p-5 space-y-4">
-                <h3 className="text-sm font-semibold text-foreground">Modele d&apos;email</h3>
-
-                <div className="flex items-start gap-2 rounded-lg bg-primary/5 border border-primary/10 p-3">
-                  <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground">
-                    Variables disponibles : <code className="text-primary">{'{numero}'}</code>,{' '}
-                    <code className="text-primary">{'{montant}'}</code>,{' '}
-                    <code className="text-primary">{'{date_echeance}'}</code>,{' '}
-                    <code className="text-primary">{'{date_emission}'}</code>,{' '}
-                    <code className="text-primary">{'{client}'}</code>
-                  </p>
-                </div>
-
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="subjectTemplate">Objet de l&apos;email</FieldLabel>
-                    <Input
-                      id="subjectTemplate"
-                      value={emailSubjectTemplate}
-                      onChange={(e) => setEmailSubjectTemplate(e.target.value)}
-                      placeholder="Rappel : Facture {numero}"
-                    />
-                  </Field>
-
-                  <Field>
-                    <FieldLabel htmlFor="bodyTemplate">Corps de l&apos;email</FieldLabel>
-                    <Textarea
-                      id="bodyTemplate"
-                      value={emailBodyTemplate}
-                      onChange={(e) => setEmailBodyTemplate(e.target.value)}
-                      rows={6}
-                      placeholder="Bonjour, ..."
-                    />
-                  </Field>
-                </FieldGroup>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </>
-      )}
-
-      {}
-      <motion.div variants={fadeUp} custom={5} className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? (
-            <><Spinner /> Enregistrement...</>
-          ) : (
-            <><Save className="h-4 w-4 mr-1.5" /> Enregistrer</>
-          )}
-        </Button>
-      </motion.div>
-    </motion.div>
+                <Field>
+                  <FieldLabel htmlFor="bodyTemplate">Corps de l’email</FieldLabel>
+                  <Textarea id="bodyTemplate" value={emailBodyTemplate} onChange={(e) => setEmailBodyTemplate(e.target.value)} rows={6} placeholder="Bonjour, …" />
+                </Field>
+              </FieldGroup>
+            </SettingsSection>
+          </>
+        )}
+      </div>
+    </SettingsPage>
   )
 }
