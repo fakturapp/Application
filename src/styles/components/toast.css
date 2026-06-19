@@ -261,3 +261,17 @@
   }
 }
 }
+
+html[data-surface='glass'] .toast,
+html[data-surface='liquid']:not([data-liquid-ready='1']) .toast {
+  background-color: color-mix(in srgb, var(--surface-frost) max(var(--surface-alpha, 30%), 42%), transparent);
+  -webkit-backdrop-filter: blur(var(--surface-blur, 16px)) saturate(1.8) brightness(1.1);
+  backdrop-filter: blur(var(--surface-blur, 16px)) saturate(1.8) brightness(1.1);
+}
+
+html[data-surface='liquid'][data-liquid-ready='1'] .toast {
+  background-color: color-mix(in srgb, var(--surface-frost) max(var(--surface-alpha, 30%), 35%), transparent);
+  border-color: transparent;
+  -webkit-backdrop-filter: url(#faktur-liquid-glass) saturate(1.5);
+  backdrop-filter: url(#faktur-liquid-glass) saturate(1.5);
+}
