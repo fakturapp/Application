@@ -138,21 +138,23 @@ export function ProductPanel({ open, product, onClose, onSaved }: ProductPanelPr
             className="fixed inset-y-0 right-0 z-[100] w-full max-w-lg bg-white dark:bg-card/40 dark:backdrop-blur-2xl border-l border-border/20 dark:border-border/40 dark:liquid-glass flex flex-col overflow-hidden shadow-xl dark:shadow-none rounded-l-3xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/20 dark:border-border/40 relative z-10 dark:bg-card/20 dark:backdrop-blur-md">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                  <Package className="h-4.5 w-4.5 text-primary" />
+            <div className="relative z-10 flex items-center justify-between border-b border-border/40 px-6 py-4 dark:bg-card/20 dark:backdrop-blur-md">
+              <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(120%_180%_at_0%_-40%,var(--color-accent-soft),transparent_60%)]" />
+              <div className="relative flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent ring-1 ring-inset ring-accent/15">
+                  <Package className="h-4.5 w-4.5" />
                 </div>
-                <h2 className="text-lg font-semibold text-foreground">
+                <h2 className="text-base font-bold text-foreground">
                   {isEditing ? 'Modifier le produit' : 'Nouveau produit'}
                 </h2>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                className="relative flex h-8 w-8 items-center justify-center rounded-full bg-surface text-muted-foreground transition-all hover:bg-surface-hover hover:text-foreground active:scale-95"
                 type="button"
+                aria-label="Fermer"
               >
-                <X className="h-4 w-4 text-muted-foreground" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
