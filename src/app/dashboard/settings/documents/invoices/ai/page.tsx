@@ -12,7 +12,7 @@ import { ProGate } from '@/components/billing/pro-gate'
 import { useToast } from '@/components/ui/toast'
 import { api } from '@/lib/api'
 import { SettingsPage, SettingsHero, SettingsSection, SettingsRow } from '@/components/settings/settings-shell'
-import { FakturAiWritingPreview } from '@/components/settings/faktur-ai-writing-preview'
+import { FakturAiChatPreview } from '@/components/settings/faktur-ai-chat-preview'
 import {
   Sparkles,
   Check,
@@ -239,7 +239,7 @@ export default function FakturAIPage() {
 
       <div className="mt-6">
         <SettingsSection index={1}>
-          <FakturAiWritingPreview active={settings.aiEnabled && isPro} />
+          <FakturAiChatPreview mode={defaultMode as 'edition' | 'question' | 'libre'} active={settings.aiEnabled && isPro} />
         </SettingsSection>
 
         <ProGate locked={!isPro} description="Passez à Pro pour activer Faktur AI.">
