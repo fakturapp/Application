@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent } from '@/components/ui/card'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
@@ -12,9 +11,10 @@ import { useAuth } from '@/lib/auth'
 import { ProGate } from '@/components/billing/pro-gate'
 import { useToast } from '@/components/ui/toast'
 import { api } from '@/lib/api'
+import { SettingsPage, SettingsHero, SettingsSection, SettingsRow } from '@/components/settings/settings-shell'
+import { FakturAiWritingPreview } from '@/components/settings/faktur-ai-writing-preview'
 import {
   Sparkles,
-  FlaskConical,
   Check,
   Info,
   AlertTriangle,
@@ -33,7 +33,7 @@ const MODEL_TIERS = [
   {
     id: 'google/gemma-4-26b-a4b-it:free',
     name: 'Rapide',
-    description: 'Reponses instantanees, ideal pour les taches simples',
+    description: 'Réponses instantanées, idéal pour les tâches simples',
     icon: Zap,
     iconBg: 'bg-emerald-500/10',
     iconColor: 'text-emerald-500',
@@ -43,17 +43,17 @@ const MODEL_TIERS = [
   {
     id: 'google/gemma-4-31b-it:free',
     name: 'Raisonnement',
-    description: 'Bon equilibre entre qualite et vitesse',
+    description: 'Bon équilibre entre qualité et vitesse',
     icon: Brain,
     iconBg: 'bg-blue-500/10',
     iconColor: 'text-blue-500',
-    badge: 'Recommande',
+    badge: 'Recommandé',
     badgeColor: 'bg-blue-500/10 text-blue-500',
   },
   {
     id: 'nvidia/nemotron-3-super-120b-a12b:free',
     name: 'Pro',
-    description: 'Modele le plus puissant disponible',
+    description: 'Modèle le plus puissant disponible',
     icon: Crown,
     iconBg: 'bg-amber-500/10',
     iconColor: 'text-amber-500',
@@ -63,32 +63,10 @@ const MODEL_TIERS = [
 ]
 
 const CHAT_MODES = [
-  {
-    id: 'edition' as const,
-    name: 'Édition',
-    description: 'Modifier le contenu du document',
-    icon: Pencil,
-    iconBg: 'bg-blue-500/10',
-    iconColor: 'text-blue-500',
-  },
-  {
-    id: 'question' as const,
-    name: 'Question',
-    description: 'Poser des questions de conformité',
-    icon: HelpCircle,
-    iconBg: 'bg-amber-500/10',
-    iconColor: 'text-amber-500',
-  },
-  {
-    id: 'libre' as const,
-    name: 'Libre',
-    description: 'Instructions libres avec suggestions',
-    icon: Wand2,
-    iconBg: 'bg-purple-500/10',
-    iconColor: 'text-purple-500',
-  },
+  { id: 'edition' as const, name: 'Édition', description: 'Modifier le contenu du document', icon: Pencil },
+  { id: 'question' as const, name: 'Question', description: 'Poser des questions de conformité', icon: HelpCircle },
+  { id: 'libre' as const, name: 'Libre', description: 'Instructions libres avec suggestions', icon: Wand2 },
 ]
-
 
 function getDefaultMode(): string {
   if (typeof window === 'undefined') return 'edition'
@@ -111,7 +89,6 @@ function saveDefaultMode(mode: string) {
   } catch {}
 }
 
-
 interface QuotaBucket {
   used: number
   limit: number
@@ -128,12 +105,9 @@ function formatResetTime(iso: string): string {
   const reset = new Date(iso)
   const now = new Date()
   const diffMs = reset.getTime() - now.getTime()
-
   if (diffMs <= 0) return 'maintenant'
-
   const totalMin = Math.ceil(diffMs / 60_000)
   if (totalMin < 60) return `dans ${totalMin} min`
-
   const h = Math.floor(totalMin / 60)
   const m = totalMin % 60
   if (m === 0) return `dans ${h} h`
@@ -152,13 +126,51 @@ function formatWeeklyReset(iso: string): string {
 function formatLastUpdated(date: Date | null): string {
   if (!date) return '—'
   const diffSec = Math.floor((Date.now() - date.getTime()) / 1000)
-  if (diffSec < 60) return 'il y a moins d\u2019une minute'
+  if (diffSec < 60) return 'il y a moins d’une minute'
   if (diffSec < 3600) {
     const m = Math.floor(diffSec / 60)
     return `il y a ${m} min`
   }
   const h = Math.floor(diffSec / 3600)
   return `il y a ${h} h`
+}
+
+function QuotaBar({
+  label,
+  bucket,
+  reset,
+  delay = 0,
+}: {
+  label: string
+  bucket: QuotaBucket
+  reset: string
+  delay?: number
+}) {
+  const pct = Math.min((bucket.used / bucket.limit) * 100, 100)
+  const barColor = bucket.used >= bucket.limit ? 'bg-red-500' : bucket.used >= bucket.limit * 0.8 ? 'bg-amber-500' : 'bg-accent'
+  return (
+    <div className="rounded-xl border border-border p-4">
+      <div className="mb-1 flex items-center justify-between">
+        <p className="text-xs font-medium text-foreground">{label}</p>
+        <p className="text-[10px] text-muted-foreground">Réinitialisation {reset}</p>
+      </div>
+      <div className="mb-2.5 flex items-end gap-2">
+        <span className="text-2xl font-bold text-foreground">{Math.round((bucket.used / bucket.limit) * 100)} %</span>
+        <span className="mb-1 text-xs text-muted-foreground">utilisés</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay }}
+          className={`h-full rounded-full ${barColor}`}
+        />
+      </div>
+      <p className="mt-1.5 text-[10px] text-muted-foreground">
+        {bucket.used} / {bucket.limit} requêtes
+      </p>
+    </div>
+  )
 }
 
 export default function FakturAIPage() {
@@ -170,11 +182,10 @@ export default function FakturAIPage() {
   const [showAiBetaModal, setShowAiBetaModal] = useState(false)
   const [defaultMode, setDefaultMode] = useState(getDefaultMode)
 
-  // Quota state
   const [quota, setQuota] = useState<QuotaData | null>(null)
   const [quotaLoading, setQuotaLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
-  const [, setTick] = useState(0) // force re-render for relative time
+  const [, setTick] = useState(0)
 
   const fetchQuota = useCallback(async () => {
     setQuotaLoading(true)
@@ -194,7 +205,6 @@ export default function FakturAIPage() {
     if (settings.aiEnabled && isPro) fetchQuota()
   }, [settings.aiEnabled, fetchQuota, isPro])
 
-  // Tick every 30s to update relative timestamps
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 30_000)
     return () => clearInterval(id)
@@ -202,464 +212,264 @@ export default function FakturAIPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-32" />
-          <Skeleton className="h-4 w-64" />
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="flex items-start gap-4 pb-2">
+          <Skeleton className="h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-4 w-64" />
+          </div>
         </div>
-        <div className="rounded-xl border border-border/50 p-6 space-y-4">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-9 w-9 rounded-lg" />
-            <div className="space-y-1.5">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-3 w-52" />
-            </div>
-          </div>
-          <Skeleton className="h-20 w-full rounded-xl" />
-          <Skeleton className="h-14 w-full rounded-xl" />
-          <div className="grid grid-cols-3 gap-2">
-            <Skeleton className="h-28 rounded-xl" />
-            <Skeleton className="h-28 rounded-xl" />
-            <Skeleton className="h-28 rounded-xl" />
-          </div>
+        <div className="mt-6 space-y-7">
+          <Skeleton className="h-64 w-full rounded-2xl" />
+          <Skeleton className="h-20 w-full rounded-2xl" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-lg font-semibold text-foreground">Faktur AI</h1>
-        <p className="text-sm text-muted-foreground">Assistant intelligent pour vos documents</p>
-      </div>
+    <SettingsPage>
+      <SettingsHero
+        icon={<Sparkles className="h-6 w-6" />}
+        title="Faktur AI"
+        tagline="L’assistant intelligent intégré à vos documents."
+        description="Modifiez, analysez et optimisez vos factures et devis. 100% gratuit, aucune clé API requise."
+      />
 
-      {/* ═══ Activation Card ═══ */}
-      <ProGate locked={!isPro} description="Passez à Pro pour activer Faktur AI.">
-      <Card>
-        <CardContent className="p-6">
-          {/* Card header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
-                <Sparkles className="h-4.5 w-4.5 text-indigo-400" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-semibold text-foreground">Faktur AI</h2>
-                </div>
-                <p className="text-xs text-muted-foreground">Assistant IA integre</p>
-              </div>
-            </div>
-          </div>
+      <div className="mt-6">
+        <SettingsSection index={1}>
+          <FakturAiWritingPreview active={settings.aiEnabled && isPro} />
+        </SettingsSection>
 
-          {/* Info banner */}
-          <div className="flex items-start gap-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4 mb-4">
-            <Sparkles className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-indigo-500">Faktur AI</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">
-                Faktur AI vous aide a modifier, analyser et optimiser vos factures et devis grace a l&apos;intelligence artificielle. 100% gratuit, aucune cle API requise.
-              </p>
-            </div>
-          </div>
+        <ProGate locked={!isPro} description="Passez à Pro pour activer Faktur AI.">
+          <SettingsSection index={2}>
+            <SettingsRow
+              icon={<Sparkles className="h-4 w-4" />}
+              title="Activer Faktur AI"
+              desc="Active l’assistant IA dans toute l’application."
+              control={
+                <Switch
+                  checked={settings.aiEnabled}
+                  onChange={(next) => {
+                    if (next) {
+                      setShowAiBetaModal(true)
+                    } else {
+                      updateSettings({ aiEnabled: false })
+                      toast('Faktur AI désactivé', 'info')
+                    }
+                  }}
+                />
+              }
+            />
+          </SettingsSection>
+        </ProGate>
 
-          {/* Toggle activation */}
-          <div className="flex items-center justify-between rounded-xl border-2 border-border p-4">
-            <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${settings.aiEnabled ? 'bg-gradient-to-br from-indigo-500/10 to-purple-500/10' : 'bg-muted'}`}>
-                <Sparkles className={`h-5 w-5 ${settings.aiEnabled ? 'text-indigo-400' : 'text-muted-foreground'}`} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">Activer Faktur AI</p>
-                </div>
-                <p className="text-xs text-muted-foreground">Active Faktur AI dans toute l&apos;application</p>
-              </div>
-            </div>
-            <button type="button"
-              onClick={() => {
-                if (!settings.aiEnabled) {
-                  setShowAiBetaModal(true)
-                } else {
-                  updateSettings({ aiEnabled: false })
-                  toast('Faktur AI désactivé', 'info')
-                }
-              }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 ${
-                settings.aiEnabled ? 'bg-indigo-500' : 'bg-muted-foreground/30'
-              }`}>
-              <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform shadow-sm ${
-                settings.aiEnabled ? 'translate-x-6' : 'translate-x-1'
-              }`} />
-            </button>
-          </div>
-        </CardContent>
-      </Card>
-      </ProGate>
-
-      {/* ═══ Quota Card (visible when enabled) ═══ */}
-      <AnimatePresence>
         {settings.aiEnabled && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
-          >
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10">
-                      <BarChart3 className="h-4.5 w-4.5 text-blue-500" />
-                    </div>
-                    <div>
-                      <h2 className="text-sm font-semibold text-foreground">Limites d&apos;utilisation</h2>
-                      <p className="text-xs text-muted-foreground">Forfait Faktur AI</p>
-                    </div>
-                  </div>
-                </div>
-
+          <>
+            <SettingsSection
+              index={3}
+              title="Limites d’utilisation"
+              desc="Votre forfait Faktur AI."
+              action={
+                <button
+                  type="button"
+                  onClick={fetchQuota}
+                  disabled={quotaLoading}
+                  className="flex items-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3 w-3 ${quotaLoading ? 'animate-spin' : ''}`} /> Actualiser
+                </button>
+              }
+            >
+              <div className="mt-3">
                 {quotaLoading && !quota ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-24 w-full rounded-xl" />
-                    <Skeleton className="h-24 w-full rounded-xl" />
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Skeleton className="h-28 w-full rounded-xl" />
+                    <Skeleton className="h-28 w-full rounded-xl" />
                   </div>
                 ) : quota ? (
                   <div className="space-y-4">
-                    {/* Session (hourly) bar */}
-                    <div className="rounded-xl border border-border p-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-medium text-foreground">Session actuelle</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          Réinitialisation {formatResetTime(quota.hourly.resetsAt)}
-                        </p>
-                      </div>
-                      <div className="flex items-end gap-2 mb-2.5">
-                        <span className="text-2xl font-bold text-foreground">
-                          {Math.round((quota.hourly.used / quota.hourly.limit) * 100)} %
-                        </span>
-                        <span className="text-xs text-muted-foreground mb-1">utilisés</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-muted overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min((quota.hourly.used / quota.hourly.limit) * 100, 100)}%` }}
-                          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                          className={`h-full rounded-full ${
-                            quota.hourly.used >= quota.hourly.limit
-                              ? 'bg-red-500'
-                              : quota.hourly.used >= quota.hourly.limit * 0.8
-                                ? 'bg-amber-500'
-                                : 'bg-blue-500'
-                          }`}
-                        />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground mt-1.5">
-                        {quota.hourly.used} / {quota.hourly.limit} requêtes par heure
-                      </p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <QuotaBar label="Session actuelle" bucket={quota.hourly} reset={formatResetTime(quota.hourly.resetsAt)} />
+                      <QuotaBar label="Hebdomadaire" bucket={quota.weekly} reset={formatWeeklyReset(quota.weekly.resetsAt)} delay={0.1} />
                     </div>
-
-                    {/* Weekly bar */}
-                    <div className="rounded-xl border border-border p-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-medium text-foreground">Limites hebdomadaires</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          Réinitialisation {formatWeeklyReset(quota.weekly.resetsAt)}
-                        </p>
-                      </div>
-                      <div className="flex items-end gap-2 mb-2.5">
-                        <span className="text-2xl font-bold text-foreground">
-                          {Math.round((quota.weekly.used / quota.weekly.limit) * 100)} %
-                        </span>
-                        <span className="text-xs text-muted-foreground mb-1">utilisés</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-muted overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min((quota.weekly.used / quota.weekly.limit) * 100, 100)}%` }}
-                          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-                          className={`h-full rounded-full ${
-                            quota.weekly.used >= quota.weekly.limit
-                              ? 'bg-red-500'
-                              : quota.weekly.used >= quota.weekly.limit * 0.8
-                                ? 'bg-amber-500'
-                                : 'bg-indigo-500'
-                          }`}
-                        />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground mt-1.5">
-                        {quota.weekly.used} / {quota.weekly.limit} requêtes par semaine
-                      </p>
-                    </div>
-
-                    {/* Quota exceeded warning */}
                     {!quota.allowed && (
                       <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
                         <div className="flex items-start gap-2.5">
-                          <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
                           <div>
                             <p className="text-xs font-medium text-red-500">Quota dépassé</p>
-                            <p className="text-[11px] text-foreground/70 mt-0.5">
-                              Vous avez atteint la limite d&apos;utilisation. L&apos;IA sera de nouveau accessible après la réinitialisation.
+                            <p className="mt-0.5 text-[11px] text-foreground/70">
+                              Vous avez atteint la limite d’utilisation. L’IA sera de nouveau accessible après la réinitialisation.
                             </p>
                           </div>
                         </div>
                       </div>
                     )}
-
-                    {/* Last updated + refresh */}
-                    <div className="flex items-center justify-between pt-1">
-                      <p className="text-[10px] text-muted-foreground">
-                        Dernière mise à jour : {formatLastUpdated(lastUpdated)}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={fetchQuota}
-                        disabled={quotaLoading}
-                        className="flex items-center gap-1.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                      >
-                        <RefreshCw className={`h-3 w-3 ${quotaLoading ? 'animate-spin' : ''}`} />
-                        Actualiser
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ═══ Configuration (visible when enabled) ═══ */}
-      <AnimatePresence>
-        {settings.aiEnabled && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden space-y-6"
-          >
-            {/* ─── Model Selection Card ─── */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10">
-                    <Sparkles className="h-4.5 w-4.5 text-blue-500" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">Modèle préféré</h2>
-                    <p className="text-xs text-muted-foreground">Choisissez le modèle utilisé par défaut</p>
-                  </div>
-                </div>
-
-                {/* Provider info */}
-                <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <Sparkles className="h-4 w-4 text-blue-500 shrink-0" />
-                    <p className="text-[11px] text-foreground/70">
-                      <span className="font-medium text-indigo-500">Faktur AI</span> — 100% gratuit, aucune configuration necessaire
+                    <p className="text-[10px] text-muted-foreground">
+                      Dernière mise à jour : {formatLastUpdated(lastUpdated)}
                     </p>
                   </div>
-                </div>
+                ) : null}
+              </div>
+            </SettingsSection>
 
-                {/* Model tier cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {MODEL_TIERS.map((tier) => {
-                    const TierIcon = tier.icon
-                    const isSelected = settings.aiModel === tier.id
-                    return (
-                      <button key={tier.id}
-                        onClick={() => {
-                          updateSettings({ aiProvider: 'gemini', aiModel: tier.id })
-                          toast(`Modèle ${tier.name} sélectionné`, 'success')
-                        }}
-                        className={`rounded-xl border-2 p-4 text-left transition-all relative group ${
-                          isSelected
-                            ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10'
-                            : 'border-border hover:border-muted-foreground/30 hover:bg-surface'
-                        }`}>
-                        {isSelected && (
-                          <div className="absolute top-2.5 right-2.5">
-                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-                              <Check className="h-3 w-3 text-primary-foreground" />
-                            </div>
-                          </div>
-                        )}
-                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg mb-3 ${tier.iconBg}`}>
-                          <TierIcon className={`h-4.5 w-4.5 ${tier.iconColor}`} />
+            <SettingsSection index={4} title="Modèle préféré" desc="Le modèle utilisé par défaut.">
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {MODEL_TIERS.map((tier) => {
+                  const TierIcon = tier.icon
+                  const isSelected = settings.aiModel === tier.id
+                  return (
+                    <button
+                      key={tier.id}
+                      onClick={() => {
+                        updateSettings({ aiProvider: 'gemini', aiModel: tier.id })
+                        toast(`Modèle ${tier.name} sélectionné`, 'success')
+                      }}
+                      className={`relative rounded-xl border-2 p-4 text-left transition-all ${
+                        isSelected ? 'border-accent bg-accent-soft/50' : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      {isSelected && (
+                        <div className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent">
+                          <Check className="h-3 w-3 text-white" />
                         </div>
-                        <p className="text-sm font-semibold text-foreground">{tier.name}</p>
-                        <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{tier.description}</p>
-                        <span className={`inline-block mt-2 text-[9px] font-medium px-2 py-0.5 rounded-full ${tier.badgeColor}`}>
-                          {tier.badge}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                      )}
+                      <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${tier.iconBg}`}>
+                        <TierIcon className={`h-4.5 w-4.5 ${tier.iconColor}`} />
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">{tier.name}</p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{tier.description}</p>
+                      <span className={`mt-2 inline-block rounded-full px-2 py-0.5 text-[9px] font-medium ${tier.badgeColor}`}>
+                        {tier.badge}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </SettingsSection>
 
-            {/* ─── Default Mode Card ─── */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-500/10">
-                    <Wand2 className="h-4.5 w-4.5 text-purple-500" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">Mode par défaut</h2>
-                    <p className="text-xs text-muted-foreground">Mode utilisé à l&apos;ouverture du chat IA</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {CHAT_MODES.map((mode) => {
-                    const ModeIcon = mode.icon
-                    const isSelected = defaultMode === mode.id
-                    return (
-                      <button key={mode.id}
-                        onClick={() => {
-                          setDefaultMode(mode.id)
-                          saveDefaultMode(mode.id)
-                          toast(`Mode ${mode.name} par défaut`, 'success')
-                        }}
-                        className={`rounded-xl border-2 p-4 text-left transition-all relative ${
-                          isSelected
-                            ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10'
-                            : 'border-border hover:border-muted-foreground/30 hover:bg-surface'
-                        }`}>
-                        {isSelected && (
-                          <div className="absolute top-2.5 right-2.5">
-                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-                              <Check className="h-3 w-3 text-primary-foreground" />
-                            </div>
-                          </div>
-                        )}
-                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg mb-3 ${mode.iconBg}`}>
-                          <ModeIcon className={`h-4.5 w-4.5 ${mode.iconColor}`} />
+            <SettingsSection index={5} title="Mode par défaut" desc="Le mode utilisé à l’ouverture du chat IA.">
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {CHAT_MODES.map((mode) => {
+                  const ModeIcon = mode.icon
+                  const isSelected = defaultMode === mode.id
+                  return (
+                    <button
+                      key={mode.id}
+                      onClick={() => {
+                        setDefaultMode(mode.id)
+                        saveDefaultMode(mode.id)
+                        toast(`Mode ${mode.name} par défaut`, 'success')
+                      }}
+                      className={`relative rounded-xl border-2 p-4 text-left transition-all ${
+                        isSelected ? 'border-accent bg-accent-soft/50' : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      {isSelected && (
+                        <div className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent">
+                          <Check className="h-3 w-3 text-white" />
                         </div>
-                        <p className="text-sm font-semibold text-foreground">{mode.name}</p>
-                        <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{mode.description}</p>
-                      </button>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* ─── Features & Privacy Card ─── */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
-                    <Check className="h-4.5 w-4.5 text-emerald-500" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">Fonctionnalités</h2>
-                    <p className="text-xs text-muted-foreground">Ce que Faktur AI peut faire pour vous</p>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-border p-4 space-y-2.5 mb-4">
-                  {[
-                    { text: 'Édition assistée des factures et devis', available: true },
-                    { text: 'Analyse de conformité légale', available: true },
-                    { text: 'Mode libre créatif', available: true },
-                    { text: 'Résumé financier IA sur le tableau de bord', available: false },
-                    { text: 'Relances de paiement automatiques', available: false },
-                  ].map((feature) => (
-                    <div key={feature.text} className="flex items-center gap-2.5">
-                      {feature.available ? (
-                        <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                      ) : (
-                        <span className="h-3.5 w-3.5 flex items-center justify-center shrink-0">
-                          <span className="text-[9px] text-muted-foreground">—</span>
-                        </span>
                       )}
-                      <span className={`text-xs ${feature.available ? 'text-foreground' : 'text-muted-foreground/50'}`}>{feature.text}</span>
-                      {!feature.available && (
-                        <span className="text-[8px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">Bientôt</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
+                        <ModeIcon className="h-4.5 w-4.5 text-accent" />
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">{mode.name}</p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{mode.description}</p>
+                    </button>
+                  )
+                })}
+              </div>
+            </SettingsSection>
 
-                <Separator className="my-4" />
-
-                {/* Privacy info */}
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10">
-                    <Shield className="h-4.5 w-4.5 text-indigo-500" />
+            <SettingsSection index={6} title="Fonctionnalités & confidentialité">
+              <div className="mt-3 space-y-2.5 rounded-xl border border-border p-4">
+                {[
+                  { text: 'Édition assistée des factures et devis', available: true },
+                  { text: 'Analyse de conformité légale', available: true },
+                  { text: 'Mode libre créatif', available: true },
+                  { text: 'Résumé financier IA sur le tableau de bord', available: false },
+                  { text: 'Relances de paiement automatiques', available: false },
+                ].map((feature) => (
+                  <div key={feature.text} className="flex items-center gap-2.5">
+                    {feature.available ? (
+                      <Check className="h-3.5 w-3.5 shrink-0 text-accent" />
+                    ) : (
+                      <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center text-[9px] text-muted-foreground">—</span>
+                    )}
+                    <span className={`text-xs ${feature.available ? 'text-foreground' : 'text-muted-foreground/50'}`}>
+                      {feature.text}
+                    </span>
+                    {!feature.available && (
+                      <span className="rounded-full bg-muted px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground">Bientôt</span>
+                    )}
                   </div>
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">Confidentialité</h2>
-                    <p className="text-xs text-muted-foreground">Comment vos données sont traitées</p>
+                ))}
+              </div>
+              <div className="mt-4 space-y-2 rounded-xl border border-border p-4">
+                <div className="mb-1 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-accent" />
+                  <p className="text-xs font-semibold text-foreground">Confidentialité</p>
+                </div>
+                {[
+                  'Vos données ne sont pas utilisées pour entraîner les modèles',
+                  'Les échanges ne quittent pas votre session active',
+                  'Aucune clé API personnelle requise',
+                  'Vous pouvez désactiver l’IA à tout moment',
+                ].map((item) => (
+                  <div key={item} className="flex items-start gap-2">
+                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+                    <span className="text-xs text-muted-foreground">{item}</span>
                   </div>
-                </div>
-
-                <div className="rounded-xl border border-border p-4 space-y-2">
-                  {[
-                    'Vos données ne sont pas utilisées pour entraîner les modèles',
-                    'Les échanges ne quittent pas votre session active',
-                    'Aucune clé API personnelle requise',
-                    'Vous pouvez désactiver l\'IA à tout moment',
-                  ].map((item) => (
-                    <div key={item} className="flex items-start gap-2">
-                      <Info className="h-3.5 w-3.5 text-indigo-400 shrink-0 mt-0.5" />
-                      <span className="text-xs text-muted-foreground">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                ))}
+              </div>
+            </SettingsSection>
+          </>
         )}
-      </AnimatePresence>
+      </div>
 
-      {/* ═══ AI Activation Modal ═══ */}
       <Dialog open={showAiBetaModal} onClose={() => setShowAiBetaModal(false)}>
-        <div className="p-6 max-w-md">
+        <div className="max-w-md p-6">
           <DialogHeader onClose={() => setShowAiBetaModal(false)} icon={<Sparkles className="h-5 w-5 text-accent" />}>
             <DialogTitle>Activer Faktur AI</DialogTitle>
-            <DialogDescription>Assistant intelligent assistant intelligent integre</DialogDescription>
+            <DialogDescription>Assistant intelligent intégré</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 mb-6">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              En activant Faktur AI, vous pourrez utiliser l&apos;assistant dans l&apos;editeur de factures et devis pour modifier, analyser et optimiser vos documents.
+          <div className="mb-6 space-y-3">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              En activant Faktur AI, vous pourrez utiliser l’assistant dans l’éditeur de factures et devis pour modifier,
+              analyser et optimiser vos documents.
             </p>
-            <div className="rounded-lg border border-border p-3 space-y-2">
+            <div className="space-y-2 rounded-lg border border-border p-3">
               {[
-                'Verifiez toujours les suggestions de l\'IA avant de les appliquer',
-                'Les donnees de vos documents ne quittent pas votre session',
-                'Vous pouvez desactiver l\'IA a tout moment',
-                '100% gratuit — assistant intelligent integre',
+                'Vérifiez toujours les suggestions de l’IA avant de les appliquer',
+                'Les données de vos documents ne quittent pas votre session',
+                'Vous pouvez désactiver l’IA à tout moment',
+                '100% gratuit — assistant intelligent intégré',
               ].map((item) => (
                 <div key={item} className="flex items-start gap-2">
-                  <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground">{item}</span>
                 </div>
               ))}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowAiBetaModal(false)}>Annuler</Button>
-            <Button onClick={() => {
-              updateSettings({ aiEnabled: true, aiProvider: 'gemini', aiModel: 'nvidia/nemotron-3-super-120b-a12b:free' })
-              setShowAiBetaModal(false)
-              toast('Faktur AI active', 'success')
-            }}
-              className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white">
-              <Sparkles className="h-4 w-4 mr-2" /> Activer Faktur AI
+            <Button variant="ghost" onClick={() => setShowAiBetaModal(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={() => {
+                updateSettings({ aiEnabled: true, aiProvider: 'gemini', aiModel: 'nvidia/nemotron-3-super-120b-a12b:free' })
+                setShowAiBetaModal(false)
+                toast('Faktur AI activé', 'success')
+              }}
+            >
+              <Sparkles className="mr-2 h-4 w-4" /> Activer Faktur AI
             </Button>
           </DialogFooter>
         </div>
       </Dialog>
-    </div>
+    </SettingsPage>
   )
 }
