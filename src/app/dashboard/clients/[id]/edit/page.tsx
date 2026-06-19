@@ -245,38 +245,43 @@ export default function ClientEditPage() {
         <ArrowLeft className="h-4 w-4" /> Retour aux clients
       </Link>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-            {client.type === 'company' ? <Building2 className="h-5 w-5 text-primary" /> : <UserRound className="h-5 w-5 text-primary" />}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">{displayName}</h1>
-            <Badge variant="muted">{client.type === 'company' ? 'Professionnel' : 'Particulier'}</Badge>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="app-surface rounded-xl border border-border bg-card/50 p-4 flex items-center gap-3">
-          <FileText className="h-4 w-4 text-muted-foreground" />
-          <div>
-            <p className="text-lg font-bold text-foreground">{client.invoiceCount}</p>
-            <p className="text-xs text-muted-foreground">Factures</p>
+      {/* Summary card */}
+      <div className="mb-6 overflow-hidden rounded-3xl border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_40px_-12px_rgba(0,0,0,0.12)]">
+        <div className="relative px-6 pt-6 pb-5">
+          <div className="pointer-events-none absolute inset-0 opacity-80 [background:radial-gradient(120%_140%_at_0%_-20%,var(--color-accent-soft),transparent_55%)]" />
+          <div className="relative flex items-center gap-4">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-card text-accent ring-1 ring-inset ring-border shadow-sm">
+              {client.type === 'company' ? <Building2 className="h-7 w-7" /> : <UserRound className="h-7 w-7" />}
+            </div>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-bold text-foreground">{displayName}</h1>
+              <Badge variant="muted" className="mt-1">{client.type === 'company' ? 'Professionnel' : 'Particulier'}</Badge>
+            </div>
           </div>
         </div>
-        <div className="app-surface rounded-xl border border-border bg-card/50 p-4 flex items-center gap-3">
-          <Receipt className="h-4 w-4 text-muted-foreground" />
-          <div>
-            <p className="text-lg font-bold text-foreground">{client.quoteCount}</p>
-            <p className="text-xs text-muted-foreground">Devis</p>
+        <div className="grid grid-cols-3 divide-x divide-border border-t border-border">
+          <div className="flex items-center gap-3 px-5 py-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+              <FileText className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-bold leading-none text-foreground">{client.invoiceCount}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Factures</p>
+            </div>
           </div>
-        </div>
-        <div className="app-surface rounded-xl border border-border bg-card/50 p-4">
-          <p className="text-lg font-bold text-foreground">{formatCurrency(client.totalRevenue)}</p>
-          <p className="text-xs text-muted-foreground">CA total</p>
+          <div className="flex items-center gap-3 px-5 py-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+              <Receipt className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-bold leading-none text-foreground">{client.quoteCount}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Devis</p>
+            </div>
+          </div>
+          <div className="px-5 py-4">
+            <p className="truncate text-lg font-bold leading-none text-foreground">{formatCurrency(client.totalRevenue)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">CA total</p>
+          </div>
         </div>
       </div>
 
