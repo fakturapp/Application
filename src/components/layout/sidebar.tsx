@@ -177,7 +177,6 @@ const settingsNav: NavItem[] = [
       { href: '/dashboard/settings/company/payment', label: 'Paiement', icon: Receipt },
     ],
   },
-  { href: accountUrl('/settings/ui'), label: 'Interface', icon: Palette },
   { href: '/dashboard/settings/members', label: 'Équipe', icon: UsersRound },
   { href: '/dashboard/settings/plan', label: 'Plan', icon: Layers },
   { href: '/dashboard/settings/storage', label: 'Stockage', icon: HardDrive },
