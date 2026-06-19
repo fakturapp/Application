@@ -244,6 +244,7 @@ export default function NewInvoicePage() {
         return [{ ...line, vatRate: defaultVatRate }]
       })
       if (saved?.paymentMethod) setPaymentMethod(saved.paymentMethod)
+      else if (invoiceSettings.paymentMethods?.length) setPaymentMethod(invoiceSettings.paymentMethods[0])
       setAccentColor(invoiceSettings.accentColor)
     }
   }, [defaultVatRate, settingsLoading, invoiceSettings])
