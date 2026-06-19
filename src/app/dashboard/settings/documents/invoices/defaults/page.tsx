@@ -1,258 +1,139 @@
 'use client'
 
-import { motion, type Variants } from 'framer-motion'
 import { ClipboardList, Check } from '@/components/ui/icons'
 import { InvoicePreview } from '@/components/settings/invoice-preview'
-import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
+import { SettingsPage, SettingsHero, SettingsSection } from '@/components/settings/settings-shell'
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.06, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
-  }),
-} satisfies Variants
+const FOOTER_MODES = [
+  { id: 'company_info' as const, label: 'Informations entreprise', desc: 'Raison sociale, SIREN, TVA, adresse' },
+  { id: 'custom' as const, label: 'Texte personnalisé', desc: 'Saisissez votre propre texte de pied de page' },
+]
 
 export default function InvoiceDefaultsPage() {
   const { settings, loading, updateSettings } = useInvoiceSettings()
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-40" />
-          <Skeleton className="h-4 w-72" />
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="flex items-start gap-4 pb-2">
+          <Skeleton className="h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-44" />
+            <Skeleton className="h-4 w-72" />
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <div className="rounded-xl border border-border/50 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Skeleton className="h-9 w-9 rounded-lg" />
-                <div className="space-y-1.5">
-                  <Skeleton className="h-4 w-44" />
-                  <Skeleton className="h-3 w-64" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-9 w-full rounded-lg" />
-                </div>
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-32" />
-                  <Skeleton className="h-16 w-full rounded-lg" />
-                </div>
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-16 w-full rounded-lg" />
-                </div>
-                <Skeleton className="h-px w-full" />
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full rounded-xl" />
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-border/50 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Skeleton className="h-9 w-9 rounded-lg" />
-                <div className="space-y-1.5">
-                  <Skeleton className="h-4 w-36" />
-                  <Skeleton className="h-3 w-56" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-32" />
-                  <Skeleton className="h-9 w-full rounded-lg" />
-                </div>
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-36" />
-                  <Skeleton className="h-9 w-full rounded-lg" />
-                </div>
-                <Skeleton className="h-28 w-full rounded-lg" />
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-border/50 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Skeleton className="h-9 w-9 rounded-lg" />
-                <div className="space-y-1.5">
-                  <Skeleton className="h-4 w-36" />
-                  <Skeleton className="h-3 w-56" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-32" />
-                  <Skeleton className="h-9 w-full rounded-lg" />
-                </div>
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-36" />
-                  <Skeleton className="h-9 w-full rounded-lg" />
-                </div>
-                <Skeleton className="h-28 w-full rounded-lg" />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border/50 overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4 rounded" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-              <Skeleton className="h-3 w-28" />
-            </div>
-            <div className="p-4 bg-surface">
-              <Skeleton className="w-full rounded-lg" style={{ aspectRatio: '210/270' }} />
-            </div>
-          </div>
+        <div className="mt-6 space-y-7">
+          <Skeleton className="h-72 w-full rounded-2xl" />
+          <Skeleton className="h-56 w-full rounded-2xl" />
         </div>
       </div>
     )
   }
 
   return (
-    <motion.div initial="hidden" animate="visible" className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-      <motion.div variants={fadeUp} custom={0}>
-        <h1 className="text-2xl font-bold text-foreground">Valeurs par défaut</h1>
-        <p className="text-muted-foreground mt-1">Pré-remplissage automatique de vos documents</p>
-      </motion.div>
+    <SettingsPage>
+      <SettingsHero
+        icon={<ClipboardList className="h-6 w-6" />}
+        title="Valeurs par défaut"
+        tagline="Pré-remplissage automatique de vos documents."
+        description="Gagnez du temps : ces valeurs sont insérées à la création d’un devis ou d’une facture."
+      />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <motion.div variants={fadeUp} custom={1}>
-            <Card className="overflow-hidden border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
-                    <ClipboardList className="h-4.5 w-4.5 text-accent" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-foreground">Valeurs par défaut des devis</h2>
-                    <p className="text-xs text-muted-foreground">
-                      Pré-remplissage automatique lors de la création d&apos;un devis
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                      Objet par défaut
-                    </label>
-                    <Input
-                      placeholder="Ex: Developpement site web"
-                      value={settings.defaultSubject || ''}
-                      onChange={(e) => updateSettings({ defaultSubject: e.target.value || null })}
-                      className="text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                      Conditions d&apos;acceptation
-                    </label>
-                    <textarea
-                      placeholder="Conditions d'acceptation par défaut..."
-                      value={settings.defaultAcceptanceConditions || ''}
-                      onChange={(e) =>
-                        updateSettings({ defaultAcceptanceConditions: e.target.value || null })
-                      }
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y min-h-[60px]"
-                      rows={2}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                      Champ libre
-                    </label>
-                    <textarea
-                      placeholder="Texte supplémentaire par défaut..."
-                      value={settings.defaultFreeField || ''}
-                      onChange={(e) => updateSettings({ defaultFreeField: e.target.value || null })}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y min-h-[60px]"
-                      rows={2}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                      Pied de page du document
-                    </label>
-                    <div className="space-y-2">
-                      {([
-                        {
-                          id: 'company_info' as const,
-                          label: 'Informations entreprise',
-                          desc: 'Raison sociale, SIREN, TVA, adresse',
-                        },
-                        {
-                          id: 'custom' as const,
-                          label: 'Texte personnalisé',
-                          desc: 'Saisissez votre propre texte de pied de page',
-                        },
-                      ]).map((opt) => (
-                        <button
-                          key={opt.id}
-                          onClick={() => updateSettings({ footerMode: opt.id })}
-                          className={`flex w-full items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
-                            settings.footerMode === opt.id
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border hover:border-muted-foreground/30'
-                          }`}
-                        >
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-foreground">{opt.label}</p>
-                            <p className="text-xs text-muted-foreground">{opt.desc}</p>
-                          </div>
-                          <div
-                            className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors shrink-0 ${
-                              settings.footerMode === opt.id
-                                ? 'border-primary bg-primary'
-                                : 'border-muted-foreground/30'
-                            }`}
-                          >
-                            {settings.footerMode === opt.id && (
-                              <Check className="h-3 w-3 text-accent-foreground" />
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                    {settings.footerMode === 'custom' && (
-                      <div className="mt-2">
-                        <Input
-                          placeholder="Ex: Conditions générales de vente..."
-                          value={settings.defaultFooterText || ''}
-                          onChange={(e) =>
-                            updateSettings({ defaultFooterText: e.target.value?.slice(0, 50) || null })
-                          }
-                          className="text-sm"
-                          maxLength={50}
-                        />
-                        <p className="text-[10px] text-muted-foreground mt-1">50 caractères max.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-        </div>
-
-        <motion.div variants={fadeUp} custom={2}>
+      <div className="mt-6">
+        <SettingsSection index={1}>
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Aperçu en direct
+          </p>
           <InvoicePreview />
-        </motion.div>
+        </SettingsSection>
+
+        <SettingsSection
+          index={2}
+          title="Pré-remplissage des documents"
+          desc="Appliqué automatiquement à la création d’un devis ou d’une facture."
+        >
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Objet par défaut
+              </label>
+              <Input
+                placeholder="Ex : Développement site web"
+                value={settings.defaultSubject || ''}
+                onChange={(e) => updateSettings({ defaultSubject: e.target.value || null })}
+                className="text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Conditions d’acceptation
+              </label>
+              <textarea
+                placeholder="Conditions d'acceptation par défaut…"
+                value={settings.defaultAcceptanceConditions || ''}
+                onChange={(e) => updateSettings({ defaultAcceptanceConditions: e.target.value || null })}
+                className="min-h-[60px] w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Champ libre
+              </label>
+              <textarea
+                placeholder="Texte supplémentaire par défaut…"
+                value={settings.defaultFreeField || ''}
+                onChange={(e) => updateSettings({ defaultFreeField: e.target.value || null })}
+                className="min-h-[60px] w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+                rows={2}
+              />
+            </div>
+          </div>
+        </SettingsSection>
+
+        <SettingsSection index={3} title="Pied de page du document" desc="Ce qui apparaît en bas de vos documents.">
+          <div className="mt-3 space-y-2">
+            {FOOTER_MODES.map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => updateSettings({ footerMode: opt.id })}
+                className={`flex w-full items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
+                  settings.footerMode === opt.id ? 'border-accent bg-accent-soft/50' : 'border-border hover:border-muted-foreground/30'
+                }`}
+              >
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">{opt.label}</p>
+                  <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                </div>
+                <div
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${
+                    settings.footerMode === opt.id ? 'border-accent bg-accent' : 'border-muted-foreground/30'
+                  }`}
+                >
+                  {settings.footerMode === opt.id && <Check className="h-3 w-3 text-white" />}
+                </div>
+              </button>
+            ))}
+          </div>
+          {settings.footerMode === 'custom' && (
+            <div className="mt-3">
+              <Input
+                placeholder="Ex : Conditions générales de vente…"
+                value={settings.defaultFooterText || ''}
+                onChange={(e) => updateSettings({ defaultFooterText: e.target.value?.slice(0, 50) || null })}
+                className="text-sm"
+                maxLength={50}
+              />
+              <p className="mt-1 text-[10px] text-muted-foreground">50 caractères max.</p>
+            </div>
+          )}
+        </SettingsSection>
       </div>
-    </motion.div>
+    </SettingsPage>
   )
 }
