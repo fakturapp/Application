@@ -164,6 +164,7 @@ const mainNav: NavItem[] = [
   { href: '/dashboard/clients', label: 'Clients', icon: Users },
   { href: '/dashboard/products', label: 'Produits', icon: Package },
   { href: '/dashboard/expenses', label: 'Dépenses', icon: Wallet },
+  { href: '/dashboard/export', label: 'Comptabilité', icon: Download },
 ]
 
 const settingsNav: NavItem[] = [
