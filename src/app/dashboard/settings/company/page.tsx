@@ -3,17 +3,16 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/components/ui/toast'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { useCompanySettings, type Company } from '@/lib/company-settings-context'
 import { api } from '@/lib/api'
+import { SettingsPage, SettingsHero, SettingsSection, settingsFade } from '@/components/settings/settings-shell'
 import {
   Building2, Plus, Pencil, AlertCircle, MapPin, Phone, Globe,
   ChevronLeft, ChevronRight as ChevronRightIcon, ImagePlus, Trash2,
@@ -200,138 +199,125 @@ export default function CompanyInfoPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-40" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <div className="app-surface rounded-xl bg-surface shadow-surface p-6 space-y-5">
-          <div className="flex items-start gap-6">
-            <Skeleton className="h-24 w-24 rounded-xl shrink-0" />
-            <div className="flex-1 space-y-3">
-              <Skeleton className="h-3.5 w-full max-w-xs" />
-              <Skeleton className="h-8 w-32 rounded-lg" />
-            </div>
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="flex items-start gap-4 pb-2">
+          <Skeleton className="h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-64" />
           </div>
-          <Skeleton className="h-px w-full" />
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-3.5 w-24" />
-              <Skeleton className="h-10 w-full rounded-lg" />
-            </div>
-          ))}
+        </div>
+        <div className="mt-6 space-y-7">
+          <Skeleton className="h-20 w-full rounded-2xl" />
+          <Skeleton className="h-40 w-full rounded-2xl" />
         </div>
       </div>
     )
   }
 
+  const infoItems = [
+    { label: 'SIREN', value: form.siren },
+    { label: 'SIRET', value: form.siret },
+    { label: 'N° TVA', value: form.vatNumber },
+    { label: 'Forme juridique', value: form.legalForm },
+  ]
+
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Informations</h1>
-        <p className="text-muted-foreground text-sm mt-1">Informations générales de votre entreprise.</p>
-      </div>
+    <SettingsPage>
+      <SettingsHero
+        icon={<Building2 className="h-6 w-6" />}
+        title="Informations"
+        tagline="L’identité de votre entreprise."
+        description="Ces informations apparaissent sur vos factures et devis."
+        action={
+          !noCompany && (
+            <Button variant="outline" size="sm" onClick={openEditModal}>
+              <Pencil className="mr-1.5 h-3.5 w-3.5" /> Modifier
+            </Button>
+          )
+        }
+      />
 
       {noCompany ? (
-        <Card>
-          <CardContent className="p-6 flex flex-col items-center py-12 text-center">
-            <Building2 className="h-10 w-10 text-muted-secondary mb-4" />
-            <p className="text-lg font-semibold text-foreground mb-1">Aucune entreprise</p>
-            <p className="text-sm text-muted-foreground mb-4">Créez votre entreprise pour commencer à facturer.</p>
-            <Button onClick={openEditModal}>
-              <Plus className="h-4 w-4 mr-1.5" /> Créer mon entreprise
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="mt-10 flex flex-col items-center rounded-2xl border border-dashed border-border py-14 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+            <Building2 className="h-6 w-6" />
+          </div>
+          <p className="text-base font-semibold text-foreground">Aucune entreprise</p>
+          <p className="mb-5 mt-1 text-sm text-muted-foreground">Créez votre entreprise pour commencer à facturer.</p>
+          <Button onClick={openEditModal}>
+            <Plus className="mr-1.5 h-4 w-4" /> Créer mon entreprise
+          </Button>
+        </div>
       ) : (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start gap-6 mb-6">
-              <div className="h-20 w-20 rounded-xl bg-surface flex items-center justify-center overflow-hidden shrink-0">
-                {logoUrl ? (
-                  <img src={logoUrl} alt="Logo" className="h-full w-full object-contain p-2" />
-                ) : (
-                  <Building2 className="h-8 w-8 text-muted-secondary" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold text-foreground truncate">{form.legalName || 'Mon entreprise'}</h3>
-                {form.tradeName && <p className="text-sm text-muted-foreground mt-0.5">{form.tradeName}</p>}
-                {form.legalForm && <p className="text-xs text-muted-foreground mt-1">{form.legalForm}</p>}
-              </div>
-              <Button variant="outline" size="sm" onClick={openEditModal}>
-                <Pencil className="h-3.5 w-3.5 mr-1.5" /> Modifier
-              </Button>
+        <div className="mt-6">
+          <motion.div variants={settingsFade} custom={0} className="flex items-center gap-4 pb-2">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface ring-1 ring-inset ring-border">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="h-full w-full object-contain p-2" />
+              ) : (
+                <Building2 className="h-7 w-7 text-muted-foreground" />
+              )}
             </div>
+            <div className="min-w-0">
+              <h2 className="truncate text-lg font-bold text-foreground">{form.legalName || 'Mon entreprise'}</h2>
+              {form.tradeName && <p className="text-sm text-muted-foreground">{form.tradeName}</p>}
+              {form.legalForm && <p className="text-xs text-muted-foreground">{form.legalForm}</p>}
+            </div>
+          </motion.div>
 
-            <Separator className="mb-6" />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              {[
-                { label: 'SIREN', value: form.siren },
-                { label: 'SIRET', value: form.siret },
-                { label: 'N° TVA', value: form.vatNumber },
-                { label: 'Forme juridique', value: form.legalForm },
-              ].map((item) => (
+          <SettingsSection index={1} title="Identité légale">
+            <div className="mt-3 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+              {infoItems.map((item) => (
                 <div key={item.label}>
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{item.label}</span>
-                  <p className="text-sm text-foreground mt-0.5">{item.value || <span className="text-muted-secondary italic">Non renseigné</span>}</p>
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{item.label}</span>
+                  <p className="mt-0.5 text-sm text-foreground">
+                    {item.value || <span className="italic text-muted-foreground/60">Non renseigné</span>}
+                  </p>
                 </div>
               ))}
             </div>
+          </SettingsSection>
 
-            <Separator className="my-6" />
-
-            <div className="flex items-start gap-3 mb-4">
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-              <div>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Adresse</span>
-                <p className="text-sm text-foreground mt-0.5">
-                  {form.addressLine1 || form.city ? (
-                    <>{form.addressLine1}{form.addressLine2 ? `, ${form.addressLine2}` : ''}<br />{form.postalCode} {form.city}</>
-                  ) : (
-                    <span className="text-muted-secondary italic">Non renseignée</span>
-                  )}
-                </p>
-              </div>
+          <SettingsSection index={2} title="Adresse">
+            <div className="mt-3 flex items-start gap-3">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <p className="text-sm text-foreground">
+                {form.addressLine1 || form.city ? (
+                  <>{form.addressLine1}{form.addressLine2 ? `, ${form.addressLine2}` : ''}<br />{form.postalCode} {form.city}</>
+                ) : (
+                  <span className="italic text-muted-foreground/60">Non renseignée</span>
+                )}
+              </p>
             </div>
+          </SettingsSection>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-start gap-3">
-                <Phone className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Téléphone</span>
-                  <p className="text-sm text-foreground mt-0.5">{form.phone || <span className="text-muted-secondary italic">—</span>}</p>
+          <SettingsSection index={3} title="Contact">
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {[
+                { icon: <Phone className="h-4 w-4" />, label: 'Téléphone', value: form.phone },
+                { icon: <Building2 className="h-4 w-4" />, label: 'Email', value: form.email },
+                { icon: <Globe className="h-4 w-4" />, label: 'Site web', value: form.website },
+              ].map((c) => (
+                <div key={c.label} className="flex items-start gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">{c.icon}</div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{c.label}</span>
+                    <p className="mt-0.5 truncate text-sm text-foreground">{c.value || <span className="italic text-muted-foreground/60">—</span>}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Building2 className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email</span>
-                  <p className="text-sm text-foreground mt-0.5">{form.email || <span className="text-muted-secondary italic">—</span>}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Globe className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Site web</span>
-                  <p className="text-sm text-foreground mt-0.5">{form.website || <span className="text-muted-secondary italic">—</span>}</p>
-                </div>
-              </div>
+              ))}
             </div>
-            <Separator className="my-6" />
+          </SettingsSection>
+
+          <SettingsSection index={4}>
             <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setConfirmDeleteOpen(true)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Supprimer les informations
+              <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteOpen(true)} className="text-destructive hover:text-destructive">
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Supprimer les informations
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </SettingsSection>
+        </div>
       )}
 
       {/* Multi-step edit modal */}
@@ -567,6 +553,6 @@ export default function CompanyInfoPage() {
           </Button>
         </DialogFooter>
       </Dialog>
-    </motion.div>
+    </SettingsPage>
   )
 }
