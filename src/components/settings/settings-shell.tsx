@@ -17,18 +17,28 @@ export const settingsFade = {
 export function SettingsPage({
   children,
   className,
+  wide = false,
 }: {
   children: React.ReactNode
   className?: string
+  wide?: boolean
 }) {
   return (
     <motion.div
       initial="hidden"
       animate="visible"
-      className={cn('mx-auto max-w-3xl px-6 py-8', className)}
+      className={cn('mx-auto px-6 py-8', wide ? 'max-w-5xl' : 'max-w-3xl', className)}
     >
       {children}
     </motion.div>
+  )
+}
+
+export function SettingsSplit({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-10">
+      {children}
+    </div>
   )
 }
 
