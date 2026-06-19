@@ -20,8 +20,8 @@ export interface ChangelogMeta {
 export const CHANGELOG_META: ChangelogMeta = {
   title: 'Mises à jour de Faktur',
   author: "L'équipe Faktur",
-  updatedAtIso: '2026-06-11',
-  updatedAtLabel: '11 juin 2026',
+  updatedAtIso: '2026-06-19',
+  updatedAtLabel: '19 juin 2026',
 }
 
 export const CHANGELOG: ChangelogMonth[] = [
@@ -29,6 +29,11 @@ export const CHANGELOG: ChangelogMonth[] = [
     id: 'juin-2026',
     label: 'Juin 2026',
     entries: [
+      {
+        id: 'police-personnalisee',
+        title: 'Police de document personnalisée',
+        body: `Vous pouvez désormais importer votre propre police d'écriture pour vos factures et devis. Dans Paramètres › Facturation › Apparence, choisissez « Personnalisé » dans la police du document et importez un fichier .ttf, .otf, .woff ou .woff2. La police est appliquée à l'aperçu en direct et au PDF généré, et le fichier est compté dans votre espace de stockage. L'ancienne option de fond d'image personnalisé, source de confusion, a été retirée.`,
+      },
       {
         id: 'collaboration-nouvelle-generation',
         title: 'Collaboration en temps réel nouvelle génération',
