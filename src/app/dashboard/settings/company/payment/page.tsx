@@ -31,6 +31,7 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { StripeActivationModal } from '@/components/settings/stripe-activation-modal'
+import { SettingsPage, SettingsHero } from '@/components/settings/settings-shell'
 
 export default function PaymentPage() {
   const { toast } = useToast()
@@ -143,14 +144,17 @@ export default function PaymentPage() {
 
   if (companyLoading || invoiceLoading) {
     return (
-      <div className="space-y-6 px-4 py-4 md:py-6 lg:px-6">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-40" />
-          <Skeleton className="h-4 w-64" />
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="flex items-start gap-4 pb-2">
+          <Skeleton className="h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-64" />
+          </div>
         </div>
-        <div className="app-surface rounded-xl bg-surface p-6 shadow-surface space-y-4">
+        <div className="mt-6 space-y-3">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+            <Skeleton key={i} className="h-16 w-full rounded-2xl" />
           ))}
         </div>
       </div>
@@ -158,26 +162,19 @@ export default function PaymentPage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6 px-4 py-4 md:py-6 lg:px-6"
-    >
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Paiement</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Devise, conditions et moyens de paiement.
-        </p>
-      </div>
+    <SettingsPage>
+      <SettingsHero
+        icon={<Receipt className="h-6 w-6" />}
+        title="Paiement"
+        tagline="Devise, conditions et moyens de paiement."
+        description="Ce que vos clients voient pour régler vos factures."
+      />
 
-      <Card>
-        <CardContent className="p-6">
+      <div className="mt-6">
           {noCompany ? (
-            <div className="flex flex-col items-center py-8 text-center">
-              <Receipt className="mb-3 h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Créez d&apos;abord votre entreprise dans la page Informations.
-              </p>
+            <div className="flex flex-col items-center rounded-2xl border border-dashed border-border py-14 text-center">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent"><Receipt className="h-6 w-6" /></div>
+              <p className="text-sm text-muted-foreground">Créez d&apos;abord votre entreprise dans la page Informations.</p>
             </div>
           ) : (
             <form onSubmit={handleSavePayment}>
@@ -387,8 +384,7 @@ export default function PaymentPage() {
               </FieldGroup>
             </form>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       <StripeActivationModal
         open={stripeModalOpen}
@@ -407,6 +403,6 @@ export default function PaymentPage() {
         onSave={() => void handleSavePayment()}
         onReset={handleResetPayment}
       />
-    </motion.div>
+    </SettingsPage>
   )
 }
