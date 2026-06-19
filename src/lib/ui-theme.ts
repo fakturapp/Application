@@ -36,7 +36,7 @@ export const MAX_CUSTOM_BLUR = 40
 export const DEFAULT_CUSTOM_DIM = 30
 export const MAX_CUSTOM_DIM = 80
 
-export const SURFACE_STYLES: SurfaceStyle[] = ['standard', 'glass', 'liquid', 'opaque']
+export const SURFACE_STYLES: SurfaceStyle[] = ['standard', 'glass', 'liquid']
 export const DEFAULT_SURFACE: SurfaceStyle = 'standard'
 export const DEFAULT_SURFACE_OPACITY = 30
 export const MIN_SURFACE_OPACITY = 10

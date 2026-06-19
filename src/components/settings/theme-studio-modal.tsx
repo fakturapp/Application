@@ -71,7 +71,6 @@ export const SURFACE_OPTIONS: { id: SurfaceStyle; name: string; description: str
   { id: 'standard', name: 'Standard', description: 'Le rendu classique des cartes' },
   { id: 'glass', name: 'Verre', description: 'Translucide et dépoli' },
   { id: 'liquid', name: 'Liquide', description: 'Verre liquide lumineux' },
-  { id: 'opaque', name: 'Opaque', description: 'Lisibilité maximale' },
 ]
 
 export function modeLabel(mode: UiMode): string {
