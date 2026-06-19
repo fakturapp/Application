@@ -2,20 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Field, FieldGroup, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { FormSelect } from '@/components/ui/dropdown'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Spinner } from '@/components/ui/spinner'
+import { SaveBar } from '@/components/ui/save-bar'
 import { useToast } from '@/components/ui/toast'
 import { useEmail } from '@/lib/email-context'
 import { useAuth } from '@/lib/auth'
 import { ProGate } from '@/components/billing/pro-gate'
 import { api } from '@/lib/api'
-import { Bell, Save, Info } from '@/components/ui/icons'
+import { Bell, Info } from '@/components/ui/icons'
 import { SettingsPage, SettingsHero, SettingsSection, SettingsRow } from '@/components/settings/settings-shell'
 
 interface ReminderSettings {
@@ -82,6 +81,8 @@ export default function ReminderSettingsPage() {
   const locked = !(user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [saved, setSaved] = useState('')
 
   const [enabled, setEnabled] = useState(false)
   const [daysBeforeDue, setDaysBeforeDue] = useState('')
@@ -94,27 +95,54 @@ export default function ReminderSettingsPage() {
   const [autoSend, setAutoSend] = useState(false)
   const [emailAccountId, setEmailAccountId] = useState('')
 
+  const formState = {
+    enabled,
+    daysBeforeDue,
+    daysAfterDue,
+    repeatIntervalDays,
+    emailSubjectTemplate,
+    emailBodyTemplate,
+    autoSend,
+    emailAccountId,
+  }
+  const hasChanges = JSON.stringify(formState) !== saved
+
   useEffect(() => {
     async function load() {
       const { data } = await api.get<{ reminderSettings: ReminderSettings }>('/reminders/settings')
-      if (data?.reminderSettings) {
-        const s = data.reminderSettings
-        setEnabled(s.enabled)
-        setDaysBeforeDue(s.daysBeforeDue ? String(s.daysBeforeDue) : '')
-        setDaysAfterDue(s.daysAfterDue ? String(s.daysAfterDue) : '')
-        setRepeatIntervalDays(s.repeatIntervalDays ? String(s.repeatIntervalDays) : '')
-        setEmailSubjectTemplate(s.emailSubjectTemplate || '')
-        setEmailBodyTemplate(s.emailBodyTemplate || '')
-        setAutoSend(s.autoSend)
-        setEmailAccountId(s.emailAccountId || '')
+      const s = data?.reminderSettings
+      if (s) {
+        const loaded = {
+          enabled: s.enabled,
+          daysBeforeDue: s.daysBeforeDue ? String(s.daysBeforeDue) : '',
+          daysAfterDue: s.daysAfterDue ? String(s.daysAfterDue) : '',
+          repeatIntervalDays: s.repeatIntervalDays ? String(s.repeatIntervalDays) : '',
+          emailSubjectTemplate: s.emailSubjectTemplate || '',
+          emailBodyTemplate: s.emailBodyTemplate || '',
+          autoSend: s.autoSend,
+          emailAccountId: s.emailAccountId || '',
+        }
+        setEnabled(loaded.enabled)
+        setDaysBeforeDue(loaded.daysBeforeDue)
+        setDaysAfterDue(loaded.daysAfterDue)
+        setRepeatIntervalDays(loaded.repeatIntervalDays)
+        setEmailSubjectTemplate(loaded.emailSubjectTemplate)
+        setEmailBodyTemplate(loaded.emailBodyTemplate)
+        setAutoSend(loaded.autoSend)
+        setEmailAccountId(loaded.emailAccountId)
+        setSaved(JSON.stringify(loaded))
+      } else {
+        setSaved(JSON.stringify(formState))
       }
       setLoading(false)
     }
     load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function handleSave() {
     setSaving(true)
+    setSaveError(null)
     const { error } = await api.put('/reminders/settings', {
       enabled,
       daysBeforeDue: daysBeforeDue ? parseInt(daysBeforeDue) : null,
@@ -127,10 +155,27 @@ export default function ReminderSettingsPage() {
     })
     setSaving(false)
     if (error) {
+      setSaveError(error)
       toast(error, 'error')
       return
     }
+    setSaved(JSON.stringify(formState))
     toast('Paramètres de relance mis à jour', 'success')
+  }
+
+  function handleReset() {
+    try {
+      const s = JSON.parse(saved)
+      setEnabled(s.enabled)
+      setDaysBeforeDue(s.daysBeforeDue)
+      setDaysAfterDue(s.daysAfterDue)
+      setRepeatIntervalDays(s.repeatIntervalDays)
+      setEmailSubjectTemplate(s.emailSubjectTemplate)
+      setEmailBodyTemplate(s.emailBodyTemplate)
+      setAutoSend(s.autoSend)
+      setEmailAccountId(s.emailAccountId)
+      setSaveError(null)
+    } catch {}
   }
 
   if (loading) {
@@ -158,11 +203,6 @@ export default function ReminderSettingsPage() {
         title="Relances automatiques"
         tagline="Les rappels de paiement de vos factures en retard."
         description="Définissez le calendrier et le message — Faktur s’occupe de l’envoi."
-        action={
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? <><Spinner /> Enregistrement…</> : <><Save className="mr-1.5 h-4 w-4" /> Enregistrer</>}
-          </Button>
-        }
       />
 
       <div className="mt-6">
@@ -248,6 +288,14 @@ export default function ReminderSettingsPage() {
           </>
         )}
       </div>
+
+      <SaveBar
+        hasChanges={hasChanges}
+        saving={saving}
+        error={saveError}
+        onSave={() => void handleSave()}
+        onReset={handleReset}
+      />
     </SettingsPage>
   )
 }
