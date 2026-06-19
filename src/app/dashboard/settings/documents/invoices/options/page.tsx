@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { InvoicePreview } from '@/components/settings/invoice-preview'
-import { SettingsPage, SettingsHero, SettingsSection, SettingsRow } from '@/components/settings/settings-shell'
+import { SettingsPage, SettingsHero, SettingsSection, SettingsSplit, SettingsRow } from '@/components/settings/settings-shell'
 import { Zap, ClipboardList, SlidersHorizontal, Check } from '@/components/ui/icons'
 
 const VAT_RATE_PRESETS = [0, 2.1, 5.5, 10, 20]
@@ -29,7 +29,7 @@ export default function InvoiceOptionsPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-8">
+      <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-start gap-4 pb-2">
           <Skeleton className="h-14 w-14 rounded-2xl" />
           <div className="space-y-2">
@@ -37,16 +37,19 @@ export default function InvoiceOptionsPage() {
             <Skeleton className="h-4 w-64" />
           </div>
         </div>
-        <div className="mt-6 space-y-7">
-          <Skeleton className="h-72 w-full rounded-2xl" />
-          <Skeleton className="h-40 w-full rounded-2xl" />
+        <div className="mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-10">
+          <div className="space-y-7">
+            <Skeleton className="h-40 w-full rounded-2xl" />
+            <Skeleton className="h-56 w-full rounded-2xl" />
+          </div>
+          <Skeleton className="hidden h-[560px] w-full rounded-2xl lg:block" />
         </div>
       </div>
     )
   }
 
   return (
-    <SettingsPage>
+    <SettingsPage wide>
       <SettingsHero
         icon={<SlidersHorizontal className="h-6 w-6" />}
         title="Options"
@@ -54,15 +57,9 @@ export default function InvoiceOptionsPage() {
         description="Ces réglages servent de base aux nouveaux documents."
       />
 
-      <div className="mt-6">
-        <SettingsSection index={1}>
-          <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Aperçu en direct
-          </p>
-          <InvoicePreview />
-        </SettingsSection>
-
-        <SettingsSection index={2} title="Modèle de facturation" desc="Le type de facture par défaut.">
+      <SettingsSplit>
+        <div className="min-w-0">
+        <SettingsSection index={1} title="Modèle de facturation" desc="Le type de facture par défaut.">
           <div className="mt-3 grid grid-cols-2 gap-3">
             <button
               onClick={() => updateSettings({ billingType: 'quick' })}
@@ -97,7 +94,7 @@ export default function InvoiceOptionsPage() {
           </div>
         </SettingsSection>
 
-        <SettingsSection index={3} title="Sections du document" desc="Sections affichées par défaut sur vos documents.">
+        <SettingsSection index={2} title="Sections du document" desc="Sections affichées par défaut sur vos documents.">
           <div className="mt-1 divide-y divide-border">
             {DOC_OPTIONS.map((opt) => (
               <SettingsRow
@@ -169,7 +166,7 @@ export default function InvoiceOptionsPage() {
           )}
         </SettingsSection>
 
-        <SettingsSection index={4} title="Langue par défaut" desc="Langue utilisée à la création d’un document.">
+        <SettingsSection index={3} title="Langue par défaut" desc="Langue utilisée à la création d’un document.">
           <div className="mt-3 grid grid-cols-2 gap-2">
             {[
               { id: 'fr', label: 'Français' },
@@ -187,7 +184,12 @@ export default function InvoiceOptionsPage() {
             ))}
           </div>
         </SettingsSection>
-      </div>
+        </div>
+
+        <div className="mt-7 lg:mt-0">
+          <InvoicePreview />
+        </div>
+      </SettingsSplit>
     </SettingsPage>
   )
 }
