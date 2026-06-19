@@ -18,7 +18,7 @@ import { ProGate } from '@/components/billing/pro-gate'
 import { SettingsPage, SettingsHero, SettingsSection, SettingsSplit, SettingsRow } from '@/components/settings/settings-shell'
 import {
   ImagePlus,
-  ImageIcon,
+  Upload,
   Palette,
   Check,
   Trash2,
@@ -54,20 +54,20 @@ const FONT_OPTIONS = [
 
 export default function InvoiceAppearancePage() {
   const { toast } = useToast()
-  const { settings, companyLogoUrl, loading, updateSettings, updateAndSave, uploadLogo, uploadCustomBackground, removeCustomBackground, refreshCompanyLogo } = useInvoiceSettings()
+  const { settings, companyLogoUrl, loading, updateSettings, updateAndSave, uploadLogo, uploadCustomFont, removeCustomFont, refreshCompanyLogo } = useInvoiceSettings()
   const { user } = useAuth()
   const locked = !(user?.currentTeamPlan === 'pro' || user?.currentTeamPlan === 'team')
   const [uploading, setUploading] = useState(false)
-  const [uploadingBackground, setUploadingBackground] = useState(false)
-  const [removingBackground, setRemovingBackground] = useState(false)
+  const [uploadingFont, setUploadingFont] = useState(false)
+  const [removingFont, setRemovingFont] = useState(false)
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
-  const [showImport, setShowImport] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const backgroundInputRef = useRef<HTMLInputElement>(null)
+  const fontInputRef = useRef<HTMLInputElement>(null)
 
   const currentTemplate = getTemplate(settings.template, settings.darkMode)
   const effectiveLogoUrl = settings.logoSource === 'company' ? companyLogoUrl : settings.logoUrl
-  const bgValue = settings.customBackgroundUrl || showImport ? 'custom' : 'none'
+  const usingCustomFont = !!settings.customFontName && settings.documentFont === settings.customFontName
+  const fontValue = usingCustomFont ? 'custom' : settings.documentFont
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -86,34 +86,34 @@ export default function InvoiceAppearancePage() {
     updateSettings({ logoUrl: null })
   }
 
-  async function handleBackgroundUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFontUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 8 * 1024 * 1024) {
-      toast('Image trop lourde, 8 Mo maximum', 'error')
+    if (file.size > 5 * 1024 * 1024) {
+      toast('Police trop lourde, 5 Mo maximum', 'error')
       e.target.value = ''
       return
     }
-    setUploadingBackground(true)
+    setUploadingFont(true)
     try {
-      await uploadCustomBackground(file)
-      toast('Fond personnalisé enregistré', 'success')
+      await uploadCustomFont(file)
+      toast('Police personnalisée enregistrée', 'success')
     } catch {
-      toast("Erreur lors de l'envoi du fond", 'error')
+      toast("Erreur lors de l'envoi de la police", 'error')
     }
-    setUploadingBackground(false)
+    setUploadingFont(false)
     e.target.value = ''
   }
 
-  async function handleRemoveBackground() {
-    setRemovingBackground(true)
+  async function handleRemoveFont() {
+    setRemovingFont(true)
     try {
-      await removeCustomBackground()
-      toast('Fond personnalisé supprimé', 'success')
+      await removeCustomFont()
+      toast('Police personnalisée supprimée', 'success')
     } catch {
-      toast('Erreur lors de la suppression du fond', 'error')
+      toast('Erreur lors de la suppression de la police', 'error')
     }
-    setRemovingBackground(false)
+    setRemovingFont(false)
   }
 
   if (loading) {
@@ -266,56 +266,7 @@ export default function InvoiceAppearancePage() {
           </SettingsSection>
 
           <ProGate locked={locked}>
-            <SettingsSection index={3} title="Fond du document" desc="Une image de fond appliquée à vos documents.">
-              <div className="mt-3">
-                <FormSelect
-                  value={bgValue}
-                  onChange={(v) => {
-                    if (v === 'custom') {
-                      setShowImport(true)
-                    } else {
-                      setShowImport(false)
-                      if (settings.customBackgroundUrl) handleRemoveBackground()
-                    }
-                  }}
-                  options={[
-                    { value: 'none', label: 'Aucun fond' },
-                    { value: 'custom', label: 'Personnalisé' },
-                  ]}
-                />
-              </div>
-
-              {bgValue === 'custom' && (
-                <div className="mt-3 flex items-start gap-4 rounded-xl border border-border bg-muted/20 p-4">
-                  <div className="relative w-16 shrink-0">
-                    <TemplateThumbnail tpl={currentTemplate} accentColor={settings.accentColor} selected={false} size="sm" />
-                    {settings.customBackgroundUrl && (
-                      <div className="pointer-events-none absolute inset-0 rounded-lg" style={{ backgroundImage: `url('${settings.customBackgroundUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <p className="text-xs text-muted-foreground">JPG, PNG ou WebP, ratio A4, 8 Mo max. Le fond prime sur la couleur.</p>
-                    <input ref={backgroundInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleBackgroundUpload} />
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => backgroundInputRef.current?.click()} disabled={uploadingBackground}>
-                        {uploadingBackground ? <><Spinner /> Envoi…</> : (
-                          <><ImageIcon className="mr-1.5 h-3.5 w-3.5" /> {settings.customBackgroundUrl ? 'Remplacer le fond' : 'Importer un fond'}</>
-                        )}
-                      </Button>
-                      {settings.customBackgroundUrl && (
-                        <Button variant="ghost" size="sm" onClick={handleRemoveBackground} disabled={removingBackground} className="text-destructive hover:text-destructive">
-                          {removingBackground ? <Spinner /> : <Trash2 className="h-3.5 w-3.5" />}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </SettingsSection>
-          </ProGate>
-
-          <ProGate locked={locked}>
-            <SettingsSection index={4} title="Couleur d’accent" desc="Utilisée dans vos factures et devis.">
+            <SettingsSection index={3} title="Couleur d’accent" desc="Utilisée dans vos factures et devis.">
               <div className="mt-3 space-y-3">
                 <div className="flex flex-wrap gap-2.5">
                   {accentColors.map((color) => (
@@ -341,13 +292,45 @@ export default function InvoiceAppearancePage() {
           </ProGate>
 
           <ProGate locked={locked}>
-            <SettingsSection index={5} title="Police des documents" desc="Sur les factures, devis et PDF.">
+            <SettingsSection index={4} title="Police des documents" desc="Sur les factures, devis et PDF.">
               <div className="mt-3 space-y-3">
                 <div className="rounded-xl border border-border bg-muted/30 p-4" style={{ fontFamily: `'${settings.documentFont}', sans-serif` }}>
                   <p className="text-[28px] font-bold leading-tight tracking-tight text-foreground">Aa Bb Cc</p>
                   <p className="text-sm text-foreground/70">abcdefghijklmnopqrstuvwxyz · 0123456789 €</p>
                 </div>
-                <FormSelect value={settings.documentFont} onChange={(v) => updateSettings({ documentFont: v })} options={FONT_OPTIONS} />
+                <input ref={fontInputRef} type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={handleFontUpload} />
+                <FormSelect
+                  value={fontValue}
+                  onChange={(v) => {
+                    if (v === 'custom') {
+                      if (settings.customFontName) updateSettings({ documentFont: settings.customFontName })
+                      else fontInputRef.current?.click()
+                    } else {
+                      updateSettings({ documentFont: v })
+                    }
+                  }}
+                  options={[...FONT_OPTIONS, { value: 'custom', label: 'Personnalisé (importer une police)' }]}
+                />
+                {usingCustomFont ? (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">{settings.customFontName}</p>
+                      <p className="text-[11px] text-muted-foreground">Police importée · comptée dans votre stockage</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => fontInputRef.current?.click()} disabled={uploadingFont}>
+                        {uploadingFont ? <Spinner /> : 'Remplacer'}
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={handleRemoveFont} disabled={removingFont} className="text-destructive hover:text-destructive">
+                        {removingFont ? <Spinner /> : <Trash2 className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                  </div>
+                ) : fontValue === 'custom' ? (
+                  <Button variant="outline" size="sm" onClick={() => fontInputRef.current?.click()} disabled={uploadingFont}>
+                    {uploadingFont ? <><Spinner /> Envoi…</> : <><Upload className="mr-1.5 h-3.5 w-3.5" /> Importer une police (.ttf, .otf, .woff)</>}
+                  </Button>
+                ) : null}
               </div>
             </SettingsSection>
           </ProGate>

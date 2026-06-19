@@ -47,7 +47,8 @@ export interface InvoiceSettings {
   nextInvoiceNumber: string | null
   footerMode: 'company_info' | 'custom'
   logoBorderRadius: number
-  customBackgroundUrl: string | null
+  customFontUrl: string | null
+  customFontName: string | null
   collaborationEnabled: boolean
   aiEnabled: boolean
   aiProvider: 'gemini'
@@ -66,8 +67,8 @@ interface InvoiceSettingsContextType {
   save: () => Promise<void>
   resetChanges: () => void
   uploadLogo: (file: File) => Promise<void>
-  uploadCustomBackground: (file: File) => Promise<void>
-  removeCustomBackground: () => Promise<void>
+  uploadCustomFont: (file: File) => Promise<void>
+  removeCustomFont: () => Promise<void>
   refreshCompanyLogo: () => Promise<void>
   refreshSettings: () => Promise<void>
 }
@@ -110,7 +111,8 @@ const defaultSettings: InvoiceSettings = {
   nextInvoiceNumber: null,
   footerMode: 'company_info',
   logoBorderRadius: 0,
-  customBackgroundUrl: null,
+  customFontUrl: null,
+  customFontName: null,
   collaborationEnabled: false,
   aiEnabled: false,
   aiProvider: 'gemini',
@@ -129,8 +131,8 @@ const InvoiceSettingsContext = createContext<InvoiceSettingsContextType>({
   save: async () => {},
   resetChanges: () => {},
   uploadLogo: async () => {},
-  uploadCustomBackground: async () => {},
-  removeCustomBackground: async () => {},
+  uploadCustomFont: async () => {},
+  removeCustomFont: async () => {},
   refreshCompanyLogo: async () => {},
   refreshSettings: async () => {},
 })
@@ -160,7 +162,7 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
       const resolved = {
         ...data.settings,
         logoUrl: resolveLogoUrl(data.settings.logoUrl),
-        customBackgroundUrl: resolveLogoUrl(data.settings.customBackgroundUrl),
+        customFontUrl: resolveLogoUrl(data.settings.customFontUrl),
       }
       setSettings(resolved)
       setSavedSettings(resolved)
@@ -174,6 +176,24 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
   useEffect(() => {
     loadSettings()
   }, [loadSettings])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const id = 'faktur-custom-doc-font'
+    const existing = document.getElementById(id)
+    if (settings.customFontUrl && settings.customFontName) {
+      const css = `@font-face{font-family:'${settings.customFontName}';src:url('${settings.customFontUrl}');font-display:swap;}`
+      if (existing) existing.textContent = css
+      else {
+        const el = document.createElement('style')
+        el.id = id
+        el.textContent = css
+        document.head.appendChild(el)
+      }
+    } else if (existing) {
+      existing.remove()
+    }
+  }, [settings.customFontUrl, settings.customFontName])
 
   const save = useCallback(async () => {
     setSaving(true)
@@ -189,7 +209,7 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
       const resolved = {
         ...data.settings,
         logoUrl: resolveLogoUrl(data.settings.logoUrl),
-        customBackgroundUrl: resolveLogoUrl(data.settings.customBackgroundUrl),
+        customFontUrl: resolveLogoUrl(data.settings.customFontUrl),
       }
       setSettings(resolved)
       setSavedSettings(resolved)
@@ -226,7 +246,7 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
       const resolved = {
         ...data.settings,
         logoUrl: resolveLogoUrl(data.settings.logoUrl),
-        customBackgroundUrl: resolveLogoUrl(data.settings.customBackgroundUrl),
+        customFontUrl: resolveLogoUrl(data.settings.customFontUrl),
       }
       setSettings(resolved)
       setSavedSettings(resolved)
@@ -245,29 +265,29 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
     }
   }, [])
 
-  const uploadCustomBackground = useCallback(async (file: File) => {
+  const uploadCustomFont = useCallback(async (file: File) => {
     const formData = new FormData()
-    formData.append('background', file)
-    const { data } = await api.upload<{ customBackgroundUrl: string }>(
-      '/settings/invoices/background',
+    formData.append('font', file)
+    const { data } = await api.upload<{ customFontUrl: string; customFontName: string }>(
+      '/settings/invoices/font',
       formData
     )
-    if (data?.customBackgroundUrl) {
-      setSettings((prev) => ({
-        ...prev,
-        customBackgroundUrl: resolveLogoUrl(data.customBackgroundUrl),
-      }))
-      setSavedSettings((prev) => ({
-        ...prev,
-        customBackgroundUrl: resolveLogoUrl(data.customBackgroundUrl),
-      }))
+    if (data?.customFontUrl) {
+      const patch = {
+        customFontUrl: resolveLogoUrl(data.customFontUrl),
+        customFontName: data.customFontName,
+        documentFont: data.customFontName,
+      }
+      setSettings((prev) => ({ ...prev, ...patch }))
+      setSavedSettings((prev) => ({ ...prev, ...patch }))
     }
   }, [])
 
-  const removeCustomBackground = useCallback(async () => {
-    await api.delete('/settings/invoices/background')
-    setSettings((prev) => ({ ...prev, customBackgroundUrl: null }))
-    setSavedSettings((prev) => ({ ...prev, customBackgroundUrl: null }))
+  const removeCustomFont = useCallback(async () => {
+    await api.delete('/settings/invoices/font')
+    const patch = { customFontUrl: null, customFontName: null, documentFont: 'Lexend' }
+    setSettings((prev) => ({ ...prev, ...patch }))
+    setSavedSettings((prev) => ({ ...prev, ...patch }))
   }, [])
 
   const refreshCompanyLogo = useCallback(async () => {
@@ -293,8 +313,8 @@ export function InvoiceSettingsProvider({ children }: { children: React.ReactNod
         save,
         resetChanges,
         uploadLogo,
-        uploadCustomBackground,
-        removeCustomBackground,
+        uploadCustomFont,
+        removeCustomFont,
         refreshCompanyLogo,
         refreshSettings: loadSettings,
       }}

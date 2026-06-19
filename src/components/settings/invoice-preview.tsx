@@ -82,14 +82,6 @@ export function InvoicePreview() {
               backgroundColor: tpl.docBg,
               color: tpl.text,
               fontFamily: `'${previewFont}', 'Segoe UI', sans-serif`,
-              ...(settings.customBackgroundUrl
-                ? {
-                    backgroundImage: `url('${settings.customBackgroundUrl}')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                  }
-                : {}),
               border: settings.darkMode ? '1px solid #3f3f46' : '1px solid #e5e7eb',
             }}
           >

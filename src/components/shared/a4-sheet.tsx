@@ -920,7 +920,6 @@ interface A4SheetProps {
   showUnitPriceColumn?: boolean
   showVatColumn?: boolean
   paginate?: boolean
-  customBackgroundUrl?: string | null
 }
 
 export function A4Sheet({
@@ -947,10 +946,10 @@ export function A4Sheet({
   showUnitPriceColumn = true,
   showVatColumn = true,
   paginate = false,
-  customBackgroundUrl = null,
 }: A4SheetProps) {
   const isPreview = mode === 'preview'
   const ed = !isPreview
+  const hasCustomBackground = false
   const lang = language || 'fr'
   const [draggingLineIndex, setDraggingLineIndex] = useState<number | null>(null)
   const [dragOverLineIndex, setDragOverLineIndex] = useState<number | null>(null)
@@ -2083,21 +2082,12 @@ export function A4Sheet({
     )
   }
 
-  const hasCustomBackground = !!customBackgroundUrl
   const sheetSurface = {
     background: isClassique
       ? darkMode
         ? `linear-gradient(270deg, ${T.docBg}, #161618 23.44%, #161618 77.6%, ${T.docBg})`
         : 'linear-gradient(270deg, #fafafa, #fff 23.44%, #fff 77.6%, #fafafa)'
       : T.docBg,
-    ...(hasCustomBackground
-      ? {
-          backgroundImage: `url('${customBackgroundUrl}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }
-      : {}),
     boxShadow: isClassique
       ? 'rgba(71,99,136,0.1) 0px 20px 40px -5px'
       : '0 4px 24px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.08)',
