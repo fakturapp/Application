@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Dialog } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ import {
   Trash2,
   ArrowLeft,
   X,
+  AlertTriangle,
 } from '@/components/ui/icons'
 import {
   BACKGROUND_THEMES,
@@ -41,6 +42,9 @@ import {
   MAX_SURFACE_TINT,
   applyAccent,
   applySurface,
+  detectHardwareAcceleration,
+  isLiquidForced,
+  setLiquidForced,
   type SurfaceStyle,
   type UiMode,
   type UiPreset,
@@ -509,6 +513,7 @@ function SurfaceTile({
   isDark,
   customUrl,
   onSelect,
+  badge,
 }: {
   option: { id: SurfaceStyle; name: string; description: string }
   draft: ThemeDraft
@@ -516,6 +521,7 @@ function SurfaceTile({
   isDark: boolean
   customUrl: string | null
   onSelect: () => void
+  badge?: ReactNode
 }) {
   const glassLike = option.id === 'glass' || option.id === 'liquid'
   const tintFactor = selected ? draft.surfaceTint / 100 : 0
@@ -572,8 +578,9 @@ function SurfaceTile({
           </div>
         )}
       </div>
-      <p className={cn('mt-1.5 px-0.5 text-xs font-medium', selected ? 'text-accent' : 'text-foreground')}>
+      <p className={cn('mt-1.5 flex items-center gap-1.5 px-0.5 text-xs font-medium', selected ? 'text-accent' : 'text-foreground')}>
         {option.name}
+        {badge}
       </p>
       <p className="px-0.5 text-[11px] text-muted-foreground">{option.description}</p>
     </motion.button>
@@ -608,6 +615,17 @@ export function ThemeStudioModal({
   const initialRef = useRef<ThemeDraft>(initial)
   const appliedRef = useRef(false)
   const wasOpen = useRef(false)
+  const [hwAccel, setHwAccel] = useState(true)
+  const [liquidForced, setLiquidForcedState] = useState(false)
+  const [liquidPromptOpen, setLiquidPromptOpen] = useState(false)
+  const [liquidConfirmOpen, setLiquidConfirmOpen] = useState(false)
+
+  useEffect(() => {
+    setHwAccel(detectHardwareAcceleration())
+    setLiquidForcedState(isLiquidForced())
+  }, [])
+
+  const liquidBlocked = !hwAccel && !liquidForced
 
   useEffect(() => {
     if (open && !wasOpen.current) {
@@ -928,18 +946,56 @@ export function ThemeStudioModal({
                     Le rendu des cartes par-dessus votre fond
                   </p>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {SURFACE_OPTIONS.map((option) => (
-                      <SurfaceTile
-                        key={option.id}
-                        option={option}
-                        draft={draft}
-                        selected={draft.surface === option.id}
-                        isDark={isDark}
-                        customUrl={customUrl}
-                        onSelect={() => update({ surface: option.id })}
-                      />
-                    ))}
+                    {SURFACE_OPTIONS.map((option) => {
+                      const isLiquid = option.id === 'liquid'
+                      const blocked = isLiquid && liquidBlocked
+                      return (
+                        <div key={option.id} className="relative">
+                          <div className={blocked ? 'pointer-events-none opacity-40 grayscale' : ''}>
+                            <SurfaceTile
+                              option={option}
+                              draft={draft}
+                              selected={draft.surface === option.id}
+                              isDark={isDark}
+                              customUrl={customUrl}
+                              onSelect={() => update({ surface: option.id })}
+                              badge={
+                                isLiquid && !hwAccel && liquidForced ? (
+                                  <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[8px] font-medium text-amber-600 dark:text-amber-400">
+                                    Accél. désactivée
+                                  </span>
+                                ) : null
+                              }
+                            />
+                          </div>
+                          {blocked && (
+                            <button
+                              type="button"
+                              onClick={() => setLiquidPromptOpen((v) => !v)}
+                              className="absolute inset-0 z-10 cursor-help rounded-xl"
+                              aria-label="Mode liquide indisponible"
+                            />
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
+                  {liquidBlocked && liquidPromptOpen && (
+                    <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                      <p className="text-xs text-foreground">
+                        Le mode liquide est désactivé car l’accélération matérielle n’est pas activée sur votre
+                        navigateur.{' '}
+                        <button
+                          type="button"
+                          onClick={() => setLiquidConfirmOpen(true)}
+                          className="font-medium text-accent underline underline-offset-2"
+                        >
+                          Activer quand même
+                        </button>
+                      </p>
+                    </div>
+                  )}
                   {(draft.surface === 'glass' || draft.surface === 'liquid') && (
                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
                       <RangeField
@@ -1002,6 +1058,35 @@ export function ThemeStudioModal({
           )}
         </div>
       </div>
+
+      <Dialog open={liquidConfirmOpen} onClose={() => setLiquidConfirmOpen(false)} className="max-w-sm" zIndex="z-[10000]">
+        <div className="flex flex-col items-center px-2 pb-1 pt-1 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+            <AlertTriangle className="h-7 w-7" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground">Activer le mode liquide ?</h2>
+          <p className="mt-1.5 max-w-xs text-sm text-muted-foreground">
+            Sans accélération matérielle, l’effet liquid glass entraînera beaucoup de latence et un affichage saccadé.
+          </p>
+          <div className="mt-6 flex w-full gap-2">
+            <Button className="flex-1" variant="outline" onClick={() => setLiquidConfirmOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                setLiquidForced(true)
+                setLiquidForcedState(true)
+                setLiquidConfirmOpen(false)
+                setLiquidPromptOpen(false)
+                update({ surface: 'liquid' })
+              }}
+            >
+              Activer quand même
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </Dialog>
   )
 }

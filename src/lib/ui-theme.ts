@@ -250,6 +250,38 @@ export function applyAccent(accent: string | null) {
   } catch {}
 }
 
+export const LIQUID_FORCED_COOKIE = 'faktur_liquid_forced'
+
+export function detectHardwareAcceleration(): boolean {
+  if (typeof document === 'undefined') return true
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = (canvas.getContext('webgl') ||
+      canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null
+    if (!gl) return false
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info')
+    if (!dbg) return true
+    const renderer = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '').toLowerCase()
+    return !/swiftshader|llvmpipe|software|basic render/.test(renderer)
+  } catch {
+    return false
+  }
+}
+
+export function isLiquidForced(): boolean {
+  if (typeof document === 'undefined') return false
+  return document.cookie.split('; ').some((c) => c === `${LIQUID_FORCED_COOKIE}=1`)
+}
+
+export function setLiquidForced(value: boolean) {
+  if (typeof document === 'undefined') return
+  if (value) {
+    document.cookie = `${LIQUID_FORCED_COOKIE}=1; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`
+  } else {
+    document.cookie = `${LIQUID_FORCED_COOKIE}=; path=/; max-age=0; samesite=lax`
+  }
+}
+
 export function applySurface(settings: SurfaceSettings) {
   if (typeof document === 'undefined') return
   const root = document.documentElement
