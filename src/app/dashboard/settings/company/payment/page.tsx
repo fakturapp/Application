@@ -32,6 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { StripeActivationModal } from '@/components/settings/stripe-activation-modal'
 import { SettingsPage, SettingsHero } from '@/components/settings/settings-shell'
+import { Tooltip } from '@/components/ui/tooltip'
 
 export default function PaymentPage() {
   const { toast } = useToast()
@@ -367,18 +368,18 @@ export default function PaymentPage() {
                     </div>
                   )}
 
-                  <div className="flex cursor-not-allowed items-center gap-4 rounded-xl border border-border p-4 opacity-50">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <CreditCard className="h-5 w-5 text-muted-foreground" />
+                  <Tooltip content="Ce moyen de paiement est encore en développement.">
+                    <div className="flex cursor-not-allowed items-center gap-4 rounded-xl border border-border p-4 opacity-50">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                        <CreditCard className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-muted-foreground">PayPal</p>
+                        <p className="text-xs text-muted-foreground">Paiement via compte PayPal</p>
+                      </div>
+                      <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-muted-foreground">PayPal</p>
-                      <p className="text-xs text-muted-foreground">
-                        Paiement via compte PayPal
-                      </p>
-                    </div>
-                    <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </div>
+                  </Tooltip>
                 </div>
                 </ProGate>
               </FieldGroup>
