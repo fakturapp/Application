@@ -706,34 +706,36 @@ export function DocumentOptionsPanel({
       </div>
 
       {/* ── Summary card ── */}
-      <div className="app-surface rounded-[2rem] border border-border/40 bg-card/40 backdrop-blur-2xl liquid-glass px-5 py-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.5px] mb-3">
-          Recapitulatif
+      <div className="app-surface relative overflow-hidden rounded-[2rem] border border-border/40 bg-card/40 px-5 py-4 backdrop-blur-2xl liquid-glass">
+        <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(120%_140%_at_100%_0%,var(--color-accent-soft),transparent_55%)]" />
+        <h3 className="relative mb-3 text-xs font-semibold uppercase tracking-[0.5px] text-muted-foreground">
+          Récapitulatif
         </h3>
 
-        <div className="flex justify-between mb-1.5">
-          <span className="text-[13px] text-muted-foreground">Total HT</span>
-          <span className="text-[13px] font-semibold text-foreground">{fmtCurrency(subtotal)}</span>
-        </div>
-
-        {tvaBreakdown.map((e) => (
-          <div key={e.rate} className="flex justify-between mb-1">
-            <span className="text-xs text-muted-foreground">TVA {e.rate}%</span>
-            <span className="text-xs text-muted-foreground">{fmtCurrency(e.amount)}</span>
+        <div className="relative space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] text-muted-foreground">Total HT</span>
+            <span className="text-[13px] font-semibold tabular-nums text-foreground">{fmtCurrency(subtotal)}</span>
           </div>
-        ))}
 
-        {discountAmount > 0 && (
-          <div className="flex justify-between mb-1">
-            <span className="text-xs text-muted-foreground">Remise</span>
-            <span className="text-xs text-red-400">-{fmtCurrency(discountAmount)}</span>
+          {tvaBreakdown.map((e) => (
+            <div key={e.rate} className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">TVA {e.rate}%</span>
+              <span className="text-xs tabular-nums text-muted-foreground">{fmtCurrency(e.amount)}</span>
+            </div>
+          ))}
+
+          {discountAmount > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Remise</span>
+              <span className="text-xs tabular-nums text-red-400">-{fmtCurrency(discountAmount)}</span>
+            </div>
+          )}
+
+          <div className="mt-3 flex items-center justify-between rounded-xl bg-accent-soft/50 px-3 py-2">
+            <span className="text-sm font-bold text-foreground">Total TTC</span>
+            <span className="text-base font-bold tabular-nums" style={{ color: accentColor }}>{fmtCurrency(total)}</span>
           </div>
-        )}
-
-        <div className="border-t-2 border-foreground/20 pt-2 mt-2 flex justify-between">
-          <span className="text-[15px] font-bold text-foreground">Total TTC</span>
-          <span className="text-[15px] font-bold" style={{ color: accentColor }}>{fmtCurrency(total)}</span>
         </div>
       </div>
     </div>
