@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { useToast } from '@/components/ui/toast'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
-import { Users, Crown } from '@/components/ui/icons'
+import { Users, Crown, MousePointer2, Eye } from '@/components/ui/icons'
+import { LiveCollaborationPreview } from '@/components/settings/live-collaboration-preview'
+import { SettingsPage, SettingsHero, SettingsSection, SettingsRow } from '@/components/settings/settings-shell'
 
 export default function CollaborationSettingsPage() {
   const router = useRouter()
@@ -26,104 +28,103 @@ export default function CollaborationSettingsPage() {
   const hasTeamPlan = plan === 'team'
   const planLoading = plan === null
 
-  const handleToggle = () => {
+  const handleToggle = (next: boolean) => {
     if (!hasTeamPlan) return
-    if (enabled) {
-      updateSettings({ collaborationEnabled: false })
-      toast('Collaboration désactivée', 'info')
-    } else {
-      updateSettings({ collaborationEnabled: true })
-      toast('Collaboration activée', 'success')
-    }
+    updateSettings({ collaborationEnabled: next })
+    toast(next ? 'Collaboration activée' : 'Collaboration désactivée', next ? 'success' : 'info')
   }
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-40" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <div className="rounded-xl border border-border/50 p-6 space-y-4">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-9 w-9 rounded-lg" />
-            <div className="space-y-1.5">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-52" />
-            </div>
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="flex items-start gap-4 pb-2">
+          <Skeleton className="h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-44" />
+            <Skeleton className="h-4 w-72" />
           </div>
-          <Skeleton className="h-14 w-full rounded-xl" />
+        </div>
+        <div className="mt-6 border-t border-border py-7">
+          <Skeleton className="h-72 w-full rounded-2xl" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-      <div>
-        <h1 className="text-lg font-semibold text-foreground">Collaboration</h1>
-        <p className="text-sm text-muted-foreground">
-          Éditez vos documents à plusieurs, en temps réel
-        </p>
-      </div>
+    <SettingsPage>
+      <SettingsHero
+        icon={<Users className="h-6 w-6" />}
+        title="Collaboration"
+        badges={
+          enabled && hasTeamPlan ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Active
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+              <Crown className="h-3 w-3" /> Team
+            </span>
+          )
+        }
+        tagline="Éditez vos documents à plusieurs, en temps réel."
+        description="Chaque membre dispose de son propre curseur nommé, comme sur Canva ou Figma."
+      />
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20">
-              <Users className="h-4.5 w-4.5 text-purple-400" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-foreground">
-                Collaboration en temps réel
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Plusieurs personnes sur la même facture, chacune avec son curseur, comme sur Canva
-              </p>
-            </div>
-          </div>
+      <div className="mt-6">
+        <SettingsSection index={1}>
+          <LiveCollaborationPreview active={enabled && hasTeamPlan} />
+        </SettingsSection>
 
-          <div className="flex items-center justify-between rounded-xl border-2 border-border p-4">
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${enabled ? 'bg-gradient-to-br from-purple-500/10 to-indigo-500/10' : 'bg-muted'}`}
-              >
-                <Users
-                  className={`h-5 w-5 ${enabled ? 'text-purple-400' : 'text-muted-foreground'}`}
-                />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">Activer la collaboration</p>
-                <p className="text-xs text-muted-foreground">
-                  {enabled
-                    ? 'Le partage et l’édition en temps réel sont actifs sur vos documents.'
-                    : 'Active le partage et l’édition en temps réel sur vos documents.'}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleToggle}
+        <SettingsSection
+          index={2}
+          title="Édition en temps réel"
+          desc={
+            enabled
+              ? 'Le partage et l’édition collaborative sont actifs sur vos documents.'
+              : 'Activez le partage et l’édition collaborative sur vos documents.'
+          }
+          action={
+            <Switch
+              checked={enabled}
+              onChange={handleToggle}
               disabled={planLoading || !hasTeamPlan}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 disabled:cursor-not-allowed disabled:opacity-50 ${
-                enabled ? 'bg-purple-500' : 'bg-muted-foreground/30'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 rounded-full bg-white transition-transform shadow-sm ${
-                  enabled ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
+              className="mt-1"
+            />
+          }
+        />
 
-          {!planLoading && !hasTeamPlan && (
-            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-              <div className="flex items-start gap-2.5">
-                <Crown className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                <p className="text-xs text-foreground/80 leading-relaxed">
-                  La collaboration en temps réel est réservée au forfait Faktur Team.
-                </p>
+        <SettingsSection index={3} title="Ce que vous obtenez">
+          <div className="mt-2 divide-y divide-border">
+            <SettingsRow
+              icon={<MousePointer2 className="h-4 w-4" />}
+              title="Curseurs nommés"
+              desc="Voyez en direct où travaille chaque membre de l’équipe."
+            />
+            <SettingsRow
+              icon={<Eye className="h-4 w-4" />}
+              title="Modifications instantanées"
+              desc="Chaque champ se met à jour pour tout le monde, sans rechargement."
+            />
+            <SettingsRow
+              icon={<Users className="h-4 w-4" />}
+              title="Invités externes"
+              desc="Partagez un document avec un client ou un comptable, en lecture ou édition."
+            />
+          </div>
+        </SettingsSection>
+
+        {!planLoading && !hasTeamPlan && (
+          <SettingsSection index={4}>
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-accent/20 bg-accent-soft/40 p-5">
+              <div className="flex items-start gap-3">
+                <Crown className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Réservé au forfait Team</p>
+                  <p className="text-xs text-muted-foreground">
+                    Passez à Faktur Team pour éditer vos documents à plusieurs.
+                  </p>
+                </div>
               </div>
               <Button
                 size="sm"
@@ -133,9 +134,9 @@ export default function CollaborationSettingsPage() {
                 Passer à Team
               </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </SettingsSection>
+        )}
+      </div>
+    </SettingsPage>
   )
 }
