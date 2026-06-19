@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
+import { SettingsPage } from '@/components/settings/settings-shell'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -428,7 +429,7 @@ export default function TeamPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
+      <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
         {/* Team header card */}
         <div className="app-surface rounded-xl shadow-surface overflow-hidden">
           <div className="p-6 flex items-end justify-between">
@@ -482,11 +483,7 @@ export default function TeamPage() {
     : 'EQ'
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6 px-4 lg:px-6 py-4 md:py-6"
-    >
+    <SettingsPage className="space-y-6">
       {/* Team Header Card */}
       <Card className="overflow-hidden border-border/50">
         <div className="relative">
@@ -1537,6 +1534,6 @@ export default function TeamPage() {
           }}
         />
       )}
-    </motion.div>
+    </SettingsPage>
   )
 }
