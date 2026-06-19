@@ -647,6 +647,7 @@ function EditCreditNoteContent() {
           {showOptions && (
             <motion.div initial={{ opacity: 0, x: 20, width: 0 }} animate={{ opacity: 1, x: 0, width: 300 }} exit={{ opacity: 0, x: 20, width: 0 }} transition={{ duration: 0.25, ease: 'easeInOut' }} className="xl:shrink-0 order-2 overflow-hidden">
               <div className="xl:sticky xl:top-4 w-[300px]" ref={optionsPanelRef}>
+                <div className={readOnly ? 'pointer-events-none select-none opacity-60' : undefined} aria-disabled={readOnly || undefined}>
                 <DocumentOptionsPanel
                   options={options}
                   onChange={handleOptionsChange}
@@ -664,6 +665,7 @@ function EditCreditNoteContent() {
                   notes={notes}
                   onNotesChange={setNotes}
                 />
+                </div>
               </div>
             </motion.div>
           )}
@@ -697,15 +699,7 @@ function EditCreditNoteContent() {
           <div className="text-sm text-muted-foreground">
             Total : <span className="font-bold text-foreground">{total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
           </div>
-          {sharedAccess || readOnly ? (
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground" title="Vos modifications sont visibles en direct par le propriétaire, qui peut les enregistrer.">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-              </span>
-              Synchronisé en direct
-            </div>
-          ) : (
+          {sharedAccess || readOnly ? null : (
             <Button onClick={handleSave} disabled={saving} size="sm" className="min-w-[140px] rounded-xl">
               {saving ? (<><Spinner /> Enregistrement...</>) : (<><Save className="h-4 w-4 mr-1.5" /> Sauvegarder</>)}
             </Button>
