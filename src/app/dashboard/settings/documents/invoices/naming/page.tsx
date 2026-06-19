@@ -1,24 +1,35 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { motion, type Variants } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Hash, Pencil, Plus, X, AlertCircle } from '@/components/ui/icons'
-import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { useInvoiceSettings } from '@/lib/invoice-settings-context'
 import { api } from '@/lib/api'
+import { SettingsPage, SettingsHero, SettingsSection } from '@/components/settings/settings-shell'
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.06, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
-  }),
-} satisfies Variants
+function AnimatedMono({ value, className }: { value: string; className?: string }) {
+  return (
+    <span className={cn('relative inline-flex overflow-hidden', className)}>
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={value}
+          initial={{ y: '0.6em', opacity: 0, filter: 'blur(4px)' }}
+          animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+          exit={{ y: '-0.6em', opacity: 0, filter: 'blur(4px)' }}
+          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="inline-block"
+        >
+          {value}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  )
+}
 
 type VarName = 'numero' | 'annee' | 'mois' | 'date'
 
@@ -127,7 +138,7 @@ function SheetPreview({ pattern, fallback, kind }: { pattern: string; fallback: 
       </div>
       <div className="mt-2">
         <p className="text-[10px] font-bold tracking-widest text-zinc-500">{titleLabel}</p>
-        <p className="text-sm font-bold text-zinc-900 font-mono truncate">{resolved}</p>
+        <AnimatedMono value={resolved} className="max-w-full text-sm font-bold text-zinc-900 font-mono" />
       </div>
       <div className="mt-3 space-y-1">
         <div className="h-1.5 w-3/4 bg-zinc-200 rounded" />
@@ -473,129 +484,94 @@ export default function NamingSettingsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-48" />
-          <Skeleton className="h-4 w-80" />
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="flex items-start gap-4 pb-2">
+          <Skeleton className="h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-52" />
+            <Skeleton className="h-4 w-80" />
+          </div>
         </div>
-        <div className="space-y-6 max-w-3xl">
-          <Skeleton className="h-64 w-full rounded-xl" />
-          <Skeleton className="h-56 w-full rounded-xl" />
+        <div className="mt-6 space-y-7">
+          <Skeleton className="h-44 w-full rounded-2xl" />
+          <Skeleton className="h-48 w-full rounded-2xl" />
         </div>
       </div>
     )
   }
 
   return (
-    <motion.div initial="hidden" animate="visible" className="space-y-6 px-4 lg:px-6 py-4 md:py-6">
-      <motion.div variants={fadeUp} custom={0}>
-        <h1 className="text-2xl font-bold text-foreground">Nommage des documents</h1>
-        <p className="text-muted-foreground mt-1">
-          Configurez le format du nom et le prochain numéro de vos devis et factures
-        </p>
-      </motion.div>
+    <SettingsPage>
+      <SettingsHero
+        icon={<Hash className="h-6 w-6" />}
+        title="Nommage des documents"
+        tagline="Composez le format et le prochain numéro de vos pièces."
+        description="Mélangez du texte et des variables — l’aperçu se met à jour en direct."
+      />
 
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
-       <div className="space-y-6 min-w-0">
-        <motion.div variants={fadeUp} custom={1}>
-          <Card className="overflow-hidden border-border/50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
-                  <Hash className="h-4.5 w-4.5 text-accent" />
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold text-foreground">Format du nom</h2>
-                  <p className="text-xs text-muted-foreground">
-                    Cliquez sur le crayon pour composer le format
-                  </p>
-                </div>
-              </div>
+      <div className="mt-6">
+        <SettingsSection index={1}>
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Aperçu en direct
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="space-y-3">
+              <FilePreviewCard pattern={settings.quoteNumberPattern} fallback="DEV-{numero}" kind="devis" />
+              <FilePreviewCard pattern={settings.invoiceNumberPattern} fallback="FAC-{numero}" kind="facture" />
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:w-64">
+              <SheetPreview pattern={settings.quoteNumberPattern} fallback="DEV-{numero}" kind="devis" />
+              <SheetPreview pattern={settings.invoiceNumberPattern} fallback="FAC-{numero}" kind="facture" />
+            </div>
+          </div>
+        </SettingsSection>
 
-              <div className="space-y-5">
-                <PatternRow
-                  label="Nom du devis"
-                  pattern={settings.quoteNumberPattern}
-                  fallback="DEV-{numero}"
-                  kind="devis"
-                  onChange={(next) => updateSettings({ quoteNumberPattern: next })}
-                />
-                <PatternRow
-                  label="Nom de la facture"
-                  pattern={settings.invoiceNumberPattern}
-                  fallback="FAC-{numero}"
-                  kind="facture"
-                  onChange={(next) => updateSettings({ invoiceNumberPattern: next })}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <SettingsSection
+          index={2}
+          title="Format du nom"
+          desc="Cliquez sur le crayon pour composer le format avec des variables."
+        >
+          <div className="mt-4 space-y-5">
+            <PatternRow
+              label="Nom du devis"
+              pattern={settings.quoteNumberPattern}
+              fallback="DEV-{numero}"
+              kind="devis"
+              onChange={(next) => updateSettings({ quoteNumberPattern: next })}
+            />
+            <PatternRow
+              label="Nom de la facture"
+              pattern={settings.invoiceNumberPattern}
+              fallback="FAC-{numero}"
+              kind="facture"
+              onChange={(next) => updateSettings({ invoiceNumberPattern: next })}
+            />
+          </div>
+        </SettingsSection>
 
-        <motion.div variants={fadeUp} custom={2}>
-          <Card className="overflow-hidden border-border/50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft">
-                  <Pencil className="h-4.5 w-4.5 text-accent" />
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold text-foreground">Prochain numéro</h2>
-                  <p className="text-xs text-muted-foreground">
-                    Cliquez sur le crayon pour modifier le prochain numéro
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                <NextNumberRow
-                  label="Prochain devis"
-                  value={settings.nextQuoteNumber}
-                  autoNext={autoQuoteNext}
-                  patternHasNumero={quoteHasNumero}
-                  onChange={(next) => updateSettings({ nextQuoteNumber: next })}
-                />
-                <NextNumberRow
-                  label="Prochaine facture"
-                  value={settings.nextInvoiceNumber}
-                  autoNext={autoInvoiceNext}
-                  patternHasNumero={invoiceHasNumero}
-                  onChange={(next) => updateSettings({ nextInvoiceNumber: next })}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-       </div>
-
-       <motion.div variants={fadeUp} custom={3} className="space-y-4 xl:sticky xl:top-6 xl:self-start">
-        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-          Aperçu
-        </p>
-        <FilePreviewCard
-          pattern={settings.quoteNumberPattern}
-          fallback="DEV-{numero}"
-          kind="devis"
-        />
-        <FilePreviewCard
-          pattern={settings.invoiceNumberPattern}
-          fallback="FAC-{numero}"
-          kind="facture"
-        />
-        <div className="grid grid-cols-2 gap-3">
-          <SheetPreview
-            pattern={settings.quoteNumberPattern}
-            fallback="DEV-{numero}"
-            kind="devis"
-          />
-          <SheetPreview
-            pattern={settings.invoiceNumberPattern}
-            fallback="FAC-{numero}"
-            kind="facture"
-          />
-        </div>
-       </motion.div>
+        <SettingsSection
+          index={3}
+          title="Prochain numéro"
+          desc="Forcez le prochain numéro attribué, ou laissez la numérotation automatique."
+        >
+          <div className="mt-4 space-y-5">
+            <NextNumberRow
+              label="Prochain devis"
+              value={settings.nextQuoteNumber}
+              autoNext={autoQuoteNext}
+              patternHasNumero={quoteHasNumero}
+              onChange={(next) => updateSettings({ nextQuoteNumber: next })}
+            />
+            <NextNumberRow
+              label="Prochaine facture"
+              value={settings.nextInvoiceNumber}
+              autoNext={autoInvoiceNext}
+              patternHasNumero={invoiceHasNumero}
+              onChange={(next) => updateSettings({ nextInvoiceNumber: next })}
+            />
+          </div>
+        </SettingsSection>
       </div>
-    </motion.div>
+    </SettingsPage>
   )
 }
