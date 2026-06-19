@@ -9,6 +9,51 @@ function resolveApiUrl(endpoint: string) {
   return `${API_URL}${API_PREFIX}${endpoint}`
 }
 
+export type ConnectionStatus = 'online' | 'connecting' | 'offline'
+
+let connectionListeners: ((status: ConnectionStatus) => void)[] = []
+export function onConnectionStatus(cb: (status: ConnectionStatus) => void) {
+  connectionListeners.push(cb)
+  return () => {
+    connectionListeners = connectionListeners.filter((l) => l !== cb)
+  }
+}
+function emitConnectionStatus(status: ConnectionStatus) {
+  connectionListeners.forEach((cb) => {
+    try {
+      cb(status)
+    } catch {
+      /* ignore */
+    }
+  })
+}
+
+const MAX_CONNECT_RETRIES = 4
+const CONNECT_RETRY_DELAY_MS = 2500
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function fetchWithRetry(input: string, init: RequestInit): Promise<Response> {
+  let lastError: unknown
+  for (let attempt = 0; attempt <= MAX_CONNECT_RETRIES; attempt++) {
+    try {
+      const res = await fetch(input, init)
+      emitConnectionStatus('online')
+      return res
+    } catch (err) {
+      lastError = err
+      if (attempt < MAX_CONNECT_RETRIES) {
+        emitConnectionStatus('connecting')
+        await wait(CONNECT_RETRY_DELAY_MS)
+      }
+    }
+  }
+  emitConnectionStatus('offline')
+  throw lastError
+}
+
 function recordApiError(method: string, endpoint: string, status: number, body: unknown) {
   captureApiError({
     url: resolveApiUrl(endpoint),
@@ -109,7 +154,7 @@ async function request<T = unknown>(
   }
 
   try {
-    const res = await fetch(resolveApiUrl(endpoint), { ...options, headers, credentials: 'include' })
+    const res = await fetchWithRetry(resolveApiUrl(endpoint), { ...options, headers, credentials: 'include' })
 
     if (res.status === 423 || res.status === 401) {
       const data = await res.json().catch(() => ({}))
@@ -151,7 +196,7 @@ async function uploadRequest<T = unknown>(
   }
 
   try {
-    const res = await fetch(resolveApiUrl(endpoint), {
+    const res = await fetchWithRetry(resolveApiUrl(endpoint), {
       method: 'POST',
       headers,
       body: formData,
@@ -194,7 +239,7 @@ async function blobRequest(endpoint: string): Promise<{ blob?: Blob; filename?: 
   }
 
   try {
-    const res = await fetch(resolveApiUrl(endpoint), { method: 'GET', headers, credentials: 'include' })
+    const res = await fetchWithRetry(resolveApiUrl(endpoint), { method: 'GET', headers, credentials: 'include' })
 
     if (res.status === 423 || res.status === 401) {
       const data = await res.json().catch(() => ({}))
@@ -235,7 +280,7 @@ async function postBlobRequest(
   }
 
   try {
-    const res = await fetch(resolveApiUrl(endpoint), {
+    const res = await fetchWithRetry(resolveApiUrl(endpoint), {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
